@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: connect
+  jpa:
+    show-sql: true
+  output:
+    ansi:
+      enabled: always                 # ✅ Цветной вывод
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+
+  pattern:
+    dateformat: "yyyy-MM-dd HH:mm:ss"  # ✅ Формат даты
+
+app:
+  welcome-message: "Welcome to Spring"
+
+server:
+  port: 8080
