@@ -10,7 +10,10 @@ import jakarta.persistence.Table;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -23,12 +26,22 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String userName;
+
+    @Column(nullable = false)
     private String firstName;
+
+    @Column(nullable = false)
     private String lastName;
+
+    @Column(nullable = false)
     private String passwordHash;
+
+    @CreatedDate
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 }
