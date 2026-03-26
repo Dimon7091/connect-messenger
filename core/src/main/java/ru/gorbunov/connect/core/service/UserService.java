@@ -11,6 +11,7 @@ import ru.gorbunov.connect.core.exception.EmailAlreadyExistsException;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.exception.UserNameAlreadyExistsException;
 import ru.gorbunov.connect.core.mapper.UserMapper;
+import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.repository.UserRepository;
 
 import java.util.List;
@@ -40,6 +41,7 @@ public class UserService {
         }
 
         var user = mapper.toEntity(requestData);
+        user.getRoles().add(Role.ROLE_USER);
         var savedUser = userRepository.save(user);
         return mapper.toDto(savedUser);
     }
