@@ -1,4 +1,4 @@
-package ru.gorbunov.connect.web.controller.api;
+package ru.gorbunov.connect.web.controller.api.v1;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
