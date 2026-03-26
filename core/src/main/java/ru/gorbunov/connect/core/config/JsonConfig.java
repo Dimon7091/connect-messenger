@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 @Configuration
-public class JacksonConfig {
+public class JsonConfig {
     @Bean
     Jackson2ObjectMapperBuilder objectMapperBuilder() {
         var builder = new Jackson2ObjectMapperBuilder();
