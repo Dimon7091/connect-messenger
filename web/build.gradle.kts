@@ -10,6 +10,7 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":core"))
     // Основные зависимости для веб
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-security")
