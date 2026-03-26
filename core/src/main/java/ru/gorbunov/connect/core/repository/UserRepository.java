@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import ru.gorbunov.connect.core.models.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    Boolean existByEmail(String email);
-    Boolean existByUserName(String userName);
+    Boolean existsByEmail(String email);
+    Boolean existsByUserName(String userName);
 }
