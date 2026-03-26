@@ -1,10 +1,8 @@
 package ru.gorbunov.connect.web.controller.api;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -26,11 +24,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")
-public class UserV1Controller {
+public class UserControllerV1 {
 
     private final UserService userService;
 
-    public UserV1Controller(UserService userService) {
+    public UserControllerV1(UserService userService) {
         this.userService = userService;
     }
 
