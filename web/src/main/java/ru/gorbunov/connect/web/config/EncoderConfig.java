@@ -1,4 +1,4 @@
-package ru.gorbunov.connect.web.controller.config;
+package ru.gorbunov.connect.web.config;
 
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;

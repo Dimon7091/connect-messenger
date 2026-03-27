@@ -1,4 +1,4 @@
-package ru.gorbunov.connect.web.controller.util;
+package ru.gorbunov.connect.web.util;
 
 
 import org.springframework.beans.factory.annotation.Autowired;

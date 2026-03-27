@@ -1,4 +1,4 @@
-package ru.gorbunov.connect.web.controller.config;
+package ru.gorbunov.connect.web.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -18,8 +18,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import ru.gorbunov.connect.core.service.CustomUserDetailsService;
-
-import static org.springframework.http.HttpMethod.POST;
 
 @Configuration
 @EnableWebSecurity

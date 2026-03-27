@@ -1,4 +1,4 @@
-package ru.gorbunov.connect.web.controller.config;
+package ru.gorbunov.connect.web.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;

@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.models.User;
-import ru.gorbunov.connect.web.controller.dto.AuthRequest;
-import ru.gorbunov.connect.web.controller.util.JwtUtil;
+import ru.gorbunov.connect.web.dto.AuthRequest;
+import ru.gorbunov.connect.web.util.JwtUtil;
 
 @RestController()
 @RequestMapping("/api/v1")

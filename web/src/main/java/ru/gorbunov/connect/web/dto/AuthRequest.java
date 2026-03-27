@@ -1,4 +1,4 @@
-package ru.gorbunov.connect.web.controller.dto;
+package ru.gorbunov.connect.web.dto;
 
 public record AuthRequest(
         String userName,
