@@ -15,6 +15,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
 
+    // База данных
+    runtimeOnly("org.postgresql:postgresql")
+    implementation("com.h2database:h2:2.4.240")
+
     // Маппер
     implementation("org.mapstruct:mapstruct:1.5.5.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
