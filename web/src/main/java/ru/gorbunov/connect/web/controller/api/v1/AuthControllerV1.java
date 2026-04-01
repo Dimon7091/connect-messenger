@@ -28,7 +28,7 @@ public class AuthControllerV1 {
         // СОХРАНЯЕМ результат аутентификации
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        authRequest.userName(),
+                        authRequest.username(),
                         authRequest.password()
                 )
         );
