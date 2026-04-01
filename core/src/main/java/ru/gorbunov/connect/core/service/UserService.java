@@ -27,7 +27,7 @@ public class UserService {
     private UserMapper mapper;
 
     // --- Create ---
-    public UserResponse create(UserCreateRequest requestData) {
+    public UserResponse create(UserCreateRequest requestData, Role role) {
         if (!userRepository.existsByEmail(requestData.email())) {
             throw new EmailAlreadyExistsException(
                     "Пользователь с email: " + requestData.email() + " уже существует"
@@ -41,7 +41,7 @@ public class UserService {
         }
 
         var user = mapper.toEntity(requestData);
-        user.getRoles().add(Role.ROLE_USER);
+        user.getRoles().add(role);
         var savedUser = userRepository.save(user);
         return mapper.toDto(savedUser);
     }
@@ -98,5 +98,9 @@ public class UserService {
             throw new ResourceNotFoundException("Пользователь не найден");
         }
         userRepository.deleteById(id);
+    }
+
+    public Long totalUsers() {
+        return userRepository.count();
     }
 }
