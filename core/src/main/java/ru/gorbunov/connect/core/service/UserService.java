@@ -12,9 +12,11 @@ import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.exception.UserNameAlreadyExistsException;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.Role;
+import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -100,7 +102,12 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    // Вспомогательные методы
     public Long totalUsers() {
         return userRepository.count();
+    }
+
+    public List<User> findUsersByRole(Role role) {
+        return userRepository.findAllByRoles(role);
     }
 }
