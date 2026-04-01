@@ -1,6 +1,8 @@
 package ru.gorbunov.connect.core.service;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.UserCreateRequest;
@@ -15,11 +17,13 @@ import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.UserRepository;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Transactional
+@Slf4j
 public class UserService {
 
     @Autowired
@@ -30,20 +34,20 @@ public class UserService {
 
     // --- Create ---
     public UserResponse create(UserCreateRequest requestData, Role role) {
-        if (!userRepository.existsByEmail(requestData.email())) {
+        if (userRepository.existsByEmail(requestData.email())) {
             throw new EmailAlreadyExistsException(
                     "Пользователь с email: " + requestData.email() + " уже существует"
             );
         }
 
-        if (!userRepository.existsByUserName(requestData.userName())) {
+        if (userRepository.existsByUserName(requestData.userName())) {
             throw new UserNameAlreadyExistsException(
                     "Пользователь с именем пользователя: " + requestData.userName() + " уже существует"
             );
         }
 
         var user = mapper.toEntity(requestData);
-        user.getRoles().add(role);
+        user.setRole(role);
         var savedUser = userRepository.save(user);
         return mapper.toDto(savedUser);
     }
