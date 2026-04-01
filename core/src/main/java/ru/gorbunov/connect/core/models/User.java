@@ -69,6 +69,13 @@ public class User implements UserDetails {
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
+    public void setRole(Role role) {
+        if (roles == null) {
+            roles = new HashSet<>();
+        }
+        this.roles.add(role);
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
