@@ -4,8 +4,11 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -30,10 +33,29 @@ public class RsaKeyProperties {
     @PostConstruct
     public void init() throws Exception {
         if (privateKey != null) {
-            this.rsaPrivateKey = convertPrivateKey(privateKey);
+            String pemContent;
+            // Если строка начинается с префикса, читаем файл
+            if (privateKey.startsWith("classpath:") || privateKey.startsWith("file:")) {
+                Resource resource = new DefaultResourceLoader().getResource(privateKey);
+                pemContent = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            } else {
+                // Иначе считаем, что это сам ключ
+                pemContent = privateKey;
+            }
+            this.rsaPrivateKey = convertPrivateKey(pemContent);
         }
+
         if (publicKey != null) {
-            this.rsaPublicKey = convertPublicKey(publicKey);
+            String pemContent;
+            // Если строка начинается с префикса, читаем файл
+            if (publicKey.startsWith("classpath:") || publicKey.startsWith("file:")) {
+                Resource resource = new DefaultResourceLoader().getResource(publicKey);
+                pemContent = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            } else {
+                // Иначе считаем, что это сам ключ
+                pemContent = publicKey;
+            }
+            this.rsaPublicKey = convertPublicKey(pemContent);
         }
     }
 
