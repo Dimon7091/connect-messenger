@@ -17,6 +17,7 @@ import ru.gorbunov.connect.core.dto.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.UserResponse;
+import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.service.UserService;
 
 import java.net.URI;
@@ -34,7 +35,7 @@ public class UserControllerV1 {
 
     @PostMapping("")
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest requestData) {
-        var savedUser = userService.create(requestData);
+        var savedUser = userService.create(requestData, Role.ROLE_USER);
         return ResponseEntity.created(URI.create("api/v1/users/" + savedUser.id()))
                 .body(savedUser);
     }
