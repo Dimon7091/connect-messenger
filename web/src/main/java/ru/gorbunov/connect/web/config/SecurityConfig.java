@@ -51,7 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/**.js", "/**.css").permitAll()
 
                         // ===== ПУБЛИЧНЫЕ API =====
-                        .requestMatchers("/#/login", "/api/v1/login").permitAll()
+                        .requestMatchers("/api/v1/auth/login").permitAll()
 
                         // ===== ВСЕ ОСТАЛЬНОЕ =====
                         .anyRequest().authenticated())
