@@ -2,10 +2,13 @@ package ru.gorbunov.connect.web.controller.api.v1;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +45,13 @@ public class AuthControllerV1 {
     }
 
     @PostMapping("verify")
-    public ResponseEntity<Void> verifyToken() {
+    public ResponseEntity<Void> verifyToken(@AuthenticationPrincipal UserDetails userDetail) {
+        boolean isAdmin = userDetail.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            ResponseEntity.status(HttpStatus.FORBIDDEN);
+        }
         return ResponseEntity.ok().build();
     }
 }
