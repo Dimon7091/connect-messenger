@@ -14,7 +14,7 @@ import ru.gorbunov.connect.web.dto.AuthRequest;
 import ru.gorbunov.connect.web.util.JwtUtil;
 
 @RestController()
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/auth")
 public class AuthControllerV1 {
 
     @Autowired
@@ -38,5 +38,7 @@ public class AuthControllerV1 {
         // Генерируем токен
         return jwtUtils.generateToken(user);
     }
+
+
 
 }
