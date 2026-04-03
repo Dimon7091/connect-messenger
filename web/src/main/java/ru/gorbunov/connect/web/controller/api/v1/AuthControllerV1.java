@@ -2,12 +2,14 @@ package ru.gorbunov.connect.web.controller.api.v1;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.web.dto.AuthRequest;
@@ -39,6 +41,8 @@ public class AuthControllerV1 {
         return jwtUtils.generateToken(user);
     }
 
-
-
+    @PostMapping("verify")
+    public ResponseEntity<Void> verifyToken() {
+        return ResponseEntity.ok().build();
+    }
 }
