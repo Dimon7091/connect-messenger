@@ -1,9 +1,12 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,10 +22,14 @@ import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.web.dto.AuthRequest;
 import ru.gorbunov.connect.web.util.JwtUtil;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController()
 @RequestMapping("/api/v1/auth")
 public class AuthControllerV1 {
 
+    private static final Log log = LogFactory.getLog(AuthControllerV1.class);
     @Autowired
     private UserService userService;
 
@@ -48,14 +55,15 @@ public class AuthControllerV1 {
     }
 
     @PostMapping("/login-admin")
-    public ResponseEntity<String> creteJwtForAdmin(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<Map<String, String>> creteJwtForAdmin(@RequestBody AuthRequest authRequest) {
         // Проверка роли admin
         var adminDetails = userService.findByUserName(authRequest.username());
         boolean isAdmin = adminDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         if (!isAdmin) {
-            ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Доступ запрещен");
+            log.info("!!!!!!!!!!!!!!!! Доступ запрещен !!!!!!!!!!!!!!!!!!!!!");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Доступ запрещен"));
         }
         // СОХРАНЯЕМ результат аутентификации
         Authentication authentication = authenticationManager.authenticate(
@@ -67,18 +75,16 @@ public class AuthControllerV1 {
         // Теперь в authentication есть principal!
         User admin = (User) authentication.getPrincipal();
         // Генерируем токен
+        String token = jwtUtils.generateToken(admin);
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
         return ResponseEntity.ok()
-                .body(jwtUtils.generateToken(admin));
+                .body(response);
     }
 
     @PostMapping("verify-admin-token")
-    public ResponseEntity<Void> verifyAdminToken(@AuthenticationPrincipal UserDetails userDetail) {
-        boolean isAdmin = userDetail.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-        if (!isAdmin) {
-            ResponseEntity.status(HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasRole('ADMIN')") // Spring сам вернет 403, если роли нет
+    public ResponseEntity<Void> verifyAdminToken() {
         return ResponseEntity.ok().build();
     }
 }
