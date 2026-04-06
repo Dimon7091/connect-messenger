@@ -44,8 +44,8 @@ public class AuthControllerV1 {
         return jwtUtils.generateToken(user);
     }
 
-    @PostMapping("verify")
-    public ResponseEntity<Void> verifyToken(@AuthenticationPrincipal UserDetails userDetail) {
+    @PostMapping("verify-admin")
+    public ResponseEntity<Void> verifyAdmin(@AuthenticationPrincipal UserDetails userDetail) {
         boolean isAdmin = userDetail.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
