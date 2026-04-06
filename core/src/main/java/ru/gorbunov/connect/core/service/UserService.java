@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.UserPatchUpdateRequest;
@@ -64,6 +65,18 @@ public class UserService {
         return mapper.toDto(user);
     }
 
+    public Long totalUsers() {
+        return userRepository.count();
+    }
+
+    public Optional<UserDetails> findByUserName(String userName) {
+        return userRepository.findByUserName(userName);
+    }
+
+    public List<User> findUsersByRole(Role role) {
+        return userRepository.findAllByRoles(role);
+    }
+
     // --- Update ---
     public UserResponse putUpdate(Long id, UserPutUpdateRequest requestData) {
         var user = userRepository.findById(id)
@@ -104,14 +117,5 @@ public class UserService {
             throw new ResourceNotFoundException("Пользователь не найден");
         }
         userRepository.deleteById(id);
-    }
-
-    // Вспомогательные методы
-    public Long totalUsers() {
-        return userRepository.count();
-    }
-
-    public List<User> findUsersByRole(Role role) {
-        return userRepository.findAllByRoles(role);
     }
 }
