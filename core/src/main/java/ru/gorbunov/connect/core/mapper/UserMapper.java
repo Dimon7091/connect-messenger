@@ -27,7 +27,7 @@ public abstract class UserMapper {
 
     @Mapping(source = "password", target = "passwordHash", qualifiedByName = "hashPassword")
     public abstract User toEntity(UserCreateRequest dto);
-
+    @Mapping(source = "username", target = "userName")
     public abstract UserResponse toDto(User entity);
 
     public abstract void putUpdate(UserPutUpdateRequest dto, @MappingTarget User entity);
