@@ -60,20 +60,20 @@ public class DataInitializer {
         );
         var admin = userService.create(adminData, Role.ROLE_ADMIN);
         log.info("✅ Admin user created successfully!");
-        log.info("📧 Email: {}", admin.email());
+        log.info("📧 UserName: {}", admin.userName());
     }
 
     public void createTestUsers(Integer count) {
         for (int i = 0; i < count; i++) {
             var userData = new UserCreateRequest(
                     faker.internet().emailAddress(),
-                    faker.name().name(),
+                    faker.name().firstName().toLowerCase(),
                     faker.name().firstName(),
                     faker.name().lastName(),
                     faker.lorem().characters(8)
             );
             var newUser = userService.create(userData, Role.ROLE_USER);
-            log.info("✅ New user created, email: {}", newUser.email());
+            log.info("✅ New user created, username: {}", newUser.userName());
         }
     }
 }
