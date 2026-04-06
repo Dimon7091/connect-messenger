@@ -2,6 +2,7 @@ package ru.gorbunov.connect.core.exception.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -44,5 +45,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleConflictException(ConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<String> handleAccessDenied(AuthorizationDeniedException ex) {
+        // Теперь вместо ошибки в логах клиент получит 403
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не достаточно прав для доступа");
     }
 }
