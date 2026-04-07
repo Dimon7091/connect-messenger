@@ -10,6 +10,7 @@ import ru.gorbunov.connect.core.dto.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.UserResponse;
+import ru.gorbunov.connect.core.dto.UserStatResponse;
 import ru.gorbunov.connect.core.exception.EmailAlreadyExistsException;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.exception.UserNameAlreadyExistsException;
@@ -63,6 +64,12 @@ public class UserService {
         var user = userRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
         return mapper.toDto(user);
+    }
+
+    public UserStatResponse getUsersStat() {
+        Long totalUsers = userRepository.count();
+        Long onlineUsers = 0L;
+        return new UserStatResponse(totalUsers, onlineUsers);
     }
 
     public Long totalUsers() {
