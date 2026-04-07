@@ -17,7 +17,9 @@ import ru.gorbunov.connect.core.dto.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.UserResponse;
+import ru.gorbunov.connect.core.dto.UserStatResponse;
 import ru.gorbunov.connect.core.models.Role;
+import ru.gorbunov.connect.core.repository.UserRepository;
 import ru.gorbunov.connect.core.service.UserService;
 
 import java.net.URI;
@@ -52,6 +54,11 @@ public class UserControllerV1 {
         var user = userService.findById(id);
         return ResponseEntity.ok()
                 .body(user);
+    }
+
+    @GetMapping("stat")
+    public UserStatResponse stat() {
+       return userService.getUsersStat();
     }
 
     @PutMapping("/{id}")
