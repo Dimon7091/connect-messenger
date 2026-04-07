@@ -4,6 +4,10 @@ import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.UserCreateRequest;
@@ -18,6 +22,7 @@ import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.UserRepository;
+
 
 import java.util.HashSet;
 import java.util.List;
@@ -55,9 +60,8 @@ public class UserService {
     }
 
     // --- Read ---
-    public List<UserResponse> findAll() {
-        var users = userRepository.findAll();
-        return users.stream().map(user -> mapper.toDto(user)).toList();
+    public Page<UserResponse> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).map(mapper::toDto);
     }
 
     public UserResponse findById(Long id) {
