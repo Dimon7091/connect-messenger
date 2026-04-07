@@ -61,7 +61,6 @@ public class AuthControllerV1 {
         boolean isAdmin = adminDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         if (!isAdmin) {
-            log.info("!!!!!!!!!!!!!!!! Доступ запрещен !!!!!!!!!!!!!!!!!!!!!");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("message", "Доступ запрещен"));
         }

@@ -74,6 +74,7 @@ public class DataInitializer {
             );
             var newUser = userService.create(userData, Role.ROLE_USER);
             log.info("✅ New user created, username: {}", newUser.userName());
+            log.info(" Password: {}", userData.password());
         }
     }
 }
