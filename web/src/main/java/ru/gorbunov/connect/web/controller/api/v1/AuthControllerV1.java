@@ -58,8 +58,8 @@ public class AuthControllerV1 {
     public ResponseEntity<Map<String, String>> creteJwtForAdmin(@RequestBody AuthRequest authRequest) {
         // Проверка роли admin
         var adminDetails = userService.findByUserName(authRequest.username());
-        boolean isAdmin = adminDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isAdmin = adminDetails.roles().stream()
+                .anyMatch(a -> a.equals("ROLE_ADMIN"));
         if (!isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("message", "Доступ запрещен"));
@@ -80,6 +80,8 @@ public class AuthControllerV1 {
         return ResponseEntity.ok()
                 .body(response);
     }
+
+
 
     @PostMapping("verify-admin-token")
     @PreAuthorize("hasRole('ADMIN')") // Spring сам вернет 403, если роли нет

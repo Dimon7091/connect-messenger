@@ -80,9 +80,10 @@ public class UserService {
         return userRepository.count();
     }
 
-    public UserDetails findByUserName(String userName) {
-        return userRepository.findByUserName(userName)
+    public UserResponse findByUserName(String userName) {
+        var user = userRepository.findByUserName(userName)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
+        return mapper.toDto(user);
     }
 
     public List<User> findUsersByRole(Role role) {
