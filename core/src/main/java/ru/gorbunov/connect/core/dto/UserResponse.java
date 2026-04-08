@@ -5,5 +5,7 @@ public record UserResponse(
         String userName,
         String email,
         String firstName,
-        String lastName
+        String lastName,
+        String createdAt,
+        String lastSeen
 ) {}
