@@ -41,16 +41,17 @@ public class DataInitializer {
                 User admin = userService.findUsersByRole(Role.ROLE_ADMIN).getFirst();
                 log.info("Admin user is already exist: {} ", admin.getEmail());
             }
-            createTestUsers(4);
+            createTestUsers(20);
         };
     }
 
-    public void createUserAdmin(String email,
-                                String userName,
-                                String firstName,
-                                String lastName,
-                                String password) {
-
+    public void createUserAdmin(
+            String email,
+            String userName,
+            String firstName,
+            String lastName,
+            String password
+    ) {
         var adminData = new UserCreateRequest(
                 email,
                 userName,
