@@ -13,7 +13,11 @@ import ru.gorbunov.connect.core.dto.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.UserResponse;
+import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Mapper(
         uses = {JsonNullableMapper.class},
@@ -27,7 +31,9 @@ public abstract class UserMapper {
 
     @Mapping(source = "password", target = "passwordHash", qualifiedByName = "hashPassword")
     public abstract User toEntity(UserCreateRequest dto);
+
     @Mapping(source = "username", target = "userName")
+    @Mapping(source = "roles", target = "roles", qualifiedByName = "rolesEnumToString")
     public abstract UserResponse toDto(User entity);
 
     public abstract void putUpdate(UserPutUpdateRequest dto, @MappingTarget User entity);
@@ -37,5 +43,12 @@ public abstract class UserMapper {
     @Named("hashPassword")
     protected String hashPassword(String rawPassword) {
         return rawPassword == null ? null : passwordEncoder.encode(rawPassword);
+    }
+
+    @Named("rolesEnumToString")
+    protected Set<String> rolesEnumToString(Set<Role> rawRoles) {
+        return rawRoles.stream()
+                .map(Enum::name)
+                .collect(Collectors.toSet());
     }
 }
