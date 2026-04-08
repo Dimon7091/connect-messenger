@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,6 +26,7 @@ import ru.gorbunov.connect.core.dto.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.UserResponse;
 import ru.gorbunov.connect.core.dto.UserStatResponse;
 import ru.gorbunov.connect.core.models.Role;
+import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.UserRepository;
 import ru.gorbunov.connect.core.service.UserService;
 
@@ -65,7 +68,14 @@ public class UserControllerV1 {
                 .body(user);
     }
 
-    @GetMapping("stat")
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal UserDetails userDetails) {
+        var user = userService.findByUserName(userDetails.getUsername());
+        return ResponseEntity.ok()
+                .body(user);
+    }
+
+    @GetMapping("/stat")
     public UserStatResponse stat() {
        return userService.getUsersStat();
     }
