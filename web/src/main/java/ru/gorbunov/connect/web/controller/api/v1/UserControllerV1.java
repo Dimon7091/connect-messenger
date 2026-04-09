@@ -1,6 +1,8 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
 import jakarta.validation.Valid;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -37,6 +40,7 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 public class UserControllerV1 {
 
+    private static final Log log = LogFactory.getLog(UserControllerV1.class);
     private final UserService userService;
 
     public UserControllerV1(UserService userService) {
@@ -69,8 +73,8 @@ public class UserControllerV1 {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal UserDetails userDetails) {
-        var user = userService.findByUserName(userDetails.getUsername());
+    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
+        var user = userService.findByUserName(jwt.getClaim("preferred_username"));
         return ResponseEntity.ok()
                 .body(user);
     }

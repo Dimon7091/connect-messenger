@@ -33,7 +33,8 @@ public class JwtUtil {
                 .issuedAt(now.toInstant())
                 .expiresAt(now.plusMonths(1).toInstant())  // ✅ +1 месяц
                 .subject(user.getUsername())
-                .claim("userId", user.getId())
+                .claim("sub", user.getId())
+                .claim("preferred_username", user.getUsername())
                 .claim("roles", roles)
                 .build();
 

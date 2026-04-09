@@ -40,7 +40,7 @@ public class AuthControllerV1 {
     private AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
-    public String createJwtForUser(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<Map<String, String>> createJwtForUser(@RequestBody AuthRequest authRequest) {
         // СОХРАНЯЕМ результат аутентификации
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -49,9 +49,13 @@ public class AuthControllerV1 {
                 )
         );
         // Теперь в authentication есть principal!
-        User user = (User) authentication.getPrincipal();
+        User admin = (User) authentication.getPrincipal();
         // Генерируем токен
-        return jwtUtils.generateToken(user);
+        String token = jwtUtils.generateToken(admin);
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+        return ResponseEntity.ok()
+                .body(response);
     }
 
     @PostMapping("/login-admin")
