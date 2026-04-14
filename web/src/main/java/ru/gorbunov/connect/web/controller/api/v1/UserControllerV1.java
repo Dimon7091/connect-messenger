@@ -6,11 +6,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,18 +21,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.gorbunov.connect.core.dto.UserCreateRequest;
-import ru.gorbunov.connect.core.dto.UserPatchUpdateRequest;
-import ru.gorbunov.connect.core.dto.UserPutUpdateRequest;
-import ru.gorbunov.connect.core.dto.UserResponse;
-import ru.gorbunov.connect.core.dto.UserStatResponse;
+import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
+import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
+import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
+import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.models.Role;
-import ru.gorbunov.connect.core.models.User;
-import ru.gorbunov.connect.core.repository.UserRepository;
 import ru.gorbunov.connect.core.service.UserService;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")

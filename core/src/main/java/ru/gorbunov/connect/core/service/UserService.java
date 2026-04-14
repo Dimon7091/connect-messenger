@@ -1,20 +1,16 @@
 package ru.gorbunov.connect.core.service;
 
 import jakarta.transaction.Transactional;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import ru.gorbunov.connect.core.dto.UserCreateRequest;
-import ru.gorbunov.connect.core.dto.UserPatchUpdateRequest;
-import ru.gorbunov.connect.core.dto.UserPutUpdateRequest;
-import ru.gorbunov.connect.core.dto.UserResponse;
-import ru.gorbunov.connect.core.dto.UserStatResponse;
+import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
+import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
+import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
+import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.exception.EmailAlreadyExistsException;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.exception.UserNameAlreadyExistsException;
@@ -24,9 +20,7 @@ import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.UserRepository;
 
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional

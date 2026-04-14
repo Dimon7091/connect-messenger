@@ -1,4 +1,4 @@
-package ru.gorbunov.connect.core.dto;
+package ru.gorbunov.connect.core.dto.user;
 
 import java.util.Set;
 

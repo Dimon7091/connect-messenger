@@ -9,10 +9,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.gorbunov.connect.core.dto.UserCreateRequest;
-import ru.gorbunov.connect.core.dto.UserPatchUpdateRequest;
-import ru.gorbunov.connect.core.dto.UserPutUpdateRequest;
-import ru.gorbunov.connect.core.dto.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
+import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
+import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
+import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 

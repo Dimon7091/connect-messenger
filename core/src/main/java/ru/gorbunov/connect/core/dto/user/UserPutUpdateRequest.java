@@ -1,13 +1,11 @@
-package ru.gorbunov.connect.core.dto;
+package ru.gorbunov.connect.core.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.hibernate.annotations.NotFound;
-import org.jetbrains.annotations.NotNull;
 
-public record UserCreateRequest(
+public record UserPutUpdateRequest(
         @Email(
                 regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
                 message = "Не правильный формат email"
@@ -37,6 +35,5 @@ public record UserCreateRequest(
                 regexp = "^[a-zA-Zа-яА-ЯёЁ]+$\n",
                 message = "Фамилия может содержать только буквы русского или английского языка"
         )
-        String lastName,
-        String password
+        String lastName
 ) { }
