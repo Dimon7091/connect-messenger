@@ -58,6 +58,12 @@ public class UserService {
         return userRepository.findAll(pageable).map(mapper::toDto);
     }
 
+    public List<UserResponse> findByUserNameStartingWith(String userName) {
+        return userRepository.findByUserNameStartingWith(userName).stream()
+                .map(user -> mapper.toDto(user))
+                .toList();
+    }
+
     public UserResponse findById(Long id) {
         var user = userRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
