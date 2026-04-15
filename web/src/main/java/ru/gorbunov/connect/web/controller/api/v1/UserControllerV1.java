@@ -30,6 +30,7 @@ import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.service.UserService;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -60,7 +61,7 @@ public class UserControllerV1 {
                 .body(users);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<UserResponse> show(@PathVariable("id") Long id) {
         var user = userService.findById(id);
         return ResponseEntity.ok()
@@ -72,6 +73,13 @@ public class UserControllerV1 {
         var user = userService.findByUserName(jwt.getClaim("preferred_username"));
         return ResponseEntity.ok()
                 .body(user);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserResponse>> search(@RequestParam("username") String userName) {
+        var users = userService.findByUserNameStartingWith(userName);
+        return ResponseEntity.ok()
+                .body(users);
     }
 
     @GetMapping("/stat")
