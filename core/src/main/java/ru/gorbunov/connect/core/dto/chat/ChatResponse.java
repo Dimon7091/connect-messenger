@@ -1,6 +1,4 @@
-package ru.gorbunov.connect.core.dto;
-
-import ru.gorbunov.connect.core.models.User;
+package ru.gorbunov.connect.core.dto.chat;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,8 +6,7 @@ import java.util.List;
 public record ChatResponse(
         Long id,
         String type,
-        List<User> participants,
-        String lastMessage,
+        List<Long> participants,
         Integer unreadCount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,

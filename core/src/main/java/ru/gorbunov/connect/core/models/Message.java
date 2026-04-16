@@ -38,6 +38,6 @@ public class Message {
     @Column(name = "deleted_by")
     private List<Long> deletedBy;  // кто удалил
 
-    @Column(name = "deleted_by")
+    @Column(name = "read_by")
     private List<Long> readBy;     // кто прочитал
 }
