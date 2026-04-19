@@ -26,6 +26,7 @@ dependencies {
     // Json
     implementation("org.openapitools:jackson-databind-nullable:0.2.6")
 
+    implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.15.2")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
