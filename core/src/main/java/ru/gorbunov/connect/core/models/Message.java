@@ -1,7 +1,9 @@
 package ru.gorbunov.connect.core.models;
 
+import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,10 +15,12 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Setter
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 
 @Entity
 @Table(name = "messages", indexes = {
@@ -26,8 +30,8 @@ import java.util.UUID;
 public class Message {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Tsid
+    private Long id;
 
     @Column(name = "chat_id", nullable = false)
     private Long chatId;
@@ -50,7 +54,7 @@ public class Message {
     private MessageStatus status; // SENT, DELIVERED, READ, FAILED
 
     @Column(name = "reply_to_id")
-    private UUID replyToId;
+    private Long replyToId;
 
     // Используем JSONB для гибкости вложений и списков
     @JdbcTypeCode(SqlTypes.JSON)
