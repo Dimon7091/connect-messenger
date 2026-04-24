@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
+import ru.gorbunov.connect.core.models.UserPrincipal;
 import ru.gorbunov.connect.web.util.JwtUtil;
 
 import java.util.Map;
@@ -24,36 +25,37 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
+        log.info("🔐 ===== HANDSHAKE START =====");
 
-        if (request instanceof ServletServerHttpRequest) {
-            HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
-
-            // Извлекаем токен из параметров URL
-            String token = servletRequest.getParameter("token");
-
+        if (request instanceof ServletServerHttpRequest servletServerRequest) {
+            String token = servletServerRequest.getServletRequest().getParameter("token");
+            log.info("JWT token: {}", token);
             if (token != null) {
                 try {
-                    // Декодируем JWT и получаем userId
-                    Long userId = decoder.decode(token).getClaim("sub");
-                    attributes.put("userId", userId);
-                    return true;
+                    var jwt = decoder.decode(token);
+                    // Извлекаем sub и приводим к Long
+                    Object sub = jwt.getClaim("sub");
+                    Long userId = (sub instanceof Number n) ? n.longValue() : Long.parseLong(sub.toString());
+                    log.info("JWT token: {}, userId: {}", token, userId);
+                    if (userId != null) {
+                        // Кладем в атрибуты, чтобы HandshakeHandler увидел этот ID
+                        attributes.put("userId", userId);
+                        return true;
+                    }
                 } catch (Exception e) {
-                    return false;
+                    log.error("❌ JWT validation failed: {}", e.getMessage());
                 }
             }
         }
-        return false;
+        return false; // Отклоняем соединение, если токена нет или он невалиден
     }
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                WebSocketHandler wsHandler, Exception exception) {
-        if (exception != null) {
-            // Что-то пошло не так при handshake
-            log.error("Handshake failed", exception);
-            return;
+        if (exception == null) {
+            log.info("✅ WebSocket handshake completed successfully");
         }
-
-        log.info("✅ WebSocket handshake completed successfully");
     }
 }
+

@@ -1,25 +1,43 @@
 package ru.gorbunov.connect.web.config;
 
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.*;
 
+@Slf4j
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    @Autowired
+    private AuthHandshakeInterceptor authHandshakeInterceptor;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-                .addInterceptors(new AuthHandshakeInterceptor())
-                .setAllowedOrigins("*")
+        log.info("🔧 Registering STOMP endpoint with interceptor: {}",
+                authHandshakeInterceptor != null ? "present" : "NULL");
+        registry.addEndpoint("/chat-ws")
+                .setAllowedOriginPatterns("*")
+                .addInterceptors(authHandshakeInterceptor)
+                .setHandshakeHandler(new MyHandshakeHandler())
                 .withSockJS();
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
+        ThreadPoolTaskScheduler te = new ThreadPoolTaskScheduler();
+        te.setPoolSize(1); // Экономим память: 1 поток для хартбитов идеален для 1 ядра
+        te.setThreadNamePrefix("ws-heartbeat-");
+        te.initialize();
+
         // Для отправки сообщений клиентам
-        registry.enableSimpleBroker("/topic", "/queue");
+        registry.enableSimpleBroker("/topic", "/queue")
+                .setHeartbeatValue(new long[]{20000, 20000}) // 20 секунд
+                .setTaskScheduler(te);
 
         // Префикс для сообщений от клиента
         registry.setApplicationDestinationPrefixes("/app");

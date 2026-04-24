@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import ru.gorbunov.connect.core.models.MessageStatus;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -17,7 +19,8 @@ public class MessageNewResponse {
     private String senderId;
     private String text;
     private OffsetDateTime timestamp;
-    private String status;
+    private OffsetDateTime createdAt;
+    private MessageStatus status;
     private String replyToId;
     private List<AttachmentDto> attachments;
     private List<String> readBy;

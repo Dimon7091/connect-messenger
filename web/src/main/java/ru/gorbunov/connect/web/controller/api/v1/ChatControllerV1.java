@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.chat.ChatCreateOrGetRequest;
 import ru.gorbunov.connect.core.dto.chat.ChatResponse;
 import ru.gorbunov.connect.core.mapper.ChatMapper;
+import ru.gorbunov.connect.core.repository.ChatRepository;
 import ru.gorbunov.connect.core.service.ChatService;
 
 import java.util.List;
@@ -27,6 +28,9 @@ public class ChatControllerV1 {
     @Autowired
     private ChatMapper mapper;
 
+    @Autowired
+    private ChatRepository chatRepository;
+
     @PostMapping("")
     private ChatResponse createOrGetDirectChat(@RequestBody ChatCreateOrGetRequest requestData) {
         var chat = chatService.createOrGetDirectChat(
@@ -36,6 +40,11 @@ public class ChatControllerV1 {
     }
 
     @GetMapping("/{id}")
+    private ChatResponse getChat(@PathVariable("id") Long chatId) {
+        return mapper.toDto(chatService.findChatById(chatId));
+    }
+
+    @GetMapping("/users/{id}")
     private List<ChatResponse> getAllUserChats(@PathVariable("id") Long userId) {
         var chats = chatService.findAllDirectChats(userId);
         return chats.stream()

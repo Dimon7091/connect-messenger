@@ -15,6 +15,7 @@ import ru.gorbunov.connect.core.repository.ChatRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 @Service
@@ -73,6 +74,12 @@ public class ChatService {
                     }
                 });
     }
+
+    public Chat findChatById(Long chatId) {
+        return chatRepository.findById(chatId)
+                .orElseThrow(() -> new ResourceNotFoundException("чат не найден"));
+    }
+
 
     public List<Chat> findAllDirectChats(Long userId) {
         return chatRepository.findChatsByUserIdNative(userId);

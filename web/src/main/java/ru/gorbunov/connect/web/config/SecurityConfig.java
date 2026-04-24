@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/assets/**").permitAll()
                         .requestMatchers("/static/**").permitAll()
                         .requestMatchers("/**.js", "/**.css").permitAll()
+                        .requestMatchers("/chat-ws/**", "/chat-ws/info/**").permitAll()
 
                         // ===== ПУБЛИЧНЫЕ API =====
                         .requestMatchers("/api/v1/auth/login").permitAll()

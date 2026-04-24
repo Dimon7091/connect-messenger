@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 public class SendMessageRequest {
     private String chatId;
     private String messageId;  // временный ID от клиента
+    private String senderId;
+    private String receiverId;
     private String text;
     private String replyToId;
     private String timestamp;

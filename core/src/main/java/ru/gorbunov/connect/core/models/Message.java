@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -24,7 +23,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "messages", indexes = {
-        @Index(name = "idx_messages_chat_timestamp", columnList = "chat_id, timestamp")
+        @Index(name = "idx_messages_chat_timestamp", columnList = "chat_id, timestamp, read_by")
 })
 @EntityListeners(AuditingEntityListener.class)
 public class Message {
@@ -46,7 +45,6 @@ public class Message {
     @Column(name = "timestamp", nullable = false)
     private OffsetDateTime timestamp;
 
-    @CreatedDate
     @Column(name = "created_at", updatable = false, nullable = false)
     private OffsetDateTime createdAt;
 
@@ -68,13 +66,6 @@ public class Message {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "read_by", columnDefinition = "jsonb")
     private List<Long> readBy;
-
-    public enum MessageStatus {
-        SENT,
-        DELIVERED,
-        READ,
-        FAILED
-    }
 
     // Вложенный класс для вложений
     @Data

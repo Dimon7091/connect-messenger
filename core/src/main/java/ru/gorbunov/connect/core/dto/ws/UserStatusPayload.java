@@ -5,11 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.OffsetDateTime;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserStatusPayload {
-    private String userId;
+    private Long userId;
     private String status;  // "online" | "offline" | "away"
+    private OffsetDateTime lastSeen;
 }
