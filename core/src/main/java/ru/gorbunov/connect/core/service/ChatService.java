@@ -77,9 +77,13 @@ public class ChatService {
 
     public Chat findChatById(Long chatId) {
         return chatRepository.findById(chatId)
-                .orElseThrow(() -> new ResourceNotFoundException("чат не найден"));
+                .orElse(null);
     }
 
+    public Chat findChatByParticipants(long userId1, long userId2) {
+        return chatRepository.findChatByParticipants(userId1, userId2)
+                .orElseThrow(() -> new ResourceNotFoundException("чат не найден"));
+    }
 
     public List<Chat> findAllDirectChats(Long userId) {
         return chatRepository.findChatsByUserIdNative(userId);

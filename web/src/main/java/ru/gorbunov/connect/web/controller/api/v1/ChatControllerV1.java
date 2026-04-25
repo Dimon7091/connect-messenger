@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.chat.ChatCreateOrGetRequest;
@@ -41,7 +43,11 @@ public class ChatControllerV1 {
 
     @GetMapping("/{id}")
     private ChatResponse getChat(@PathVariable("id") Long chatId) {
-        return mapper.toDto(chatService.findChatById(chatId));
+        var chat = chatService.findChatById(chatId);
+        if (chat == null) {
+            return null;
+        }
+        return mapper.toDto(chat);
     }
 
     @GetMapping("/users/{id}")
@@ -50,6 +56,12 @@ public class ChatControllerV1 {
         return chats.stream()
                 .map(chat -> mapper.toDto(chat))
                 .toList();
+    }
+
+    @GetMapping("/participants")
+    private ChatResponse getChatByParticipants(@RequestParam("id1") long userId1,
+                                               @RequestParam("id1") long userId2) {
+        return mapper.toDto(chatService.findChatByParticipants(userId1, userId2));
     }
 
     @DeleteMapping("/{chatId}/participants/{participant}")
