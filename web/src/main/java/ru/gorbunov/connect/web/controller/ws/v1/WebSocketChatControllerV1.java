@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.web.controller.ws.v1;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -47,20 +48,21 @@ public class WebSocketChatControllerV1 {
      */
     @MessageMapping("/message_sent")
     public void handleSendMessage(
-            @Payload SendMessageRequest request,
+            @Payload WSEvent<SendMessageRequest> request,
             Principal principal
     ) {
         Long senderId = Long.valueOf(principal.getName());
+        SendMessageRequest payload = request.getPayload();
 
-        log.info("📨 Send message from user {} to chat {}", senderId, request.getChatId());
+        log.info("📨 Send message from user {} to chat {}", senderId, payload.getChatId());
 
         try {
             // 1. Сохраняем сообщение в БД
-            Message savedMessage = messageService.createMessage(request);
+            Message savedMessage = messageService.createMessage(payload);
 
             // 2. Отправляем подтверждение отправки отправителю (MessageSentResponse)
             MessageSentResponse sentResponse = MessageSentResponse.builder()
-                    .messageId(request.getMessageId())      // временный ID от клиента
+                    .messageId(payload.getMessageId())      // временный ID от клиента
                     .serverMessageId(savedMessage.getId().toString())  // реальный ID из БД
                     .status(MessageStatus.SENT)
                     .timestamp(OffsetDateTime.now(ZoneOffset.UTC).toString())
@@ -76,7 +78,7 @@ public class WebSocketChatControllerV1 {
             MessageNewResponse newResponse = messageMapper.toDto(savedMessage);
             // Отправляем в общий топик чата
             messagingTemplate.convertAndSendToUser(
-                    request.getReceiverId(),  // ← отправляем конкретному получателю
+                    payload.getReceiverId(),  // ← отправляем конкретному получателю
                     "/queue/private",            // ← в его личную очередь
                     new WSEvent<>(WSEvent.EventType.MESSAGE_NEW, newResponse)
             );
@@ -196,19 +198,19 @@ public class WebSocketChatControllerV1 {
      * Сервер → Остальные участники: TypingPayload
      */
     @MessageMapping("/typing_start")
+    @Transactional
     public void handleTypingStart(
             @Payload WSEvent<TypingPayload> event,
             Principal principal
     ) {
-        TypingPayload payload = event.getPayload();
+
         Long typingUserId = Long.valueOf(principal.getName());
+        TypingPayload payload = event.getPayload();
+        Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
 
         log.debug("✏️ User {} started typing in chat {}", typingUserId, payload.getChatId());
 
         try {
-            // Получаем чат
-            Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
-
             // Отправляем уведомление всем участникам, кроме печатающего
             for (ChatParticipant participant : chat.getParticipants()) {
                 var participantId = participant.getId().getUserId();
@@ -232,6 +234,7 @@ public class WebSocketChatControllerV1 {
      * Сервер → Остальные участники: TypingPayload
      */
     @MessageMapping("/typing_stop")
+    @Transactional
     public void handleTypingStop(
             @Payload WSEvent<TypingPayload> event,
             Principal principal
@@ -259,67 +262,6 @@ public class WebSocketChatControllerV1 {
 
         } catch (Exception e) {
             log.error("❌ Error processing typing stop", e);
-        }
-    }
-
-    /**
-     * 6. Загрузка истории чата (chat_history)
-     * Клиент → Сервер: ChatHistoryRequest
-     * Сервер → Клиент: ChatHistoryResponse
-     */
-    @MessageMapping("/chat_history")
-    public void handleChatHistory(
-            @Payload WSEvent<ChatHistoryRequest> event,
-            Principal principal
-    ) {
-        ChatHistoryRequest request = event.getPayload();
-        Long userId = Long.valueOf(principal.getName());
-
-        log.info("📚 User {} requesting history for chat {}", userId, request.getChatId());
-
-        try {
-            // Загружаем историю сообщений
-            List<Message> messages = messageService.findChatMessages(
-                    Long.valueOf(request.getChatId()),
-                    request.getLimit() != null ? request.getLimit() : 50,
-                    OffsetDateTime.parse(request.getBeforeTimestamp())
-            );
-
-            // Конвертируем в DTO
-            var messageDTOs = messages.stream()
-                    .map(messageMapper::toDto)
-                    .toList();
-
-            // Считаем непрочитанные
-            int unreadCount = messageService.getUnreadCountInChat(Long.valueOf(request.getChatId()), userId);
-
-            // Отправляем ответ
-            ChatHistoryResponse response = ChatHistoryResponse.builder()
-                    .chatId(request.getChatId())
-                    .messages(messageDTOs)
-                    .hasMore(messages.size() == (request.getLimit() != null ? request.getLimit() : 50))
-                    .unreadCount(unreadCount)
-                    .build();
-
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(userId),
-                    "/queue/private",
-                    new WSEvent<>(WSEvent.EventType.CHAT_STORE, response)
-            );
-
-        } catch (Exception e) {
-            log.error("❌ Error loading chat history", e);
-
-            ErrorResponse error = ErrorResponse.builder()
-                    .message("Failed to load chat history")
-                    .body(e.getMessage())
-                    .build();
-
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(userId),
-                    "/queue/private",
-                    new WSEvent<>(WSEvent.EventType.CHAT_STORE, error)
-            );
         }
     }
 }
