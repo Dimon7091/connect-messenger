@@ -26,6 +26,7 @@ public class MessageService {
         Message message = Message.builder()
                 .chatId(Long.valueOf(requestData.getChatId()))
                 .senderId(Long.valueOf(requestData.getSenderId()))
+                .receiverId(Long.valueOf(requestData.getReceiverId()))
                 .text(requestData.getText())
                 .status(MessageStatus.SENT)
                 .replyToId(requestData.getReplyToId() != null ? Long.valueOf(requestData.getReplyToId()) : null)
@@ -49,12 +50,12 @@ public class MessageService {
         messageRepository.addReaderByUser(messageId, readerId);
     }
 
-    public List<Message> getChatMessages(
-            Long chatId,
-            Integer limit,
+    public List<Message> findChatMessages(
+            long chatId,
+            int limit,
             OffsetDateTime beforeTimestamp
     ) {
-        return messageRepository.findChatMessage(chatId, limit, beforeTimestamp);
+        return messageRepository.findChatMessages(chatId, limit, beforeTimestamp);
     }
 
     public int getUnreadCountInChat(Long chatId, Long userId) {

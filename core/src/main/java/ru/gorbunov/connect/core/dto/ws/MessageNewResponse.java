@@ -17,6 +17,7 @@ public class MessageNewResponse {
     private String id;
     private String chatId;
     private String senderId;
+    private Long receiverId;
     private String text;
     private OffsetDateTime timestamp;
     private OffsetDateTime createdAt;

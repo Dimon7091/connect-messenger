@@ -279,7 +279,7 @@ public class WebSocketChatControllerV1 {
 
         try {
             // Загружаем историю сообщений
-            List<Message> messages = messageService.getChatMessages(
+            List<Message> messages = messageService.findChatMessages(
                     Long.valueOf(request.getChatId()),
                     request.getLimit() != null ? request.getLimit() : 50,
                     OffsetDateTime.parse(request.getBeforeTimestamp())

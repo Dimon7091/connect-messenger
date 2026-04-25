@@ -38,6 +38,9 @@ public class Message {
     @Column(name = "sender_id", nullable = false)
     private Long senderId;
 
+    @Column(name = "receiver_id", nullable = false)
+    private Long receiverId;
+
     @Column(columnDefinition = "TEXT")
     private String text;
 

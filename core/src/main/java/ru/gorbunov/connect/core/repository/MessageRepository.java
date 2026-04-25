@@ -28,7 +28,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "ORDER BY created_at DESC " +        // Сначала новые
             "LIMIT :limit",
             nativeQuery = true)
-    List<Message> findChatMessage(@Param("chatId") Long chatId,
+    List<Message> findChatMessages(@Param("chatId") Long chatId,
                                   @Param("limit") Integer limit,
                                   @Param("beforeTimestamp") OffsetDateTime beforeTimestamp);
 
