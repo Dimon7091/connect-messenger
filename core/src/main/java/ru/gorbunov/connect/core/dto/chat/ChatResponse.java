@@ -8,6 +8,7 @@ public record ChatResponse(
         String type,
         List<Long> participants,
         Integer unreadCount,
+        String lastMessage,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         Long createdBy

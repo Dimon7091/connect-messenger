@@ -21,6 +21,7 @@ import java.util.List;
 public abstract class MessageMapper {
     @Mapping(source = "attachments", target = "attachments", qualifiedByName = "toAttachmentDto")
     @Mapping(source = "status", target = "status")
+    @Mapping(target = "chat", ignore = true)
     public abstract MessageNewResponse toDto(Message entity);
 
     @Named("toAttachmentDto")

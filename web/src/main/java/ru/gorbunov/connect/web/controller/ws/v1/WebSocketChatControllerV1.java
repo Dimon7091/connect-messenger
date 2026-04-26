@@ -14,6 +14,7 @@ import ru.gorbunov.connect.core.dto.ws.MessageDeliveredPayload;
 import ru.gorbunov.connect.core.dto.ws.MessageNewResponse;
 import ru.gorbunov.connect.core.dto.ws.MessageReadPayload;
 import ru.gorbunov.connect.core.dto.ws.MessageSentResponse;
+import ru.gorbunov.connect.core.mapper.ChatMapper;
 import ru.gorbunov.connect.core.models.MessageStatus;
 import ru.gorbunov.connect.core.dto.ws.SendMessageRequest;
 import ru.gorbunov.connect.core.dto.ws.TypingPayload;
@@ -39,6 +40,7 @@ public class WebSocketChatControllerV1 {
     private final MessageService messageService;
     private final ChatService chatService;
     private final MessageMapper messageMapper;
+    private final ChatMapper chatMapper;
 
     /**
      * 1. Отправка сообщения (send_message)
@@ -47,6 +49,7 @@ public class WebSocketChatControllerV1 {
      * Сервер → Получатель: MessageNewResponse
      */
     @MessageMapping("/message_sent")
+    @Transactional
     public void handleSendMessage(
             @Payload WSEvent<SendMessageRequest> request,
             Principal principal
@@ -76,6 +79,11 @@ public class WebSocketChatControllerV1 {
 
             // 3. Отправляем новое сообщение всем участникам чата (MessageNewResponse)
             MessageNewResponse newResponse = messageMapper.toDto(savedMessage);
+            // Если это первое сообщение чата добавляем чат для отображения чата на клиенте
+            if (payload.getIsFistMessage()) {
+                Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
+                newResponse.setChat(chatMapper.toDto(chat));
+            }
             // Отправляем в общий топик чата
             messagingTemplate.convertAndSendToUser(
                     payload.getReceiverId(),  // ← отправляем конкретному получателю
@@ -83,7 +91,7 @@ public class WebSocketChatControllerV1 {
                     new WSEvent<>(WSEvent.EventType.MESSAGE_NEW, newResponse)
             );
 
-            log.info("✅ Message sent successfully: {}", savedMessage.getId());
+            log.info("Sending MESSAGE_NEW to user {} via /queue/private, payload: {}", payload.getReceiverId(), newResponse);
 
         } catch (Exception e) {
             log.error("❌ Error sending message", e);
