@@ -16,6 +16,7 @@ import ru.gorbunov.connect.core.dto.chat.ChatCreateOrGetRequest;
 import ru.gorbunov.connect.core.dto.chat.ChatResponse;
 import ru.gorbunov.connect.core.mapper.ChatMapper;
 import ru.gorbunov.connect.core.repository.ChatRepository;
+import ru.gorbunov.connect.core.service.ChatParticipantService;
 import ru.gorbunov.connect.core.service.ChatService;
 
 import java.util.List;
@@ -32,6 +33,9 @@ public class ChatControllerV1 {
 
     @Autowired
     private ChatRepository chatRepository;
+
+    @Autowired
+    private ChatParticipantService chatParticipantService;
 
     @PostMapping("")
     private ChatResponse createOrGetDirectChat(@RequestBody ChatCreateOrGetRequest requestData) {
@@ -52,15 +56,22 @@ public class ChatControllerV1 {
 
     @GetMapping("/users/{id}")
     private List<ChatResponse> getAllUserChats(@PathVariable("id") Long userId) {
-        var chats = chatService.findAllDirectChats(userId);
+        var chats = chatService.findAllDirectChatsByUser(userId);
+
         return chats.stream()
-                .map(chat -> mapper.toDto(chat))
+                .map(chat -> {
+                    var chatResponse = mapper.toDto(chat);
+                    var unreadCount = chatParticipantService.getUnreadCount(chat.getId(), userId);
+                    chatResponse.setUnreadCount(unreadCount);
+                    chatResponse.setLastMessage(chat.getLastMessage());
+                    return chatResponse;
+                })
                 .toList();
     }
 
     @GetMapping("/participants")
     private ChatResponse getChatByParticipants(@RequestParam("id1") long userId1,
-                                               @RequestParam("id1") long userId2) {
+                                               @RequestParam("id2") long userId2) {
         return mapper.toDto(chatService.findChatByParticipants(userId1, userId2));
     }
 

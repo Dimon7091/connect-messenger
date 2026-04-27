@@ -7,6 +7,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import ru.gorbunov.connect.core.dto.chat.ChatResponse;
 import ru.gorbunov.connect.core.dto.ws.ChatHistoryRequest;
 import ru.gorbunov.connect.core.dto.ws.ChatHistoryResponse;
 import ru.gorbunov.connect.core.dto.ws.ErrorResponse;
@@ -23,6 +24,7 @@ import ru.gorbunov.connect.core.mapper.MessageMapper;
 import ru.gorbunov.connect.core.models.Chat;
 import ru.gorbunov.connect.core.models.ChatParticipant;
 import ru.gorbunov.connect.core.models.Message;
+import ru.gorbunov.connect.core.service.ChatParticipantService;
 import ru.gorbunov.connect.core.service.ChatService;
 import ru.gorbunov.connect.core.service.MessageService;
 
@@ -40,6 +42,7 @@ public class WebSocketChatControllerV1 {
     private final MessageService messageService;
     private final ChatService chatService;
     private final MessageMapper messageMapper;
+    private final ChatParticipantService chatParticipantService;
     private final ChatMapper chatMapper;
 
     /**
@@ -54,8 +57,9 @@ public class WebSocketChatControllerV1 {
             @Payload WSEvent<SendMessageRequest> request,
             Principal principal
     ) {
-        Long senderId = Long.valueOf(principal.getName());
         SendMessageRequest payload = request.getPayload();
+        long senderId = Long.parseLong(principal.getName());
+        long receiverId = Long.parseLong(payload.getReceiverId());
 
         log.info("📨 Send message from user {} to chat {}", senderId, payload.getChatId());
 
@@ -79,12 +83,19 @@ public class WebSocketChatControllerV1 {
 
             // 3. Отправляем новое сообщение всем участникам чата (MessageNewResponse)
             MessageNewResponse newResponse = messageMapper.toDto(savedMessage);
-            // Если это первое сообщение чата добавляем чат для отображения чата на клиенте
-            if (payload.getIsFistMessage()) {
-                Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
-                newResponse.setChat(chatMapper.toDto(chat));
-            }
-            // Отправляем в общий топик чата
+            Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
+
+            // Добовляем непрочитанные сообщения получателю и в чат
+            chatParticipantService.addUnreadMessage(chat.getId(), receiverId);
+            var lastMessage = (payload.getText().length() > 40) ?
+                    payload.getText().substring(0, 40) + "..." : payload.getText();
+            chatService.updateLastMessage(chat.getId(), lastMessage, OffsetDateTime.parse(payload.getTimestamp()));
+            ChatResponse chatResponse = chatMapper.toDto(chat);
+            chatResponse.setUnreadCount(chatParticipantService.getUnreadCount(chat.getId(), receiverId));
+            chatResponse.setLastMessage(lastMessage);
+            newResponse.setChat(chatResponse);
+
+            // Отправляем получателю чата
             messagingTemplate.convertAndSendToUser(
                     payload.getReceiverId(),  // ← отправляем конкретному получателю
                     "/queue/private",            // ← в его личную очередь

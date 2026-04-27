@@ -28,6 +28,8 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
     Optional<Chat> findChatByParticipants(@Param("id1") Long id1, @Param("id2") Long id2);
 
     @Modifying
-    @Query("UPDATE Chat c SET c.lastMessage = :message, c.updatedAt = :now WHERE c.id = :id")
-    void updateLastMessageOnly(@Param("id") Long chatId, @Param("message") String message, @Param("now") OffsetDateTime now);
+    @Query("UPDATE Chat c SET c.lastMessage = :message, c.updatedAt = :timestamp WHERE c.id = :id")
+    void updateLastMessageOnly(@Param("id") Long chatId,
+                               @Param("message") String message,
+                               @Param("timestamp") OffsetDateTime timestamp);
 }

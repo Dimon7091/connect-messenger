@@ -87,13 +87,12 @@ public class ChatService {
                 .orElseThrow(() -> new ResourceNotFoundException("чат не найден"));
     }
 
-    public void updateLastMessage() {
-
+    public List<Chat> findAllDirectChatsByUser(Long userId) {
+        return chatRepository.findChatsByUserIdNative(userId);
     }
 
-
-    public List<Chat> findAllDirectChats(Long userId) {
-        return chatRepository.findChatsByUserIdNative(userId);
+    public void updateLastMessage(long chatId, String message, OffsetDateTime timestamp) {
+        chatRepository.updateLastMessageOnly(chatId, message, timestamp);
     }
 
     public void deleteChatForUser(Long chatId, Long userId) {

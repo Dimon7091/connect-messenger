@@ -21,6 +21,7 @@ import java.util.List;
 )
 public abstract class ChatMapper {
     @Mapping(source = "participants", target = "participants", qualifiedByName = "toParticipantsId")
+    @Mapping(target = "unreadCount", ignore = true)
     public abstract ChatResponse toDto(Chat entity);
 
     @Named("toParticipantsId")
