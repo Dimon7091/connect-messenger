@@ -112,7 +112,6 @@ public class DataInitializer {
         log.info("✅ New chat user created, username: {}", user1.userName());
         var user2 = userService.create(userData2, Role.ROLE_USER);
         log.info("✅ New chat user created, username: {}", user2.userName());
-
         var chat = chatService.createOrGetDirectChat(user1.id(), user2.id());
         log.info("✅ Chat created id: {}", chat.getId());
 

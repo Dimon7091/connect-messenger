@@ -14,6 +14,7 @@ import ru.gorbunov.connect.core.repository.ChatParticipantRepository;
 import ru.gorbunov.connect.core.repository.ChatRepository;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -45,6 +46,7 @@ public class ChatService {
                         Chat chat = new Chat();
                         chat.setDirectKey(directKey);
                         chat.setType("DIRECT");
+                        chat.setCreatedAt(OffsetDateTime.now());
                         Chat savedChat = chatRepository.save(chat); // Здесь может вылететь Exception
 
                         // Создание первого участника чата
@@ -84,6 +86,11 @@ public class ChatService {
         return chatRepository.findChatByParticipants(userId1, userId2)
                 .orElseThrow(() -> new ResourceNotFoundException("чат не найден"));
     }
+
+    public void updateLastMessage() {
+
+    }
+
 
     public List<Chat> findAllDirectChats(Long userId) {
         return chatRepository.findChatsByUserIdNative(userId);

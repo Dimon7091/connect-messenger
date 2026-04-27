@@ -16,6 +16,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,14 +38,16 @@ public class Chat {
     @Column(length = 20, nullable = false)
     private String type;
 
+    @Column
+    private String lastMessage;
+
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatParticipant> participants = new ArrayList<>();
 
-    @CreatedDate
     @Column(updatable = false, nullable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     private Long createdBy;
 

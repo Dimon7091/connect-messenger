@@ -1,10 +1,13 @@
 package ru.gorbunov.connect.core.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.gorbunov.connect.core.models.Chat;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +26,8 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
             "GROUP BY c.id " +
             "HAVING COUNT(DISTINCT p.id.userId) = 2")
     Optional<Chat> findChatByParticipants(@Param("id1") Long id1, @Param("id2") Long id2);
+
+    @Modifying
+    @Query("UPDATE Chat c SET c.lastMessage = :message, c.updatedAt = :now WHERE c.id = :id")
+    void updateLastMessageOnly(@Param("id") Long chatId, @Param("message") String message, @Param("now") OffsetDateTime now);
 }

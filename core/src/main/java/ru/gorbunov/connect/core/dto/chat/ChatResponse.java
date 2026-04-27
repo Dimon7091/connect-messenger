@@ -1,6 +1,7 @@
 package ru.gorbunov.connect.core.dto.chat;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public record ChatResponse(
@@ -8,8 +9,7 @@ public record ChatResponse(
         String type,
         List<Long> participants,
         Integer unreadCount,
-        String lastMessage,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt,
         Long createdBy
 ) { }

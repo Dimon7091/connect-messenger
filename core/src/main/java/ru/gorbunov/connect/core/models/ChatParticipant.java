@@ -39,6 +39,9 @@ public class ChatParticipant {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "unreadCount")
+    private int unreadCount;
+
     @Column(name = "last_read_message_id")
     private Long lastReadMessageId;
 
