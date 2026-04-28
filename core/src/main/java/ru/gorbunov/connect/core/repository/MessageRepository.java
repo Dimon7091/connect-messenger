@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.gorbunov.connect.core.models.Message;
+import ru.gorbunov.connect.core.models.MessageStatus;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -13,7 +14,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     // В MessageRepository
     @Modifying
     @Query("UPDATE Message m SET m.status = :status WHERE m.id = :id")
-    void updateStatus(@Param("id") Long id, @Param("status") String status);
+    void updateStatus(@Param("id") Long id, @Param("status") MessageStatus status);
 
     @Modifying
     @Query(value = "UPDATE messages " +

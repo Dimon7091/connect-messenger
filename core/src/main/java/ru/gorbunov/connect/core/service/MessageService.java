@@ -43,7 +43,7 @@ public class MessageService {
     }
 
     public void markAsDelivered(Long messageId) {
-        messageRepository.updateStatus(messageId, MessageStatus.DELIVERED.name());
+        messageRepository.updateStatus(messageId, MessageStatus.DELIVERED);
     }
 
     public void markAsRead(Long messageId, Long readerId) {
