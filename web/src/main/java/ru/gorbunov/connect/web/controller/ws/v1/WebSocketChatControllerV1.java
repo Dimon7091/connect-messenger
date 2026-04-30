@@ -8,8 +8,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import ru.gorbunov.connect.core.dto.chat.ChatResponse;
-import ru.gorbunov.connect.core.dto.ws.ChatHistoryRequest;
-import ru.gorbunov.connect.core.dto.ws.ChatHistoryResponse;
 import ru.gorbunov.connect.core.dto.ws.ErrorResponse;
 import ru.gorbunov.connect.core.dto.ws.MessageDeliveredPayload;
 import ru.gorbunov.connect.core.dto.ws.MessageNewResponse;
@@ -27,11 +25,11 @@ import ru.gorbunov.connect.core.models.Message;
 import ru.gorbunov.connect.core.service.ChatParticipantService;
 import ru.gorbunov.connect.core.service.ChatService;
 import ru.gorbunov.connect.core.service.MessageService;
+import org.springframework.util.StopWatch;
 
 import java.security.Principal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.List;
 
 @Slf4j
 @Controller
@@ -57,6 +55,8 @@ public class WebSocketChatControllerV1 {
             @Payload WSEvent<SendMessageRequest> request,
             Principal principal
     ) {
+        StopWatch sw = new StopWatch();
+        sw.start("Message sent");
         SendMessageRequest payload = request.getPayload();
         long senderId = Long.parseLong(principal.getName());
         long receiverId = Long.parseLong(payload.getReceiverId());
@@ -83,16 +83,19 @@ public class WebSocketChatControllerV1 {
 
             // 3. Отправляем новое сообщение всем участникам чата (MessageNewResponse)
             MessageNewResponse newResponse = messageMapper.toDto(savedMessage);
-            Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
-
-            // Добовляем непрочитанные сообщения получателю и в чат
-            chatParticipantService.addUnreadMessage(chat.getId(), receiverId);
+            // Добовляем непрочитанные сообщения, время обновления получателю и в чат
             var lastMessage = (payload.getText().length() > 40) ?
                     payload.getText().substring(0, 40) + "..." : payload.getText();
-            chatService.updateLastMessage(chat.getId(), lastMessage, OffsetDateTime.parse(payload.getTimestamp()));
+            chatService.updateLastMessage(
+                    Long.parseLong(payload.getChatId()),
+                    lastMessage,
+                    OffsetDateTime.parse(payload.getTimestamp()));
+            chatParticipantService.addUnreadCount(Long.parseLong(payload.getChatId()), receiverId);
+            Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
             ChatResponse chatResponse = chatMapper.toDto(chat);
             chatResponse.setUnreadCount(chatParticipantService.getUnreadCount(chat.getId(), receiverId));
             chatResponse.setLastMessage(lastMessage);
+            chatResponse.setUpdatedAt(chat.getUpdatedAt());
             newResponse.setChat(chatResponse);
 
             // Отправляем получателю чата
@@ -101,7 +104,9 @@ public class WebSocketChatControllerV1 {
                     "/queue/private",            // ← в его личную очередь
                     new WSEvent<>(WSEvent.EventType.MESSAGE_NEW, newResponse)
             );
-
+            sw.stop();
+            log.info("✅ Дата: {} ", newResponse.getChat().getUpdatedAt());
+            log.info("✅ Время записи и отправки сообщения: {} мс", sw.getTotalTimeMillis());
             log.info("Sending MESSAGE_NEW to user {} via /queue/private, payload: {}", payload.getReceiverId(), newResponse);
 
         } catch (Exception e) {
@@ -184,13 +189,18 @@ public class WebSocketChatControllerV1 {
         try {
             // Обновляем статус в БД
             messageService.markAsRead(Long.valueOf(payload.getMessageId()), readerId);
-
-            // Получаем сообщение, чтобы узнать отправителя
+            chatParticipantService.deleteUnreadCount(Long.parseLong(payload.getChatId()), readerId);
             Message message = messageService.findById(Long.valueOf(payload.getMessageId()));
 
             // Пересылаем уведомление отправителю
             messagingTemplate.convertAndSendToUser(
                     String.valueOf(message.getSenderId()),
+                    "/queue/private",
+                    new WSEvent<>(WSEvent.EventType.MESSAGE_READ, payload)
+            );
+
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(message.getReceiverId()),
                     "/queue/private",
                     new WSEvent<>(WSEvent.EventType.MESSAGE_READ, payload)
             );

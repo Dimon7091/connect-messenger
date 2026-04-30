@@ -10,12 +10,12 @@ public class ChatParticipantService {
     @Autowired
     private ChatParticipantRepository chatParticipantRepository;
 
-    public void addUnreadMessage(long chatId, long userId) {
+    public void addUnreadCount(long chatId, long userId) {
         var participantId = new ChatParticipantId(chatId, userId);
         chatParticipantRepository.incrementUnreadCount(participantId);
     }
 
-    public void deleteUnreadMessage(long chatId, long userId) {
+    public void deleteUnreadCount(long chatId, long userId) {
         var participantId = new ChatParticipantId(chatId, userId);
         chatParticipantRepository.decrementUnreadCount(participantId);
     }

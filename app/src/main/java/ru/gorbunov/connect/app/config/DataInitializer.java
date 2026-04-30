@@ -54,7 +54,7 @@ public class DataInitializer {
                 log.info("Admin user is already exist: {} ", admin.getEmail());
             }
             createTestUsers(20);
-            createTestChat();
+            createTestChat(60);
         };
     }
 
@@ -92,7 +92,7 @@ public class DataInitializer {
         }
     }
 
-    public void createTestChat() {
+    public void createTestChat(int messageCount) {
         var userData1 = new UserCreateRequest(
                 "dafsasddfd@gmail.com",
                 "vova91",
@@ -115,24 +115,19 @@ public class DataInitializer {
         var chat = chatService.createOrGetDirectChat(user1.id(), user2.id());
         log.info("✅ Chat created id: {}", chat.getId());
 
-        // user1 to user2
-        for (int i = 0; i < 5; i++) {
+        // user to user
+        for (int i = 0; i < messageCount; i++) {
+            var senderId = user1.id().toString();
+            var receiverId = user2.id().toString();
+            if (i % 2 == 0) {
+                senderId = user2.id().toString();
+                receiverId = user1.id().toString();
+            }
             var message = new SendMessageRequest();
             message.setChatId(chat.getId().toString());
-            message.setSenderId(user1.id().toString());
-            message.setReceiverId(user2.id().toString());
-            message.setText(faker.word().toString());
-            message.setTimestamp(OffsetDateTime.now().toString());
-            messageService.createMessage(message);
-            log.info("✅ Create new message");
-        }
-        // user2 to user1
-        for (int i = 0; i < 5; i++) {
-            var message = new SendMessageRequest();
-            message.setChatId(chat.getId().toString());
-            message.setSenderId(user2.id().toString());
-            message.setReceiverId(user1.id().toString());
-            message.setText(faker.word().toString());
+            message.setSenderId(senderId);
+            message.setReceiverId(receiverId);
+            message.setText(faker.word().conjunction());
             message.setTimestamp(OffsetDateTime.now().toString());
             messageService.createMessage(message);
             log.info("✅ Create new message");

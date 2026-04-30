@@ -64,6 +64,7 @@ public class ChatControllerV1 {
                     var unreadCount = chatParticipantService.getUnreadCount(chat.getId(), userId);
                     chatResponse.setUnreadCount(unreadCount);
                     chatResponse.setLastMessage(chat.getLastMessage());
+                    chatResponse.setUpdatedAt(chat.getUpdatedAt());
                     return chatResponse;
                 })
                 .toList();

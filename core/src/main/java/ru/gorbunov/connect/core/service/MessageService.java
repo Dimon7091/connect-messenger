@@ -11,8 +11,11 @@ import ru.gorbunov.connect.core.repository.MessageRepository;
 
 import java.awt.*;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 @Slf4j
 @Transactional
@@ -47,7 +50,17 @@ public class MessageService {
     }
 
     public void markAsRead(Long messageId, Long readerId) {
-        messageRepository.addReaderByUser(messageId, readerId);
+        Message message = messageRepository.findById(messageId).orElseThrow();
+        List<Long> readBy = message.getReadBy();
+        if (readBy == null) {
+            readBy = new ArrayList<>();
+        };
+        if (!readBy.contains(readerId)) {
+            readBy.add(readerId);
+            message.setReadBy(readBy);
+            message.setStatus(MessageStatus.READ);
+            messageRepository.save(message);
+        }
     }
 
     public List<Message> findChatMessages(

@@ -95,6 +95,10 @@ public class ChatService {
         chatRepository.updateLastMessageOnly(chatId, message, timestamp);
     }
 
+    public void updateUpdatedAt() {
+
+    }
+
     public void deleteChatForUser(Long chatId, Long userId) {
         var chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new ResourceNotFoundException("чат не найден"));

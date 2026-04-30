@@ -39,5 +39,4 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "AND NOT (read_by @> CAST(CAST(:userId AS text) AS jsonb))",
             nativeQuery = true)
     int countUnreadMessagesByUser(@Param("chatId") Long chatId, @Param("userId") Long userId);
-
 }
