@@ -29,4 +29,9 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
 
     @Query("SELECT cp.unreadCount FROM ChatParticipant cp WHERE cp.id = :id")
     int getUnreadCount(@Param("id") ChatParticipantId id);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChatParticipant cp SET cp.isDeleted = :status WHERE cp.id = :id")
+    void updateIsDeleted(@Param("id") ChatParticipantId id, @Param("status") boolean status);
 }

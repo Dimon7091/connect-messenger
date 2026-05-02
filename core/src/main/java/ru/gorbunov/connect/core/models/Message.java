@@ -27,7 +27,6 @@ import java.util.List;
 })
 @EntityListeners(AuditingEntityListener.class)
 public class Message {
-
     @Id
     @Tsid
     private Long id;

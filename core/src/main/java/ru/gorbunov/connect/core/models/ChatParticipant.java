@@ -15,6 +15,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Getter
 @Setter
@@ -37,7 +38,7 @@ public class ChatParticipant {
     private Boolean isDeleted = false;
 
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    private OffsetDateTime deletedAt;
 
     @Column(name = "unreadCount")
     private int unreadCount;
@@ -46,15 +47,15 @@ public class ChatParticipant {
     private Long lastReadMessageId;
 
     @Column(name = "last_read_at")
-    private LocalDateTime lastReadAt;
+    private OffsetDateTime lastReadAt;
 
     @Column(name = "is_muted")
     private Boolean isMuted = false;
 
     @Column(name = "pinned_at")
-    private LocalDateTime pinnedAt;
+    private OffsetDateTime pinnedAt;
 
     @Column(name = "joined_at")
     @CreatedDate
-    private LocalDateTime joinedAt;
+    private OffsetDateTime joinedAt;
 }

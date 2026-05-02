@@ -45,6 +45,18 @@ public class MessageService {
                 .orElseThrow(NoSuchElementException::new);
     }
 
+    public List<Message> findChatMessages(
+            long chatId,
+            int limit,
+            OffsetDateTime beforeTimestamp
+    ) {
+        return messageRepository.findChatMessages(chatId, limit, beforeTimestamp);
+    }
+
+    public int getUnreadCountInChat(Long chatId, Long userId) {
+        return messageRepository.countUnreadMessagesByUser(chatId, userId);
+    }
+
     public void markAsDelivered(Long messageId) {
         messageRepository.updateStatus(messageId, MessageStatus.DELIVERED);
     }
@@ -63,17 +75,7 @@ public class MessageService {
         }
     }
 
-    public List<Message> findChatMessages(
-            long chatId,
-            int limit,
-            OffsetDateTime beforeTimestamp
-    ) {
-        return messageRepository.findChatMessages(chatId, limit, beforeTimestamp);
+    public void markAsDeletedAllChatMessagesForUser(long chatId, long userId) {
+
     }
-
-    public int getUnreadCountInChat(Long chatId, Long userId) {
-        return messageRepository.countUnreadMessagesByUser(chatId, userId);
-    }
-
-
 }

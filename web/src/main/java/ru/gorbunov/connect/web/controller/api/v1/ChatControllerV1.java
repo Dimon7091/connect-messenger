@@ -1,6 +1,5 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
-import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,18 +55,7 @@ public class ChatControllerV1 {
 
     @GetMapping("/users/{id}")
     private List<ChatResponse> getAllUserChats(@PathVariable("id") Long userId) {
-        var chats = chatService.findAllDirectChatsByUser(userId);
-
-        return chats.stream()
-                .map(chat -> {
-                    var chatResponse = mapper.toDto(chat);
-                    var unreadCount = chatParticipantService.getUnreadCount(chat.getId(), userId);
-                    chatResponse.setUnreadCount(unreadCount);
-                    chatResponse.setLastMessage(chat.getLastMessage());
-                    chatResponse.setUpdatedAt(chat.getUpdatedAt());
-                    return chatResponse;
-                })
-                .toList();
+        return chatService.findAllDirectChatsByUser(userId);
     }
 
     @GetMapping("/participants")
@@ -76,11 +64,11 @@ public class ChatControllerV1 {
         return mapper.toDto(chatService.findChatByParticipants(userId1, userId2));
     }
 
-    @DeleteMapping("/{chatId}/participants/{participant}")
+    @DeleteMapping("/{id}/participant")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteChatParticipant(
-            @PathVariable("chatId") Long chatId,
-            @PathVariable("participant") Long participantId) {
+            @PathVariable("id") Long chatId,
+            @RequestParam("participant") Long participantId) {
         chatService.deleteChatForUser(chatId, participantId);
     }
 }

@@ -97,6 +97,8 @@ public class WebSocketChatControllerV1 {
             chatResponse.setLastMessage(lastMessage);
             chatResponse.setUpdatedAt(chat.getUpdatedAt());
             newResponse.setChat(chatResponse);
+            // Устанавливаем статус чата если он удален у полателя
+            chatParticipantService.setIsDeleted(chat.getId(), receiverId, false);
 
             // Отправляем получателю чата
             messagingTemplate.convertAndSendToUser(
@@ -105,7 +107,6 @@ public class WebSocketChatControllerV1 {
                     new WSEvent<>(WSEvent.EventType.MESSAGE_NEW, newResponse)
             );
             sw.stop();
-            log.info("✅ Дата: {} ", newResponse.getChat().getUpdatedAt());
             log.info("✅ Время записи и отправки сообщения: {} мс", sw.getTotalTimeMillis());
             log.info("Sending MESSAGE_NEW to user {} via /queue/private, payload: {}", payload.getReceiverId(), newResponse);
 

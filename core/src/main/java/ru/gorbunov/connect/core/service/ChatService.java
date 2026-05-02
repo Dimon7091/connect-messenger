@@ -1,10 +1,11 @@
 package ru.gorbunov.connect.core.service;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.RequestToViewNameTranslator;
+import ru.gorbunov.connect.core.dto.chat.ChatResponse;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.mapper.ChatMapper;
 import ru.gorbunov.connect.core.models.Chat;
@@ -16,9 +17,9 @@ import ru.gorbunov.connect.core.repository.ChatRepository;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class ChatService {
     @Autowired
@@ -28,7 +29,7 @@ public class ChatService {
     private ChatParticipantRepository chatParticipantRepository;
 
     @Autowired
-    private RequestToViewNameTranslator requestToViewNameTranslator;
+    private ChatParticipantService chatParticipantService;
 
     @Autowired
     private ChatMapper mapper;
@@ -87,28 +88,46 @@ public class ChatService {
                 .orElseThrow(() -> new ResourceNotFoundException("чат не найден"));
     }
 
-    public List<Chat> findAllDirectChatsByUser(Long userId) {
-        return chatRepository.findChatsByUserIdNative(userId);
+    public List<ChatResponse> findAllDirectChatsByUser(Long userId) {
+        var chats = chatRepository.findChatsByUserIdNative(userId);
+        if (chats == null) {
+            throw new ResourceNotFoundException("Чаты не найдены");
+        }
+        var filterDeletedChats = chats.stream()
+                .filter(chat -> chat.getParticipants().stream()
+                        .anyMatch(p -> Objects.equals(p.getId().getUserId(), userId)
+                                && !Boolean.TRUE.equals(p.getIsDeleted())))
+                .toList();
+        log.info("✅ Чаты найдены c isDeleted: {} ", filterDeletedChats.getFirst().getParticipants().getFirst().getDeletedAt());
+        log.info("✅ Чаты найдены c isDeleted: {} ", filterDeletedChats.getFirst().getParticipants().getLast().getDeletedAt());
+        return filterDeletedChats.stream()
+                .map(chat -> {
+                    var chatResponse = mapper.toDto(chat);
+                    var unreadCount = chatParticipantService.getUnreadCount(chat.getId(), userId);
+                    chatResponse.setUnreadCount(unreadCount);
+                    chatResponse.setLastMessage(chat.getLastMessage());
+                    chatResponse.setUpdatedAt(chat.getUpdatedAt());
+                    return chatResponse;
+                })
+                .toList();
     }
 
     public void updateLastMessage(long chatId, String message, OffsetDateTime timestamp) {
         chatRepository.updateLastMessageOnly(chatId, message, timestamp);
     }
 
-    public void updateUpdatedAt() {
-
-    }
-
     public void deleteChatForUser(Long chatId, Long userId) {
         var chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new ResourceNotFoundException("чат не найден"));
-        var currentParticipant = chat.getParticipants().stream()
+        var optionalChatParticipant = chat.getParticipants().stream()
                 .filter(p -> Objects.equals(p.getId().getUserId(), userId))
                 .findFirst();
         // Если пользователь есть в чате помечаем как удаленный
-        if (currentParticipant.isPresent()) {
-            currentParticipant.get().setIsDeleted(true);
-            currentParticipant.get().setDeletedAt(LocalDateTime.now());
+        if (optionalChatParticipant.isPresent()) {
+            var participant = optionalChatParticipant.get();
+            participant.setIsDeleted(true);
+            participant.setDeletedAt(OffsetDateTime.now());
+            chatParticipantRepository.save(participant);
         } else {
             throw new ResourceNotFoundException("пользователь не состоит в чате");
         }

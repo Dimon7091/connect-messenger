@@ -14,14 +14,14 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     // В MessageRepository
     @Modifying
     @Query("UPDATE Message m SET m.status = :status WHERE m.id = :id")
-    void updateStatus(@Param("id") Long id, @Param("status") MessageStatus status);
+    void updateStatus(@Param("id") long id, @Param("status") MessageStatus status);
 
     @Modifying
     @Query(value = "UPDATE messages " +
             "SET read_by = read_by || CAST(:readerId AS jsonb) " +
             "WHERE id = :id AND NOT (read_by @> CAST(:readerId AS jsonb))",
             nativeQuery = true)
-    void addReaderByUser(@Param("id") Long id, @Param("readerId") Long readerId);
+    void addReaderByUser(@Param("id") long id, @Param("readerId") long readerId);
 
     @Query(value = "SELECT * FROM messages " +
             "WHERE chat_id = :chatId " +
@@ -29,8 +29,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "ORDER BY created_at DESC " +        // Сначала новые
             "LIMIT :limit",
             nativeQuery = true)
-    List<Message> findChatMessages(@Param("chatId") Long chatId,
-                                  @Param("limit") Integer limit,
+    List<Message> findChatMessages(@Param("chatId") long chatId,
+                                  @Param("limit") int limit,
                                   @Param("beforeTimestamp") OffsetDateTime beforeTimestamp);
 
     @Query(value = "SELECT COUNT(*) FROM messages " +
@@ -38,5 +38,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "AND sender_id != :userId " +
             "AND NOT (read_by @> CAST(CAST(:userId AS text) AS jsonb))",
             nativeQuery = true)
-    int countUnreadMessagesByUser(@Param("chatId") Long chatId, @Param("userId") Long userId);
+    int countUnreadMessagesByUser(@Param("chatId") long chatId, @Param("userId") long userId);
+
+    @Modifying
+    @Query(value = "UPDATE messages " +
+            "SET read_by = read_by || CAST(:readerId AS jsonb) " +
+            "WHERE id = :id AND NOT (read_by @> CAST(:readerId AS jsonb))",
+            nativeQuery = true)
+    void addDeletedByUser(@Param("chatId") long id, @Param("userId") long readerId);
 }

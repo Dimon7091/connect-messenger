@@ -24,4 +24,9 @@ public class ChatParticipantService {
         var participantId = new ChatParticipantId(chatId, userId);
         return chatParticipantRepository.getUnreadCount(participantId);
     }
+
+    public void setIsDeleted(long chatId, long userId, boolean status) {
+        var participantId = new ChatParticipantId(chatId, userId);
+        chatParticipantRepository.updateIsDeleted(participantId, status);
+    }
 }
