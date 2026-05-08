@@ -8,11 +8,13 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Setter
@@ -63,7 +65,7 @@ public class Message {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "deleted_by", columnDefinition = "jsonb")
-    private List<Long> deletedBy;
+    private List<Long> deletedBy = new ArrayList<>();
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "read_by", columnDefinition = "jsonb")

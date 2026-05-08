@@ -1,7 +1,10 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
+import com.nimbusds.jwt.JWT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,9 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.chat.ChatCreateOrGetRequest;
 import ru.gorbunov.connect.core.dto.chat.ChatResponse;
 import ru.gorbunov.connect.core.mapper.ChatMapper;
-import ru.gorbunov.connect.core.repository.ChatRepository;
 import ru.gorbunov.connect.core.service.ChatParticipantService;
 import ru.gorbunov.connect.core.service.ChatService;
+import ru.gorbunov.connect.core.service.MessageService;
+import ru.gorbunov.connect.core.service.orchestrators.ChatCleanupService;
 
 import java.util.List;
 
@@ -28,13 +32,16 @@ public class ChatControllerV1 {
     private ChatService chatService;
 
     @Autowired
-    private ChatMapper mapper;
-
-    @Autowired
-    private ChatRepository chatRepository;
-
-    @Autowired
     private ChatParticipantService chatParticipantService;
+
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private ChatCleanupService chatCleanupService;
+
+    @Autowired
+    private ChatMapper mapper;
 
     @PostMapping("")
     private ChatResponse createOrGetDirectChat(@RequestBody ChatCreateOrGetRequest requestData) {
@@ -53,9 +60,10 @@ public class ChatControllerV1 {
         return mapper.toDto(chat);
     }
 
-    @GetMapping("/users/{id}")
-    private List<ChatResponse> getAllUserChats(@PathVariable("id") Long userId) {
-        return chatService.findAllDirectChatsByUser(userId);
+    @GetMapping("/users")
+    private List<ChatResponse> getAllUserChats(@AuthenticationPrincipal Jwt token) {
+        var currentUserId = Long.parseLong(token.getClaim("sub"));
+        return chatService.findAllDirectChatsByUser(currentUserId);
     }
 
     @GetMapping("/participants")
@@ -66,9 +74,10 @@ public class ChatControllerV1 {
 
     @DeleteMapping("/{id}/participant")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteChatParticipant(
+    public void deleteChatForUser(
             @PathVariable("id") Long chatId,
-            @RequestParam("participant") Long participantId) {
-        chatService.deleteChatForUser(chatId, participantId);
+            @AuthenticationPrincipal Jwt token) {
+        var currentUserId = Long.parseLong(token.getClaim("sub"));
+        chatCleanupService.clearChatForUser(chatId, currentUserId);
     }
 }

@@ -24,8 +24,23 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
 
     @Modifying
     @Transactional
-    @Query("UPDATE ChatParticipant cp SET cp.unreadCount = CASE WHEN cp.unreadCount > 0 THEN cp.unreadCount - 1 ELSE 0 END WHERE cp.id = :id")
+    @Query("UPDATE ChatParticipant cp SET cp.unreadCount = CASE " +
+            "WHEN cp.unreadCount > 0 THEN cp.unreadCount - 1 ELSE 0 END WHERE cp.id = :id")
     void decrementUnreadCount(@Param("id") ChatParticipantId id);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChatParticipant cp SET cp.unreadCount = 0 WHERE cp.id = :id")
+    void cleanUnreadCount(@Param("id") ChatParticipantId id);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChatParticipant cp SET cp.unreadCount = CASE " +
+            "WHEN cp.unreadCount > :count THEN cp.unreadCount - :count " +
+            "ELSE 0 END " +
+            "WHERE cp.id = :id")
+    void decreaseUnreadCount(@Param("id") ChatParticipantId id, @Param("count") int count);
+
 
     @Query("SELECT cp.unreadCount FROM ChatParticipant cp WHERE cp.id = :id")
     int getUnreadCount(@Param("id") ChatParticipantId id);

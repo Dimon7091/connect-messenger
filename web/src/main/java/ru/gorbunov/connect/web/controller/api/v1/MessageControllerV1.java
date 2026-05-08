@@ -1,21 +1,36 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
 import jakarta.websocket.server.PathParam;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.Mapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.gorbunov.connect.core.dto.ws.ErrorResponse;
+import ru.gorbunov.connect.core.dto.ws.MessageDeletedResponse;
 import ru.gorbunov.connect.core.dto.ws.MessageNewResponse;
+import ru.gorbunov.connect.core.dto.ws.MessagesDeletedRequest;
+import ru.gorbunov.connect.core.dto.ws.WSEvent;
 import ru.gorbunov.connect.core.mapper.MessageMapper;
 import ru.gorbunov.connect.core.service.MessageService;
+import ru.gorbunov.connect.core.service.orchestrators.ChatCleanupService;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/messages")
 public class MessageControllerV1 {
@@ -25,18 +40,67 @@ public class MessageControllerV1 {
     @Autowired
     private MessageMapper mapper;
 
+    @Autowired
+    private ChatCleanupService chatCleanupService;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     @GetMapping("/chats/{id}")
     public List<MessageNewResponse> getChatMessage(
-            @PathVariable("id") long chatId,
-            @RequestParam("limit") int limit,
+            @PathVariable("id") Long chatId,
+            @RequestParam("limit") Integer limit,
             @RequestParam(value = "beforeTimestamp", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime beforeTimestamp) {
-
-        // Если параметр не пришел, используем текущее время
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime beforeTimestamp,
+            @AuthenticationPrincipal Jwt token
+    ) {
+        var currentUserId = Long.parseLong(token.getClaim("sub"));
         OffsetDateTime timestamp = (beforeTimestamp != null) ? beforeTimestamp : OffsetDateTime.now();
-        var messages = messageService.findChatMessages(chatId, limit, timestamp);
+        var messages = messageService.findChatMessages(chatId, limit, timestamp, currentUserId);
         return messages.stream()
                 .map(m -> mapper.toDto(m))
                 .toList();
+    }
+
+    @PostMapping("/batch")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMessages(
+            @RequestBody MessagesDeletedRequest requestData,
+            @AuthenticationPrincipal Jwt token
+    ) {
+        var currentUserId = Long.parseLong(token.getClaim("sub"));
+        var deletionResult = chatCleanupService.deleteMessages(
+                requestData.messagesIds(),
+                requestData.chatId(),
+                currentUserId);
+
+        var messagesDeletedResponse = new MessageDeletedResponse(
+                requestData.chatId(),
+                requestData.messagesIds(),
+                deletionResult.chatUpdatedAt(),
+                deletionResult.unreadCount(),
+                deletionResult.lastMessage());
+        // Отправляем участникам чата
+        try {
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(deletionResult.receiverId()),
+                    "/queue/private",
+                    new WSEvent<>(WSEvent.EventType.MESSAGE_DELETED, messagesDeletedResponse)
+            );
+        } catch (Exception e) {
+            log.error("❌ Error deleting message(s)", e);
+
+            // Отправляем ошибку удаляющему сообщение(я)
+            ErrorResponse error = ErrorResponse.builder()
+                    .message("Failed to delete message(s)")
+                    .body(e.getMessage())
+                    .build();
+
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(currentUserId),
+                    "/queue/private",
+                    new WSEvent<>(WSEvent.EventType.ERROR, error)
+            );
+        }
     }
 }

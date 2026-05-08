@@ -98,8 +98,7 @@ public class ChatService {
                         .anyMatch(p -> Objects.equals(p.getId().getUserId(), userId)
                                 && !Boolean.TRUE.equals(p.getIsDeleted())))
                 .toList();
-        log.info("✅ Чаты найдены c isDeleted: {} ", filterDeletedChats.getFirst().getParticipants().getFirst().getDeletedAt());
-        log.info("✅ Чаты найдены c isDeleted: {} ", filterDeletedChats.getFirst().getParticipants().getLast().getDeletedAt());
+
         return filterDeletedChats.stream()
                 .map(chat -> {
                     var chatResponse = mapper.toDto(chat);
@@ -110,6 +109,10 @@ public class ChatService {
                     return chatResponse;
                 })
                 .toList();
+    }
+
+    public List<ChatParticipant> getChatParticipantsByChatId(Long chatId) {
+        return chatRepository.findParticipantsByChatId(chatId);
     }
 
     public void updateLastMessage(long chatId, String message, OffsetDateTime timestamp) {

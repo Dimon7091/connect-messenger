@@ -10,23 +10,33 @@ public class ChatParticipantService {
     @Autowired
     private ChatParticipantRepository chatParticipantRepository;
 
-    public void addUnreadCount(long chatId, long userId) {
+    public void incrementUnreadCount(Long chatId, Long userId) {
         var participantId = new ChatParticipantId(chatId, userId);
         chatParticipantRepository.incrementUnreadCount(participantId);
     }
 
-    public void deleteUnreadCount(long chatId, long userId) {
-        var participantId = new ChatParticipantId(chatId, userId);
-        chatParticipantRepository.decrementUnreadCount(participantId);
-    }
-
-    public int getUnreadCount(long chatId, long userId) {
+    public int getUnreadCount(Long chatId, Long userId) {
         var participantId = new ChatParticipantId(chatId, userId);
         return chatParticipantRepository.getUnreadCount(participantId);
     }
 
-    public void setIsDeleted(long chatId, long userId, boolean status) {
+    public void setIsDeleted(Long chatId, Long userId, boolean status) {
         var participantId = new ChatParticipantId(chatId, userId);
         chatParticipantRepository.updateIsDeleted(participantId, status);
+    }
+
+    public void cleanUnreadCount(Long chatId, Long userId) {
+        var participantId = new ChatParticipantId(chatId, userId);
+        chatParticipantRepository.cleanUnreadCount(participantId);
+    }
+
+    public void decreaseUnreadCount(Long chatId, Long userId, Integer count) {
+        var participantId = new ChatParticipantId(chatId, userId);
+        chatParticipantRepository.decreaseUnreadCount(participantId, count);
+    }
+
+    public void decrementUnreadCount(Long chatId, Long userId) {
+        var participantId = new ChatParticipantId(chatId, userId);
+        chatParticipantRepository.decrementUnreadCount(participantId);
     }
 }

@@ -81,7 +81,7 @@ public class WebSocketChatControllerV1 {
                     new WSEvent<>(WSEvent.EventType.MESSAGE_SENT, sentResponse)
             );
 
-            // 3. Отправляем новое сообщение всем участникам чата (MessageNewResponse)
+            // 3. Отправляем новое сообщение
             MessageNewResponse newResponse = messageMapper.toDto(savedMessage);
             // Добовляем непрочитанные сообщения, время обновления получателю и в чат
             var lastMessage = (payload.getText().length() > 40) ?
@@ -90,14 +90,14 @@ public class WebSocketChatControllerV1 {
                     Long.parseLong(payload.getChatId()),
                     lastMessage,
                     OffsetDateTime.parse(payload.getTimestamp()));
-            chatParticipantService.addUnreadCount(Long.parseLong(payload.getChatId()), receiverId);
+            chatParticipantService.incrementUnreadCount(Long.parseLong(payload.getChatId()), receiverId);
             Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
             ChatResponse chatResponse = chatMapper.toDto(chat);
             chatResponse.setUnreadCount(chatParticipantService.getUnreadCount(chat.getId(), receiverId));
             chatResponse.setLastMessage(lastMessage);
             chatResponse.setUpdatedAt(chat.getUpdatedAt());
             newResponse.setChat(chatResponse);
-            // Устанавливаем статус чата если он удален у полателя
+            // Устанавливаем статус чата если он удален у пользователя
             chatParticipantService.setIsDeleted(chat.getId(), receiverId, false);
 
             // Отправляем получателю чата
@@ -190,7 +190,7 @@ public class WebSocketChatControllerV1 {
         try {
             // Обновляем статус в БД
             messageService.markAsRead(Long.valueOf(payload.getMessageId()), readerId);
-            chatParticipantService.deleteUnreadCount(Long.parseLong(payload.getChatId()), readerId);
+            chatParticipantService.decrementUnreadCount(Long.parseLong(payload.getChatId()), readerId);
             Message message = messageService.findById(Long.valueOf(payload.getMessageId()));
 
             // Пересылаем уведомление отправителю

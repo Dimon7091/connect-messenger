@@ -1,10 +1,12 @@
 package ru.gorbunov.connect.core.repository;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.gorbunov.connect.core.models.Chat;
+import ru.gorbunov.connect.core.models.ChatParticipant;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -19,7 +21,6 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
             nativeQuery = true)
     List<Chat> findChatsByUserIdNative(@Param("userId") Long userId);
 
-
     @Query("SELECT c FROM Chat c " +
             "JOIN c.participants p " +
             "WHERE p.id.userId = :id1 OR p.id.userId = :id2 " +
@@ -27,6 +28,10 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
             "HAVING COUNT(DISTINCT p.id.userId) = 2")
     Optional<Chat> findChatByParticipants(@Param("id1") Long id1, @Param("id2") Long id2);
 
+    @Query("SELECT c.participants FROM Chat c WHERE c.id = :chatId")
+    List<ChatParticipant> findParticipantsByChatId(@Param("chatId") Long chatId);
+
+    @Transactional
     @Modifying
     @Query("UPDATE Chat c SET c.lastMessage = :message, c.updatedAt = :timestamp WHERE c.id = :id")
     void updateLastMessageOnly(@Param("id") Long chatId,
