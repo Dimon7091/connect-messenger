@@ -1,16 +1,12 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
-import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.Mapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +22,7 @@ import ru.gorbunov.connect.core.dto.ws.WSEvent;
 import ru.gorbunov.connect.core.mapper.MessageMapper;
 import ru.gorbunov.connect.core.service.MessageService;
 import ru.gorbunov.connect.core.service.orchestrators.ChatCleanupService;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import ru.gorbunov.connect.core.util.DateUtils;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -47,16 +43,21 @@ public class MessageControllerV1 {
     private SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/chats/{id}")
-    public List<MessageNewResponse> getChatMessage(
+    public List<MessageNewResponse> getChatMessages(
             @PathVariable("id") Long chatId,
             @RequestParam("limit") Integer limit,
-            @RequestParam(value = "beforeTimestamp", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime beforeTimestamp,
+            @RequestParam(value = "beforeTimestamp", required = false) String beforeTimestamp,
             @AuthenticationPrincipal Jwt token
     ) {
         var currentUserId = Long.parseLong(token.getClaim("sub"));
-        OffsetDateTime timestamp = (beforeTimestamp != null) ? beforeTimestamp : OffsetDateTime.now();
-        var messages = messageService.findChatMessages(chatId, limit, timestamp, currentUserId);
+        OffsetDateTime timestamp = (beforeTimestamp != null) ?
+                DateUtils.parseTimestamp(beforeTimestamp) : OffsetDateTime.now();
+        var messages = messageService.findChatMessages(
+                chatId,
+                limit,
+                timestamp,
+                currentUserId
+        );
         return messages.stream()
                 .map(m -> mapper.toDto(m))
                 .toList();
