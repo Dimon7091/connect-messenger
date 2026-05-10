@@ -44,10 +44,15 @@ public class ChatControllerV1 {
     private ChatMapper mapper;
 
     @PostMapping("")
-    private ChatResponse createOrGetDirectChat(@RequestBody ChatCreateOrGetRequest requestData) {
+    private ChatResponse createOrGetDirectChat(
+            @RequestBody ChatCreateOrGetRequest requestData,
+            @AuthenticationPrincipal Jwt token
+    ) {
+        var currentUserId = Long.parseLong(token.getClaim("sub"));
         var chat = chatService.createOrGetDirectChat(
                 requestData.participants().getFirst(), requestData.participants().getLast()
         );
+        chatParticipantService.setIsDeleted(chat.getId(), currentUserId, false);
         return mapper.toDto(chat);
     }
 
