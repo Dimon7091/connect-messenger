@@ -76,7 +76,7 @@ public class MessageControllerV1 {
                 currentUserId);
 
         var messagesDeletedResponse = new MessageDeletedResponse(
-                requestData.chatId(),
+                requestData.chatId().toString(),
                 requestData.messagesIds(),
                 deletionResult.chatUpdatedAt(),
                 deletionResult.unreadCount(),

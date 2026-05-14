@@ -9,7 +9,7 @@ import java.util.List;
 
 public record MessageDeletedResponse(
         @JsonFormat(shape = JsonFormat.Shape.STRING)
-        Long chatId,
+        String chatId,
         @JsonSerialize(contentUsing = ToStringSerializer.class)
         List<Long> deletedMessagesIds,
         OffsetDateTime chatUpdatedAt,
