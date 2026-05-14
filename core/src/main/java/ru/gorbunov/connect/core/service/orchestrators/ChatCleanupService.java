@@ -1,13 +1,10 @@
 package ru.gorbunov.connect.core.service.orchestrators;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
-import ru.gorbunov.connect.core.dto.payload.ChatHistoryClearedPayload;
 import ru.gorbunov.connect.core.dto.payload.MessagesDeletedPayload;
-import ru.gorbunov.connect.core.dto.ws.ChatHistoryClearedResponse;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.repository.ChatRepository;
 import ru.gorbunov.connect.core.service.ChatParticipantService;
@@ -40,31 +37,17 @@ public class ChatCleanupService {
         chatParticipantService.cleanUnreadCount(chatId, userId);
     }
 
-    public ChatHistoryClearedPayload clearChatHistory(Long chatId, Long userId) {
+    public void clearChatHistoryForUser(Long chatId, Long userId) {
         // Находим участников чата, проверяем участие пользователя в чате
         var participantsId = chatService.getChatParticipantsByChatId(chatId).stream()
                 .map(p -> p.getId().getUserId())
                 .toList();
-        Long receiverId = participantsId.stream()
-                .filter(p -> !Objects.equals(p, userId))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Участник не найден"));
-        var lastMessage = "Нет сообщений";
-        var updatedAt = OffsetDateTime.now();
         if (participantsId.contains(userId)) {
-            messageService.deleteAllChatMessages(chatId);
-            chatService.updateLastMessage(chatId, lastMessage, updatedAt);
+            messageService.deleteChatMessagesForUser(chatId, userId);
             chatParticipantService.cleanUnreadCount(chatId, userId);
-            chatParticipantService.cleanUnreadCount(chatId, receiverId);
         } else {
             throw new AuthorizationDeniedException("Не достаточно прав для доступа");
         }
-        return new ChatHistoryClearedPayload(
-                receiverId,
-                lastMessage,
-                0,
-                updatedAt.toString()
-        );
     }
 
     public MessagesDeletedPayload deleteMessages(List<Long> messageIds, Long chatId, Long userId) {

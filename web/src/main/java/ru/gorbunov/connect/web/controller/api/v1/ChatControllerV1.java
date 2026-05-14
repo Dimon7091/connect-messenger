@@ -1,8 +1,9 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
-import com.nimbusds.jwt.JWT;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,6 +25,7 @@ import ru.gorbunov.connect.core.service.orchestrators.ChatCleanupService;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/chats")
 public class ChatControllerV1 {
@@ -42,6 +44,9 @@ public class ChatControllerV1 {
 
     @Autowired
     private ChatMapper mapper;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("")
     private ChatResponse createOrGetDirectChat(
@@ -84,5 +89,14 @@ public class ChatControllerV1 {
             @AuthenticationPrincipal Jwt token) {
         var currentUserId = Long.parseLong(token.getClaim("sub"));
         chatCleanupService.clearChatForUser(chatId, currentUserId);
+    }
+
+    @DeleteMapping("/{id}/clear-chat-history")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearChatHistory(
+            @PathVariable("id") Long chatId,
+            @AuthenticationPrincipal Jwt token) {
+        var currentUserId = Long.parseLong(token.getClaim("sub"));
+        chatCleanupService.clearChatHistoryForUser(chatId, currentUserId);
     }
 }

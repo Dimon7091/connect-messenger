@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
+
     @Modifying
     @Query("UPDATE Message m SET m.status = :status WHERE m.id = :id")
     void updateStatus(@Param("id") long id, @Param("status") MessageStatus status);
