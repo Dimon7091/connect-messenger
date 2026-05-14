@@ -1,10 +1,15 @@
 package ru.gorbunov.connect.core.service.orchestrators;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
+import ru.gorbunov.connect.core.dto.payload.ChatHistoryClearedPayload;
 import ru.gorbunov.connect.core.dto.payload.MessagesDeletedPayload;
+import ru.gorbunov.connect.core.dto.ws.ChatHistoryClearedResponse;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
+import ru.gorbunov.connect.core.repository.ChatRepository;
 import ru.gorbunov.connect.core.service.ChatParticipantService;
 import ru.gorbunov.connect.core.service.ChatService;
 import ru.gorbunov.connect.core.service.MessageService;
@@ -13,6 +18,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class ChatCleanupService {
 
@@ -25,10 +31,40 @@ public class ChatCleanupService {
     @Autowired
     private ChatParticipantService chatParticipantService;
 
+    @Autowired
+    private ChatRepository chatRepository;
+
     public void clearChatForUser(Long chatId, Long userId) {
         chatService.deleteChatForUser(chatId, userId);
         messageService.deleteChatMessagesForUser(chatId, userId);
         chatParticipantService.cleanUnreadCount(chatId, userId);
+    }
+
+    public ChatHistoryClearedPayload clearChatHistory(Long chatId, Long userId) {
+        // Находим участников чата, проверяем участие пользователя в чате
+        var participantsId = chatService.getChatParticipantsByChatId(chatId).stream()
+                .map(p -> p.getId().getUserId())
+                .toList();
+        Long receiverId = participantsId.stream()
+                .filter(p -> !Objects.equals(p, userId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Участник не найден"));
+        var lastMessage = "Нет сообщений";
+        var updatedAt = OffsetDateTime.now();
+        if (participantsId.contains(userId)) {
+            messageService.deleteAllChatMessages(chatId);
+            chatService.updateLastMessage(chatId, lastMessage, updatedAt);
+            chatParticipantService.cleanUnreadCount(chatId, userId);
+            chatParticipantService.cleanUnreadCount(chatId, receiverId);
+        } else {
+            throw new AuthorizationDeniedException("Не достаточно прав для доступа");
+        }
+        return new ChatHistoryClearedPayload(
+                receiverId,
+                lastMessage,
+                0,
+                updatedAt.toString()
+        );
     }
 
     public MessagesDeletedPayload deleteMessages(List<Long> messageIds, Long chatId, Long userId) {
@@ -55,7 +91,8 @@ public class ChatCleanupService {
         }
         chatService.updateLastMessage(chatId, messageText, updatedAt);
         chatParticipantService.decreaseUnreadCount(chatId, receiverId, messageIds.size());
-        var unreadCount = chatParticipantService.getUnreadCount(chatId, userId);
+        var unreadCount = chatParticipantService.getUnreadCount(chatId, receiverId);
+        log.info("Unread count: {} ", unreadCount);
         return new MessagesDeletedPayload(
                 receiverId,
                 updatedAt,
