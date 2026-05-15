@@ -49,6 +49,9 @@ public class ChatParticipant {
     @Column(name = "last_read_at")
     private OffsetDateTime lastReadAt;
 
+    @Column(name = "is_chat_empty")
+    private Boolean isChatEmpty;
+
     @Column(name = "is_muted")
     private Boolean isMuted = false;
 

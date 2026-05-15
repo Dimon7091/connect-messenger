@@ -57,6 +57,7 @@ public class ChatService {
                         chatParticipant1.setId(chatParticipantId1);
                         chatParticipant1.setIsDeleted(false);
                         chatParticipant1.setIsMuted(false);
+                        chatParticipant1.setIsChatEmpty(true);
 
                         // Создание второго участника чата
                         var chatParticipantId2 = new ChatParticipantId(savedChat.getId(), userId2);
@@ -65,6 +66,7 @@ public class ChatService {
                         chatParticipant2.setId(chatParticipantId2);
                         chatParticipant2.setIsDeleted(false);
                         chatParticipant2.setIsMuted(false);
+                        chatParticipant2.setIsChatEmpty(true);
 
                         savedChat.addParticipant(chatParticipant1);
                         savedChat.addParticipant(chatParticipant2);
@@ -103,8 +105,12 @@ public class ChatService {
                 .map(chat -> {
                     var chatResponse = mapper.toDto(chat);
                     var unreadCount = chatParticipantService.getUnreadCount(chat.getId(), userId);
+                    var lastMessage = chat.getLastMessage();
+                    if (chatParticipantService.getIsChatCleared(chat.getId(), userId)) {
+                        lastMessage = "Нет новых сообщений";
+                    }
                     chatResponse.setUnreadCount(unreadCount);
-                    chatResponse.setLastMessage(chat.getLastMessage());
+                    chatResponse.setLastMessage(lastMessage);
                     chatResponse.setUpdatedAt(chat.getUpdatedAt());
                     return chatResponse;
                 })

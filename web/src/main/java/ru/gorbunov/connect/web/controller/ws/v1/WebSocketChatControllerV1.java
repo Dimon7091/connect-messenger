@@ -60,6 +60,7 @@ public class WebSocketChatControllerV1 {
         SendMessageRequest payload = request.getPayload();
         long senderId = Long.parseLong(principal.getName());
         long receiverId = Long.parseLong(payload.getReceiverId());
+        long chatId = Long. parseLong(payload.getChatId());
 
         log.info("📨 Send message from user {} to chat {}", senderId, payload.getChatId());
 
@@ -90,7 +91,9 @@ public class WebSocketChatControllerV1 {
                     Long.parseLong(payload.getChatId()),
                     lastMessage,
                     OffsetDateTime.parse(payload.getTimestamp()));
-            chatParticipantService.incrementUnreadCount(Long.parseLong(payload.getChatId()), receiverId);
+            chatParticipantService.incrementUnreadCount(chatId, receiverId);
+            chatParticipantService.setIsChatEmpty(chatId, senderId, false);
+            chatParticipantService.setIsChatEmpty(chatId, receiverId, false);
             Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
             ChatResponse chatResponse = chatMapper.toDto(chat);
             chatResponse.setUnreadCount(chatParticipantService.getUnreadCount(chat.getId(), receiverId));

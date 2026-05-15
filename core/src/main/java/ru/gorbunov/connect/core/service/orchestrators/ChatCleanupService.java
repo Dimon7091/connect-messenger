@@ -45,6 +45,7 @@ public class ChatCleanupService {
         if (participantsId.contains(userId)) {
             messageService.deleteChatMessagesForUser(chatId, userId);
             chatParticipantService.cleanUnreadCount(chatId, userId);
+            chatParticipantService.setIsChatEmpty(chatId, userId, true);
         } else {
             throw new AuthorizationDeniedException("Не достаточно прав для доступа");
         }

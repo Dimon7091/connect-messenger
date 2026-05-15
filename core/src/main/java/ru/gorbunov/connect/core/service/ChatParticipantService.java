@@ -20,6 +20,11 @@ public class ChatParticipantService {
         return chatParticipantRepository.getUnreadCount(participantId);
     }
 
+    public boolean getIsChatCleared(Long chatId, Long userId) {
+        var participantId = new ChatParticipantId(chatId, userId);
+        return chatParticipantRepository.getIsChatEmpty(participantId);
+    }
+
     public void setIsDeleted(Long chatId, Long userId, boolean status) {
         var participantId = new ChatParticipantId(chatId, userId);
         chatParticipantRepository.updateIsDeleted(participantId, status);
@@ -38,5 +43,10 @@ public class ChatParticipantService {
     public void decrementUnreadCount(Long chatId, Long userId) {
         var participantId = new ChatParticipantId(chatId, userId);
         chatParticipantRepository.decrementUnreadCount(participantId);
+    }
+
+    public void setIsChatEmpty(Long chatId, Long userId, boolean status) {
+        var participantId = new ChatParticipantId(chatId, userId);
+        chatParticipantRepository.updateIsChatEmpty(participantId, status);
     }
 }

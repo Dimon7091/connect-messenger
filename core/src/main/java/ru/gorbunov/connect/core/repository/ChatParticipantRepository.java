@@ -49,4 +49,12 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     @Transactional
     @Query("UPDATE ChatParticipant cp SET cp.isDeleted = :status WHERE cp.id = :id")
     void updateIsDeleted(@Param("id") ChatParticipantId id, @Param("status") boolean status);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChatParticipant cp SET cp.isChatEmpty = :status WHERE cp.id = :id")
+    void updateIsChatEmpty(@Param("id") ChatParticipantId id, @Param("status") boolean status);
+
+    @Query("SELECT cp.isChatEmpty FROM ChatParticipant cp WHERE cp.id = :id")
+    boolean getIsChatEmpty(@Param("id") ChatParticipantId id);
 }
