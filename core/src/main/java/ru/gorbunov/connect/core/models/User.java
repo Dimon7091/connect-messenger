@@ -71,8 +71,6 @@ public class User implements UserDetails {
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
-    private LocalDateTime lastSeen;
-
     public void setRole(Role role) {
         if (roles == null) {
             roles = new HashSet<>();

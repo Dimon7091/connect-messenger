@@ -9,18 +9,10 @@ import org.springframework.stereotype.Repository;
 import ru.gorbunov.connect.core.models.UserStatus;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 @Repository
 public interface UserStatusRepository extends JpaRepository<UserStatus, Long> {
 
-    @Modifying
-    @Transactional
-    @Query(value = "INSERT INTO user_statuses (user_id, status, last_seen) " +
-            "VALUES (:id, :status, :lastSeen) " +
-            "ON CONFLICT (user_id) DO UPDATE SET status = :status, last_seen = :lastSeen",
-            nativeQuery = true)
-    void upsertStatus(@Param("id") Long id,
-                      @Param("status") String status,
-                      @Param("lastSeen") OffsetDateTime lastSeen);
 }
 

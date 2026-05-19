@@ -34,7 +34,7 @@ import java.time.ZoneOffset;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-public class WebSocketChatControllerV1 {
+public class WSChatControllerV1 {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageService messageService;
@@ -244,7 +244,7 @@ public class WebSocketChatControllerV1 {
         log.debug("✏️ User {} started typing in chat {}", typingUserId, payload.getChatId());
 
         try {
-            // Отправляем уведомление всем участникам, кроме печатающего
+            // Отправляем уведомление участнику, кроме печатающего
             for (ChatParticipant participant : chat.getParticipants()) {
                 var participantId = participant.getId().getUserId();
                 if (!participantId.equals(typingUserId)) {
@@ -281,7 +281,7 @@ public class WebSocketChatControllerV1 {
             // Получаем чат
             Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
 
-            // Отправляем уведомление всем участникам, кроме печатающего
+            // Отправляем уведомление участнику, кроме печатающего
             for (ChatParticipant participant : chat.getParticipants()) {
                 var participantId = participant.getId().getUserId();
                 if (!participantId.equals(typingUserId)) {

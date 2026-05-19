@@ -54,7 +54,7 @@ public class DataInitializer {
                 log.info("Admin user is already exist: {} ", admin.getEmail());
             }
             createTestUsers(20);
-            createTestChat(60);
+           createTestChat(60);
         };
     }
 

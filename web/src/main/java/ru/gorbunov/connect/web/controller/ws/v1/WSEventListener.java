@@ -8,26 +8,27 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import ru.gorbunov.connect.core.dto.ws.UserStatusPayload;
-import ru.gorbunov.connect.core.dto.ws.WSEvent;
+import ru.gorbunov.connect.core.models.UserStatus;
 import ru.gorbunov.connect.core.service.StatusService;
+import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
 
 import java.time.OffsetDateTime;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class WebSocketEventListener {
+public class WSEventListener {
 
     private final StatusService statusService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final WSUserStatusController userStatusController;
+    private final UserStatusSubscriptionService subscriptionService;
 
     @EventListener
     public void handleConnect(SessionConnectEvent event) {
         Long userId = getUserId(event.getMessage());
         if (userId != null) {
             log.info("🟢 Пользователь {} подключился", userId);
-            updateAndBroadcastStatus(userId, "ONLINE");
+            updateAndBroadcastStatus(userId, UserStatus.Status.ONLINE);
         }
     }
 
@@ -36,20 +37,17 @@ public class WebSocketEventListener {
         Long userId = getUserId(event.getMessage());
         if (userId != null) {
             log.info("🔴 Пользователь {} отключился", userId);
-            updateAndBroadcastStatus(userId, "OFFLINE");
+            updateAndBroadcastStatus(userId, UserStatus.Status.OFFLINE);
+            subscriptionService.cleanupSubscribers(userId);
         }
     }
 
-    private void updateAndBroadcastStatus(Long userId, String status) {
+    private void updateAndBroadcastStatus(Long userId, UserStatus.Status status) {
         // 1. Обновляем в кэше (StatusService сам синхронизирует с БД раз в минуту)
         statusService.updateInCache(userId, status);
 
         // 2. Рассылаем всем статус
-        UserStatusPayload payload = new UserStatusPayload(userId, status, OffsetDateTime.now());
-        messagingTemplate.convertAndSend(
-                "/topic/public_status",
-                new WSEvent<>(WSEvent.EventType.USER_STATUS, payload)
-        );
+        userStatusController.broadcastStatusToSubscribers(userId, status, OffsetDateTime.now());
     }
 
     private Long getUserId(org.springframework.messaging.Message<byte[]> message) {

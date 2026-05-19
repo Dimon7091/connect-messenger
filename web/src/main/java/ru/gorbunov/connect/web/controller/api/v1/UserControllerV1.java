@@ -3,6 +3,7 @@ package ru.gorbunov.connect.web.controller.api.v1;
 import jakarta.validation.Valid;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +28,9 @@ import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.models.Role;
+import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserService;
+import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
 
 import java.net.URI;
 import java.util.List;
@@ -38,6 +41,13 @@ public class UserControllerV1 {
 
     private static final Log log = LogFactory.getLog(UserControllerV1.class);
     private final UserService userService;
+
+    @Autowired
+    public StatusService statusService;
+
+    @Autowired
+    public UserStatusSubscriptionService userStatusSubscriptionService;
+
 
     public UserControllerV1(UserService userService) {
         this.userService = userService;
@@ -111,5 +121,7 @@ public class UserControllerV1 {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable("id") Long id) {
         userService.delete(id);
+        userStatusSubscriptionService.cleanupUserFully(id);
+        statusService.deleteStatusFromDatabase(id);
     }
 }
