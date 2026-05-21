@@ -17,7 +17,7 @@ dependencies {
 
     // База данных
     runtimeOnly("org.postgresql:postgresql")
-    implementation("com.h2database:h2:2.4.240")
+    runtimeOnly("com.h2database:h2")
 
     // Маппер
     implementation("org.mapstruct:mapstruct:1.5.5.Final")
