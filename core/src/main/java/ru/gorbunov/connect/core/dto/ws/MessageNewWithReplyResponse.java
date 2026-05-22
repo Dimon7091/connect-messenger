@@ -1,9 +1,9 @@
 package ru.gorbunov.connect.core.dto.ws;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.gorbunov.connect.core.dto.chat.ChatResponse;
 import ru.gorbunov.connect.core.models.MessageStatus;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageNewResponse {
+public class MessageNewWithReplyResponse {
     private String id;
     private String chatId;
     private ChatResponse chat;
@@ -24,21 +24,8 @@ public class MessageNewResponse {
     private OffsetDateTime timestamp;
     private OffsetDateTime createdAt;
     private MessageStatus status;
-    private List<AttachmentDto> attachments;
-    private List<String> readBy;
     private String replyToId;
+    private List<MessageNewResponse.AttachmentDto> attachments;
+    private List<String> readBy;
     private ReplyContext replyContext;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AttachmentDto {
-        private String id;
-        private String url;
-        private String name;
-        private String type;
-        private Long size;
-        private String previewUrl;
-    }
 }

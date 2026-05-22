@@ -6,8 +6,11 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.gorbunov.connect.core.dto.ws.MessageNewResponse;
+import ru.gorbunov.connect.core.dto.ws.ReplyContext;
 import ru.gorbunov.connect.core.models.Message;
+import ru.gorbunov.connect.core.service.orchestrators.MessageReplyService;
 
 import java.util.List;
 
@@ -19,9 +22,15 @@ import java.util.List;
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 public abstract class MessageMapper {
+
+    @Autowired
+    protected MessageReplyService messageReplyService;
+
     @Mapping(source = "attachments", target = "attachments", qualifiedByName = "toAttachmentDto")
     @Mapping(source = "status", target = "status")
     @Mapping(target = "chat", ignore = true)
+    @Mapping(source = "replyToId", target = "replyToId")
+    @Mapping(source = "replyToId", target = "replyContext", qualifiedByName = "addReplyContext")
     public abstract MessageNewResponse toDto(Message entity);
 
     @Named("toAttachmentDto")
@@ -42,5 +51,11 @@ public abstract class MessageMapper {
                                 .build()
                         ))
                 .toList();
+    }
+
+    @Named("addReplyContext")
+    protected ReplyContext addReplyContext(Long replyToId) {
+        if (replyToId == null) return null;
+        return messageReplyService.getReplyContext(replyToId);
     }
 }

@@ -13,6 +13,7 @@ import ru.gorbunov.connect.core.dto.ws.MessageDeliveredPayload;
 import ru.gorbunov.connect.core.dto.ws.MessageNewResponse;
 import ru.gorbunov.connect.core.dto.ws.MessageReadPayload;
 import ru.gorbunov.connect.core.dto.ws.MessageSentResponse;
+import ru.gorbunov.connect.core.dto.ws.ReplyContext;
 import ru.gorbunov.connect.core.mapper.ChatMapper;
 import ru.gorbunov.connect.core.models.MessageStatus;
 import ru.gorbunov.connect.core.dto.ws.SendMessageRequest;
@@ -26,6 +27,7 @@ import ru.gorbunov.connect.core.service.ChatParticipantService;
 import ru.gorbunov.connect.core.service.ChatService;
 import ru.gorbunov.connect.core.service.MessageService;
 import org.springframework.util.StopWatch;
+import ru.gorbunov.connect.core.service.orchestrators.MessageReplyService;
 
 import java.security.Principal;
 import java.time.OffsetDateTime;
@@ -42,6 +44,7 @@ public class WSChatControllerV1 {
     private final MessageMapper messageMapper;
     private final ChatParticipantService chatParticipantService;
     private final ChatMapper chatMapper;
+    private final MessageReplyService messageReplyService;
 
     /**
      * 1. Отправка сообщения (send_message)
@@ -84,6 +87,13 @@ public class WSChatControllerV1 {
 
             // 3. Отправляем новое сообщение
             MessageNewResponse newResponse = messageMapper.toDto(savedMessage);
+            // Если сообщение это ответ на другое сообщение добовляем ReplyContext
+            if (payload.getReplyToId() != null) {
+                ReplyContext replyContext = messageReplyService.getReplyContext(
+                        Long.valueOf(payload.getReplyToId())
+                );
+                newResponse.setReplyContext(replyContext);
+            }
             // Добовляем непрочитанные сообщения, время обновления получателю и в чат
             var lastMessage = (payload.getText().length() > 40) ?
                     payload.getText().substring(0, 40) + "..." : payload.getText();
@@ -150,7 +160,7 @@ public class WSChatControllerV1 {
             messageService.markAsDelivered(Long.valueOf(payload.getMessageId()));
 
             // Получаем сообщение, чтобы узнать отправителя
-            Message message = messageService.findById(Long.valueOf(payload.getMessageId()));
+            Message message = messageService.getMessageById(Long.valueOf(payload.getMessageId()));
 
             // Пересылаем уведомление отправителю
             messagingTemplate.convertAndSendToUser(
@@ -194,7 +204,7 @@ public class WSChatControllerV1 {
             // Обновляем статус в БД
             messageService.markAsRead(Long.valueOf(payload.getMessageId()), readerId);
             chatParticipantService.decrementUnreadCount(Long.parseLong(payload.getChatId()), readerId);
-            Message message = messageService.findById(Long.valueOf(payload.getMessageId()));
+            Message message = messageService.getMessageById(Long.valueOf(payload.getMessageId()));
 
             // Пересылаем уведомление отправителю
             messagingTemplate.convertAndSendToUser(

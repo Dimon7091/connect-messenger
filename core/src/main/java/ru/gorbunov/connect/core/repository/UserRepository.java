@@ -1,6 +1,8 @@
 package ru.gorbunov.connect.core.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Repository;
 import ru.gorbunov.connect.core.models.Role;
@@ -16,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByUserNameStartingWith(String prefix);
     Optional<User> findByEmail(String email);
     List<User> findAllByRoles(Role role);
+    @Query("SELECT CONCAT(u.firstName, ' ', u.lastName) FROM User u WHERE u.id = :id")
+    Optional<String> findFullNameById(@Param("id") Long id);
 }

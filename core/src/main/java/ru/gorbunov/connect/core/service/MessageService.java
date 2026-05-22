@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.payload.MessageDeletedState;
 import ru.gorbunov.connect.core.dto.ws.SendMessageRequest;
-import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.models.Message;
 import ru.gorbunov.connect.core.models.MessageStatus;
 import ru.gorbunov.connect.core.repository.MessageRepository;
@@ -15,7 +14,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 
 @Slf4j
 @Transactional
@@ -40,7 +38,7 @@ public class MessageService {
         return messageRepository.save(message);
     }
 
-    public Message findById(Long messageId) {
+    public Message getMessageById(Long messageId) {
         return messageRepository.findById(messageId)
                 .orElseThrow(NoSuchElementException::new);
     }

@@ -64,6 +64,12 @@ public class UserService {
                 .toList();
     }
 
+    public String getUserFullName(Long userId) {
+        return userRepository.findFullNameById(userId)
+                .orElse(null);
+
+    }
+
     public UserResponse findById(Long id) {
         var user = userRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
