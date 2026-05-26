@@ -17,5 +17,15 @@ logging:
 app:
   welcome-message: "Welcome to Spring"
 
+yandex:
+  storage:
+    endpoint: https://storage.yandexcloud.net
+    region: ru-central1
+    access-key: ${STORAGE_ACCESS_KEY}
+    secret-key: ${STORAGE_SECRET_KEY}
+    buckets:
+      avatars: connect-avatars
+      chat-files: connect-chats-files
+
 server:
   port: 8080
