@@ -9,10 +9,12 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ru.gorbunov.connect.core.dto.user.ProfileResponse;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.models.Profile;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 
@@ -30,10 +32,13 @@ public abstract class UserMapper {
     private PasswordEncoder passwordEncoder;
 
     @Mapping(source = "password", target = "passwordHash", qualifiedByName = "hashPassword")
+    @Mapping(source = "firstName", target = "profile.firstName")
+    @Mapping(source = "lastName", target = "profile.lastName")
     public abstract User toEntity(UserCreateRequest dto);
 
     @Mapping(source = "username", target = "userName")
     @Mapping(source = "roles", target = "roles", qualifiedByName = "rolesEnumToString")
+    @Mapping(source = "profile", target = "profile", qualifiedByName = "addProfileResponse")
     public abstract UserResponse toDto(User entity);
 
     public abstract void putUpdate(UserPutUpdateRequest dto, @MappingTarget User entity);
@@ -50,5 +55,14 @@ public abstract class UserMapper {
         return rawRoles.stream()
                 .map(Enum::name)
                 .collect(Collectors.toSet());
+    }
+
+    @Named("addProfileResponse")
+    protected ProfileResponse addProfileResponse(Profile profile) {
+        return new ProfileResponse(
+                profile.getFirstName(),
+                profile.getLastName(),
+                profile.getAvatarUrl()
+        );
     }
 }
