@@ -21,5 +21,5 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class Profile {
     private String firstName;
     private String lastName;
-    private String avatarUrl;
+    private String avatarKey;
 }

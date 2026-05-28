@@ -62,7 +62,7 @@ public abstract class UserMapper {
         return new ProfileResponse(
                 profile.getFirstName(),
                 profile.getLastName(),
-                profile.getAvatarUrl()
+                profile.getAvatarKey()
         );
     }
 }
