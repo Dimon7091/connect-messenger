@@ -18,6 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByUserNameStartingWith(String prefix);
     Optional<User> findByEmail(String email);
     List<User> findAllByRoles(Role role);
-    @Query("SELECT CONCAT(u.profile.firstName, ' ', u.profile.lastName) FROM User u WHERE u.id = :id")
+    @Query(value = "SELECT CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) " +
+            "FROM users u WHERE u.id = :id", nativeQuery = true)
     Optional<String> findFullNameById(@Param("id") Long id);
 }
