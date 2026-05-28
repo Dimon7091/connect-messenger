@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
@@ -29,9 +30,11 @@ import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.service.StatusService;
+import ru.gorbunov.connect.core.service.UserProfileService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -41,6 +44,7 @@ public class UserControllerV1 {
 
     private static final Log log = LogFactory.getLog(UserControllerV1.class);
     private final UserService userService;
+    private final UserProfileService userProfileService;
 
     @Autowired
     public StatusService statusService;
@@ -49,8 +53,9 @@ public class UserControllerV1 {
     public UserStatusSubscriptionService userStatusSubscriptionService;
 
 
-    public UserControllerV1(UserService userService) {
+    public UserControllerV1(UserService userService, UserProfileService userProfileService) {
         this.userService = userService;
+        this.userProfileService = userProfileService;
     }
 
     @PostMapping("")
@@ -115,6 +120,48 @@ public class UserControllerV1 {
         var updatedUser = userService.patchUpdate(id, requestData);
         return ResponseEntity.ok()
                 .body(updatedUser);
+    }
+
+    @PostMapping("/{id}/avatar/upload")
+    public ResponseEntity<String> uploadAvatar(
+            @PathVariable("id") Long userId,
+            @RequestParam("file") MultipartFile file) throws IOException {
+
+        // Валидация: проверяем, что файл не пустой
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("Файл не выбран");
+        }
+
+        // Передаем ID пользователя, массив байт, тип файла (image/png) и оригинальное имя файла в Core-слой
+        userProfileService.changeAvatar(
+                userId,
+                file.getBytes(),
+                file.getContentType(),
+                file.getOriginalFilename()
+        );
+
+        return ResponseEntity.ok("Аватар успешно обновлен!");
+    }
+
+    @PostMapping("/{id}/avatar/download")
+    public ResponseEntity<String> downloadAvatar(
+            @PathVariable("id") Long userId,
+            @RequestParam("file") MultipartFile file) throws IOException {
+
+        // Валидация: проверяем, что файл не пустой
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("Файл не выбран");
+        }
+
+        // Передаем ID пользователя, массив байт, тип файла (image/png) и оригинальное имя файла в Core-слой
+        userProfileService.changeAvatar(
+                userId,
+                file.getBytes(),
+                file.getContentType(),
+                file.getOriginalFilename()
+        );
+
+        return ResponseEntity.ok("Аватар успешно обновлен!");
     }
 
     @DeleteMapping("/{id}")

@@ -17,6 +17,7 @@ import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.models.Profile;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
+import ru.gorbunov.connect.core.service.UserProfileService;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,9 +32,13 @@ public abstract class UserMapper {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserProfileService userProfileService;
+
     @Mapping(source = "password", target = "passwordHash", qualifiedByName = "hashPassword")
     @Mapping(source = "firstName", target = "profile.firstName")
     @Mapping(source = "lastName", target = "profile.lastName")
+    @Mapping(target = "profile.avatarKey", expression = "java(null)")
     public abstract User toEntity(UserCreateRequest dto);
 
     @Mapping(source = "username", target = "userName")
@@ -59,10 +64,12 @@ public abstract class UserMapper {
 
     @Named("addProfileResponse")
     protected ProfileResponse addProfileResponse(Profile profile) {
+        String avatarUrl = userProfileService.generateAvatarUrl(profile.getAvatarKey());
+
         return new ProfileResponse(
                 profile.getFirstName(),
                 profile.getLastName(),
-                profile.getAvatarKey()
+                avatarUrl
         );
     }
 }

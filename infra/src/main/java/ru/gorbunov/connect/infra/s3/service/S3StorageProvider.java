@@ -6,9 +6,11 @@ import ru.gorbunov.connect.core.models.FileStorageProvider;
 import ru.gorbunov.connect.core.models.StorageType;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
@@ -80,6 +82,18 @@ public class S3StorageProvider implements FileStorageProvider {
 
         // Возвращаем готовую временную строку-ссылку с токеном авторизации от Яндекса
         return presignedRequest.url().toString();
+    }
+
+    @Override
+    public void delete(String key, StorageType type) {
+        String bucket = resolveBucket(type);
+
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+
+        s3Client.deleteObject(deleteObjectRequest);
     }
 
     // Вспомогательный метод для выбора бакета
