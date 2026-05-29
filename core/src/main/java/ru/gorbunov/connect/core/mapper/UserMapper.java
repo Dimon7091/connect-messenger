@@ -14,6 +14,7 @@ import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.models.AvatarType;
 import ru.gorbunov.connect.core.models.Profile;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
@@ -64,12 +65,18 @@ public abstract class UserMapper {
 
     @Named("addProfileResponse")
     protected ProfileResponse addProfileResponse(Profile profile) {
-        String avatarUrl = userProfileService.generateAvatarUrl(profile.getAvatarKey());
+        String avatarUrl = null;
+        String avatarThumbUrl = null;
+        if (profile.getAvatarKey() != null) {
+            avatarUrl = userProfileService.generateAvatarUrl(AvatarType.ORIGINAL.getValue() + profile.getAvatarKey());
+            avatarThumbUrl = userProfileService.generateAvatarUrl(AvatarType.THUMBNAIL.getValue() + profile.getAvatarKey());
+        }
 
         return new ProfileResponse(
                 profile.getFirstName(),
                 profile.getLastName(),
-                avatarUrl
+                avatarUrl,
+                avatarThumbUrl
         );
     }
 }
