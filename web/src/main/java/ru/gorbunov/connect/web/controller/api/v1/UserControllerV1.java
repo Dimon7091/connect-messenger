@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
@@ -85,7 +86,7 @@ public class UserControllerV1 {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
-        var user = userService.findByUserName(jwt.getClaim("preferred_username"));
+        var user = userService.findById(Long.parseLong(jwt.getClaim("sub")));
         return ResponseEntity.ok()
                 .body(user);
     }
@@ -102,12 +103,24 @@ public class UserControllerV1 {
        return userService.getUsersStat();
     }
 
+    @PatchMapping("/{id}/update-username")
+    public ResponseEntity<UserResponse> updateUserName(
+            @PathVariable("id") Long id,
+            @RequestBody UpdateUserNameRequest requestData
+    ) {
+        var updatedUser = userService.updateUserName(id, requestData);
+        return ResponseEntity.ok()
+                .body(updatedUser);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> putUpdate(
             @PathVariable("id") Long id,
-            @RequestBody UserPutUpdateRequest requestData
+            @RequestBody UserPutUpdateRequest requestData,
+            @AuthenticationPrincipal Jwt token
     ) {
-        var updatedUser = userService.putUpdate(id, requestData);
+        var currentUserId = Long.parseLong(token.getClaim("sub"));
+        var updatedUser = userService.putUpdate(currentUserId, requestData);
         return ResponseEntity.ok()
                 .body(updatedUser);
     }
