@@ -45,7 +45,6 @@ public class UserControllerV1 {
 
     private static final Log log = LogFactory.getLog(UserControllerV1.class);
     private final UserService userService;
-    private final UserProfileService userProfileService;
 
     @Autowired
     public StatusService statusService;
@@ -54,9 +53,8 @@ public class UserControllerV1 {
     public UserStatusSubscriptionService userStatusSubscriptionService;
 
 
-    public UserControllerV1(UserService userService, UserProfileService userProfileService) {
+    public UserControllerV1(UserService userService) {
         this.userService = userService;
-        this.userProfileService = userProfileService;
     }
 
     @PostMapping("")
@@ -106,48 +104,6 @@ public class UserControllerV1 {
         var updatedUser = userService.updateUserName(id, requestData);
         return ResponseEntity.ok()
                 .body(updatedUser);
-    }
-
-    @PostMapping("/{id}/avatar/upload")
-    public ResponseEntity<String> uploadAvatar(
-            @PathVariable("id") Long userId,
-            @RequestParam("file") MultipartFile file) throws IOException {
-
-        // Валидация: проверяем, что файл не пустой
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("Файл не выбран");
-        }
-
-        // Передаем ID пользователя, массив байт, тип файла (image/png) и оригинальное имя файла в Core-слой
-        userProfileService.changeAvatar(
-                userId,
-                file.getBytes(),
-                file.getContentType(),
-                file.getOriginalFilename()
-        );
-
-        return ResponseEntity.ok("Аватар успешно обновлен!");
-    }
-
-    @PostMapping("/{id}/avatar/download")
-    public ResponseEntity<String> downloadAvatar(
-            @PathVariable("id") Long userId,
-            @RequestParam("file") MultipartFile file) throws IOException {
-
-        // Валидация: проверяем, что файл не пустой
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("Файл не выбран");
-        }
-
-        // Передаем ID пользователя, массив байт, тип файла (image/png) и оригинальное имя файла в Core-слой
-        userProfileService.changeAvatar(
-                userId,
-                file.getBytes(),
-                file.getContentType(),
-                file.getOriginalFilename()
-        );
-
-        return ResponseEntity.ok("Аватар успешно обновлен!");
     }
 
     @DeleteMapping("/{id}")
