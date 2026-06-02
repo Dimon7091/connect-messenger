@@ -32,7 +32,7 @@ public class JwtUtil {
                 .issuer("self")
                 .issuedAt(now.toInstant())
                 .expiresAt(now.plusMonths(1).toInstant())  // ✅ +1 месяц
-                .subject(user.getUsername())
+                .subject(String.valueOf(user.getId()))
                 .claim("sub", user.getId())
                 .claim("preferred_username", user.getUsername())
                 .claim("roles", roles)
