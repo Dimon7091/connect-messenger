@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
@@ -96,37 +97,17 @@ public class UserService {
         return userRepository.findAllByRoles(role);
     }
 
-    // --- Update ---
-    public UserResponse putUpdate(Long id, UserPutUpdateRequest requestData) {
-        var user = userRepository.findById(id)
+    public Long findUserIdByUserName(String userName) {
+        return userRepository.findUserIdByUserName(userName)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
-
-        if (!user.getEmail().equals(requestData.email())
-                && userRepository.existsByEmail(requestData.email())) {
-            throw new EmailAlreadyExistsException("email " + requestData.email() + " уже занят");
-        }
-
-        mapper.putUpdate(requestData, user);
-        userRepository.save(user);
-        return mapper.toDto(user);
     }
 
-    public UserResponse patchUpdate(Long id, UserPatchUpdateRequest requestData) {
+    // --- Update ---
+    public UserResponse updateUserName(Long id, UpdateUserNameRequest requestData) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
-
-        // Обрабатываем email (если он передан в запросе)
-        if (requestData.email() != null && requestData.email().isPresent()) {
-            String newEmail = requestData.email().get();
-
-            if (!user.getEmail().equals(newEmail)
-                    && userRepository.existsByEmail(newEmail)) {
-                throw new EmailAlreadyExistsException(
-                        "email " + newEmail + " уже занят"
-                );
-            }
-        }
-        mapper.patchUpdate(requestData, user);
+        mapper.updateUserName(requestData, user);
+        userRepository.save(user);
         return mapper.toDto(user);
     }
 

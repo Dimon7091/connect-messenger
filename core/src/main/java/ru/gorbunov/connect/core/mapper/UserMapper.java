@@ -10,6 +10,7 @@ import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.gorbunov.connect.core.dto.user.ProfileResponse;
+import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
@@ -47,9 +48,7 @@ public abstract class UserMapper {
     @Mapping(source = "profile", target = "profile", qualifiedByName = "addProfileResponse")
     public abstract UserResponse toDto(User entity);
 
-    public abstract void putUpdate(UserPutUpdateRequest dto, @MappingTarget User entity);
-
-    public abstract void patchUpdate(UserPatchUpdateRequest dto, @MappingTarget User entity);
+    public abstract void updateUserName(UpdateUserNameRequest dto, @MappingTarget User entity);
 
     @Named("hashPassword")
     protected String hashPassword(String rawPassword) {

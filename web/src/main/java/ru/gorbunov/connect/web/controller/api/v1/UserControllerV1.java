@@ -98,39 +98,12 @@ public class UserControllerV1 {
                 .body(users);
     }
 
-    @GetMapping("/stat")
-    public UserStatResponse stat() {
-       return userService.getUsersStat();
-    }
-
     @PatchMapping("/{id}/update-username")
     public ResponseEntity<UserResponse> updateUserName(
             @PathVariable("id") Long id,
             @RequestBody UpdateUserNameRequest requestData
     ) {
         var updatedUser = userService.updateUserName(id, requestData);
-        return ResponseEntity.ok()
-                .body(updatedUser);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> putUpdate(
-            @PathVariable("id") Long id,
-            @RequestBody UserPutUpdateRequest requestData,
-            @AuthenticationPrincipal Jwt token
-    ) {
-        var currentUserId = Long.parseLong(token.getClaim("sub"));
-        var updatedUser = userService.putUpdate(currentUserId, requestData);
-        return ResponseEntity.ok()
-                .body(updatedUser);
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<UserResponse> patchUpdate(
-            @PathVariable("id") Long id,
-            @RequestBody UserPatchUpdateRequest requestData
-    ) {
-        var updatedUser = userService.patchUpdate(id, requestData);
         return ResponseEntity.ok()
                 .body(updatedUser);
     }
