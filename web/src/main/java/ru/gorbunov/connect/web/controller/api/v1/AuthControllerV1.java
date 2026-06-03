@@ -66,7 +66,7 @@ public class AuthControllerV1 {
     public ResponseEntity<Map<String, String>> creteJwtForAdmin(@RequestBody AuthRequest authRequest) {
         // Проверка роли admin
         var adminDetails = userService.findByUserName(authRequest.username());
-        boolean isAdmin = adminDetails.roles().stream()
+        boolean isAdmin = adminDetails.getRoles().stream()
                 .anyMatch(a -> a.equals("ROLE_ADMIN"));
         if (!isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)

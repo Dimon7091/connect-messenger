@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.gorbunov.connect.core.dto.chat.ChatCreateOrGetRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.ws.SendMessageRequest;
 import ru.gorbunov.connect.core.models.Role;
@@ -74,7 +73,7 @@ public class DataInitializer {
         );
         var admin = userService.create(adminData, Role.ROLE_ADMIN);
         log.info("✅ Admin user created successfully!");
-        log.info("📧 UserName: {}", admin.userName());
+        log.info("📧 UserName: {}", admin.getUserName());
     }
 
     public void createTestUsers(Integer count) {
@@ -87,7 +86,7 @@ public class DataInitializer {
                     faker.lorem().characters(8)
             );
             var newUser = userService.create(userData, Role.ROLE_USER);
-            log.info("✅ New user created, username: {}", newUser.userName());
+            log.info("✅ New user created, username: {}", newUser.getUserName());
             log.info(" Password: {}", userData.password());
         }
     }
@@ -109,19 +108,19 @@ public class DataInitializer {
                 "1234"
         );
         var user1 = userService.create(userData1, Role.ROLE_USER);
-        log.info("✅ New chat user created, username: {}", user1.userName());
+        log.info("✅ New chat user created, username: {}", user1.getUserName());
         var user2 = userService.create(userData2, Role.ROLE_USER);
-        log.info("✅ New chat user created, username: {}", user2.userName());
-        var chat = chatService.createOrGetDirectChat(user1.id(), user2.id());
+        log.info("✅ New chat user created, username: {}", user2.getUserName());
+        var chat = chatService.createOrGetDirectChat(user1.getId(), user2.getId());
         log.info("✅ Chat created id: {}", chat.getId());
 
         // user to user
         for (int i = 0; i < messageCount; i++) {
-            var senderId = user1.id().toString();
-            var receiverId = user2.id().toString();
+            var senderId = user1.getId().toString();
+            var receiverId = user2.getId().toString();
             if (i % 2 == 0) {
-                senderId = user2.id().toString();
-                receiverId = user1.id().toString();
+                senderId = user2.getId().toString();
+                receiverId = user1.getId().toString();
             }
             var message = new SendMessageRequest();
             message.setChatId(chat.getId().toString());

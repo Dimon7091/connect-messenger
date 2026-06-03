@@ -3,6 +3,9 @@ package ru.gorbunov.connect.core.service;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
+import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
+import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.AvatarType;
 import ru.gorbunov.connect.core.models.FileStorageProvider;
 import ru.gorbunov.connect.core.models.StorageType;
@@ -23,9 +26,12 @@ public class UserProfileService {
     private final FileStorageProvider storageProvider;
     private final UserRepository userRepository;
 
-    public UserProfileService(FileStorageProvider storageProvider, UserRepository userRepository) {
+    public UserProfileService(FileStorageProvider storageProvider,
+                              UserRepository userRepository
+    ) {
         this.storageProvider = storageProvider;
         this.userRepository = userRepository;
+
     }
 
     public void changeAvatar(Long userId, byte[] imageBytes, String contentType, String originalFilename) {

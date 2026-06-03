@@ -16,26 +16,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
-import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
-import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
-import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.service.StatusService;
-import ru.gorbunov.connect.core.service.UserProfileService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
+import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -50,6 +44,9 @@ public class UserControllerV1 {
     public StatusService statusService;
 
     @Autowired
+    public UserProviderService userProviderService;
+
+    @Autowired
     public UserStatusSubscriptionService userStatusSubscriptionService;
 
 
@@ -60,8 +57,22 @@ public class UserControllerV1 {
     @PostMapping("")
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest requestData) {
         var savedUser = userService.create(requestData, Role.ROLE_USER);
-        return ResponseEntity.created(URI.create("api/v1/users/" + savedUser.id()))
+        return ResponseEntity.created(URI.create("api/v1/users/" + savedUser.getId()))
                 .body(savedUser);
+    }
+
+    @GetMapping("/{id:\\d+}")
+    public ResponseEntity<UserResponse> show(@PathVariable("id") Long id) {
+        var user = userProviderService.getUserDetails(id);
+        return ResponseEntity.ok()
+                .body(user);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
+        var user = userProviderService.getUserDetails(Long.parseLong(jwt.getClaim("sub")));
+        return ResponseEntity.ok()
+                .body(user);
     }
 
     @GetMapping("")
@@ -70,28 +81,14 @@ public class UserControllerV1 {
             @RequestParam(value = "size", defaultValue = "10") Integer size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        var users = userService.findAll(pageable);
+        var users = userProviderService.findAllUserDetails(pageable);
         return ResponseEntity.ok()
                 .body(users);
     }
 
-    @GetMapping("/{id:\\d+}")
-    public ResponseEntity<UserResponse> show(@PathVariable("id") Long id) {
-        var user = userService.findById(id);
-        return ResponseEntity.ok()
-                .body(user);
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
-        var user = userService.findById(Long.parseLong(jwt.getClaim("sub")));
-        return ResponseEntity.ok()
-                .body(user);
-    }
-
     @GetMapping("/search")
     public ResponseEntity<List<UserResponse>> search(@RequestParam("username") String userName) {
-        var users = userService.findByUserNameStartingWith(userName);
+        var users = userProviderService.findAllUserDetailsByUserName(userName);
         return ResponseEntity.ok()
                 .body(users);
     }
@@ -101,7 +98,7 @@ public class UserControllerV1 {
             @PathVariable("id") Long id,
             @RequestBody UpdateUserNameRequest requestData
     ) {
-        var updatedUser = userService.updateUserName(id, requestData);
+        var updatedUser = userProviderService.updateUserName(id, requestData);
         return ResponseEntity.ok()
                 .body(updatedUser);
     }

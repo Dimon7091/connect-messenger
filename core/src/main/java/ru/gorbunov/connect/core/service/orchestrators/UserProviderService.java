@@ -1,0 +1,76 @@
+package ru.gorbunov.connect.core.service.orchestrators;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import ru.gorbunov.connect.core.dto.user.ProfileResponse;
+import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
+import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.mapper.UserMapper;
+import ru.gorbunov.connect.core.models.AvatarType;
+import ru.gorbunov.connect.core.models.Profile;
+import ru.gorbunov.connect.core.models.User;
+import ru.gorbunov.connect.core.service.UserProfileService;
+import ru.gorbunov.connect.core.service.UserService;
+
+import java.util.List;
+
+@Service
+public class UserProviderService {
+    private final UserService userService;
+    private final UserProfileService userProfileService;
+    private final UserMapper mapper;
+
+
+    public UserProviderService(UserService userService, UserProfileService userProfileService, UserMapper mapper) {
+        this.userService = userService;
+        this.userProfileService = userProfileService;
+        this.mapper = mapper;
+    }
+
+    public UserResponse getUserDetails(Long userId) {
+        var user = userService.getUserById(userId);
+        UserResponse response = mapper.toDto(user);
+        addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
+        return response;
+    }
+
+    public Page<UserResponse> findAllUserDetails(Pageable pageable) {
+        Page<User> users = userService.findAllUsers(pageable);
+        return users.map(user -> {
+            var dto = mapper.toDto(user);
+            addAvatarUrls(dto.getProfile(), user.getProfile().getAvatarKey());
+            return dto;
+        });
+    }
+
+    public List<UserResponse> findAllUserDetailsByUserName(String userName) {
+        var users = userService.findByUserNameStartingWith(userName);
+        return users.stream()
+                .map(user -> {
+                    var dto = mapper.toDto(user);
+                    addAvatarUrls(dto.getProfile(), user.getProfile().getAvatarKey());
+                    return dto;
+                })
+                .toList();
+    }
+
+    public UserResponse updateUserName(Long userId, UpdateUserNameRequest requestData) {
+        var user = userService.updateUserName(userId, requestData);
+        UserResponse response = mapper.toDto(user);
+        addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
+        return response;
+    }
+
+    // Вспомогательный метод для наполнения ответа профиля
+    public void addAvatarUrls(ProfileResponse profileResponse, String avatarKey) {
+        if (avatarKey == null) return;
+
+        profileResponse.setAvatarUrl(
+                userProfileService.generateAvatarUrl(AvatarType.ORIGINAL.getValue() + avatarKey)
+        );
+        profileResponse.setAvatarThumbUrl(
+                userProfileService.generateAvatarUrl(AvatarType.THUMBNAIL.getValue() + avatarKey)
+        );
+    }
+}

@@ -8,8 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
-import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
-import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.exception.EmailAlreadyExistsException;
@@ -55,26 +53,22 @@ public class UserService {
     }
 
     // --- Read ---
-    public Page<UserResponse> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable).map(mapper::toDto);
+    public User getUserById(Long id) {
+        return userRepository.findById(id).
+                orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
     }
 
-    public List<UserResponse> findByUserNameStartingWith(String userName) {
-        return userRepository.findByUserNameStartingWith(userName).stream()
-                .map(user -> mapper.toDto(user))
-                .toList();
+    public Page<User> findAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    public List<User> findByUserNameStartingWith(String userName) {
+        return userRepository.findByUserNameStartingWith(userName);
     }
 
     public String getUserFullName(Long userId) {
         return userRepository.findFullNameById(userId)
                 .orElse(null);
-
-    }
-
-    public UserResponse findById(Long id) {
-        var user = userRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
-        return mapper.toDto(user);
     }
 
     public UserStatResponse getUsersStat() {
@@ -103,12 +97,12 @@ public class UserService {
     }
 
     // --- Update ---
-    public UserResponse updateUserName(Long id, UpdateUserNameRequest requestData) {
+    public User updateUserName(Long id, UpdateUserNameRequest requestData) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
         mapper.updateUserName(requestData, user);
         userRepository.save(user);
-        return mapper.toDto(user);
+        return user;
     }
 
     // --- Delete ---

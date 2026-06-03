@@ -12,14 +12,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.gorbunov.connect.core.dto.user.ProfileResponse;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
-import ru.gorbunov.connect.core.dto.user.UserPatchUpdateRequest;
-import ru.gorbunov.connect.core.dto.user.UserPutUpdateRequest;
+import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
-import ru.gorbunov.connect.core.models.AvatarType;
 import ru.gorbunov.connect.core.models.Profile;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
-import ru.gorbunov.connect.core.service.UserProfileService;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,9 +31,6 @@ public abstract class UserMapper {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserProfileService userProfileService;
-
     @Mapping(source = "password", target = "passwordHash", qualifiedByName = "hashPassword")
     @Mapping(source = "firstName", target = "profile.firstName")
     @Mapping(source = "lastName", target = "profile.lastName")
@@ -48,7 +42,11 @@ public abstract class UserMapper {
     @Mapping(source = "profile", target = "profile", qualifiedByName = "addProfileResponse")
     public abstract UserResponse toDto(User entity);
 
+    // Update
     public abstract void updateUserName(UpdateUserNameRequest dto, @MappingTarget User entity);
+    @Mapping(target = "profile", source = "dto")
+    public abstract void updateProfile(UserProfileUpdateRequest dto, @MappingTarget User entity);
+    public abstract void updateProfileFields(UserProfileUpdateRequest dto, @MappingTarget Profile profile);
 
     @Named("hashPassword")
     protected String hashPassword(String rawPassword) {
@@ -64,18 +62,11 @@ public abstract class UserMapper {
 
     @Named("addProfileResponse")
     protected ProfileResponse addProfileResponse(Profile profile) {
-        String avatarUrl = null;
-        String avatarThumbUrl = null;
-        if (profile.getAvatarKey() != null) {
-            avatarUrl = userProfileService.generateAvatarUrl(AvatarType.ORIGINAL.getValue() + profile.getAvatarKey());
-            avatarThumbUrl = userProfileService.generateAvatarUrl(AvatarType.THUMBNAIL.getValue() + profile.getAvatarKey());
-        }
-
         return new ProfileResponse(
                 profile.getFirstName(),
                 profile.getLastName(),
-                avatarUrl,
-                avatarThumbUrl
+                null,
+                null
         );
     }
 }
