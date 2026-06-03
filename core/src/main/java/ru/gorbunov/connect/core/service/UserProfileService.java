@@ -25,13 +25,22 @@ public class UserProfileService {
 
     private final FileStorageProvider storageProvider;
     private final UserRepository userRepository;
+    private final UserMapper mapper;
 
     public UserProfileService(FileStorageProvider storageProvider,
-                              UserRepository userRepository
+                              UserRepository userRepository,
+                              UserMapper mapper
     ) {
         this.storageProvider = storageProvider;
         this.userRepository = userRepository;
+        this.mapper = mapper;
+    }
 
+    public User updateUserProfile(Long userId, UserProfileUpdateRequest requestData) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        mapper.updateProfile(requestData, user);
+        return userRepository.save(user);
     }
 
     public void changeAvatar(Long userId, byte[] imageBytes, String contentType, String originalFilename) {

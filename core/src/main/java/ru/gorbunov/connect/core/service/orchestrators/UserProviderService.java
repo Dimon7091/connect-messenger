@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.user.ProfileResponse;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
+import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.AvatarType;
@@ -57,6 +58,13 @@ public class UserProviderService {
 
     public UserResponse updateUserName(Long userId, UpdateUserNameRequest requestData) {
         var user = userService.updateUserName(userId, requestData);
+        UserResponse response = mapper.toDto(user);
+        addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
+        return response;
+    }
+
+    public UserResponse updateUserProfile(Long userId, UserProfileUpdateRequest requestData) {
+        var user = userProfileService.updateUserProfile(userId, requestData);
         UserResponse response = mapper.toDto(user);
         addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
         return response;
