@@ -25,6 +25,7 @@ import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.models.Role;
+import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
@@ -54,12 +55,6 @@ public class UserControllerV1 {
         this.userService = userService;
     }
 
-    @PostMapping("")
-    public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest requestData) {
-        var savedUser = userService.create(requestData, Role.ROLE_USER);
-        return ResponseEntity.created(URI.create("api/v1/users/" + savedUser.getId()))
-                .body(savedUser);
-    }
 
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<UserResponse> show(@PathVariable("id") Long id) {

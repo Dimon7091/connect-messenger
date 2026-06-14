@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.service.UserService;
+import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
 import ru.gorbunov.connect.web.dto.AuthRequest;
 import ru.gorbunov.connect.web.dto.AuthResponse;
 import ru.gorbunov.connect.web.util.JwtUtil;
@@ -40,6 +43,9 @@ public class AuthControllerV1 {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private UserProviderService userProviderService;
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> createJwtForUser(
             @RequestBody AuthRequest authRequest,
@@ -60,6 +66,14 @@ public class AuthControllerV1 {
         var response = new AuthResponse(currentUser, token);
         return ResponseEntity.ok()
                 .body(response);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> registerUser(@RequestBody UserCreateRequest request) {
+        var newUser = userProviderService.registerUser(request);
+        String token = jwtUtils.generateToken(newUser);
+        return ResponseEntity.ok()
+                .body(new AuthResponse(newUser, token));
     }
 
     @PostMapping("/login-admin")
