@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.core.mapper;
 
+import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
         uses = {JsonNullableMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         componentModel = MappingConstants.ComponentModel.SPRING,
+        collectionMappingStrategy = CollectionMappingStrategy.ACCESSOR_ONLY,
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 public abstract class UserMapper {
@@ -40,6 +42,7 @@ public abstract class UserMapper {
     @Mapping(source = "username", target = "userName")
     @Mapping(source = "roles", target = "roles", qualifiedByName = "rolesEnumToString")
     @Mapping(source = "profile", target = "profile", qualifiedByName = "addProfileResponse")
+    @Mapping(target = "authorities", ignore = true)
     public abstract UserResponse toDto(User entity);
 
     // Update

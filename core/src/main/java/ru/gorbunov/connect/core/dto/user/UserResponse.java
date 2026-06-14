@@ -30,7 +30,7 @@ public class UserResponse implements ExtendedUserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
+        return this.roles.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
     }
