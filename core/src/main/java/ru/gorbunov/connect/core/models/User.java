@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
-public class User implements UserDetails {
+public class User implements ExtendedUserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -75,6 +75,11 @@ public class User implements UserDetails {
             roles = new HashSet<>();
         }
         this.roles.add(role);
+    }
+
+    @Override
+    public Long getId() {
+        return this.id;
     }
 
     @Override

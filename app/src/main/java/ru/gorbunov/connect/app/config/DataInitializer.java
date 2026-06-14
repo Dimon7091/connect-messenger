@@ -73,7 +73,7 @@ public class DataInitializer {
         );
         var admin = userService.create(adminData, Role.ROLE_ADMIN);
         log.info("✅ Admin user created successfully!");
-        log.info("📧 UserName: {}", admin.getUserName());
+        log.info("📧 UserName: {}", admin.getUsername());
     }
 
     public void createTestUsers(Integer count) {
@@ -86,7 +86,7 @@ public class DataInitializer {
                     faker.lorem().characters(8)
             );
             var newUser = userService.create(userData, Role.ROLE_USER);
-            log.info("✅ New user created, username: {}", newUser.getUserName());
+            log.info("✅ New user created, username: {}", newUser.getUsername());
             log.info(" Password: {}", userData.password());
         }
     }
@@ -108,9 +108,9 @@ public class DataInitializer {
                 "1234"
         );
         var user1 = userService.create(userData1, Role.ROLE_USER);
-        log.info("✅ New chat user created, username: {}", user1.getUserName());
+        log.info("✅ New chat user created, username: {}", user1.getUsername());
         var user2 = userService.create(userData2, Role.ROLE_USER);
-        log.info("✅ New chat user created, username: {}", user2.getUserName());
+        log.info("✅ New chat user created, username: {}", user2.getUsername());
         var chat = chatService.createOrGetDirectChat(user1.getId(), user2.getId());
         log.info("✅ Chat created id: {}", chat.getId());
 
