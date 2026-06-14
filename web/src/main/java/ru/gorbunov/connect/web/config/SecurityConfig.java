@@ -56,6 +56,7 @@ public class SecurityConfig {
                         // ===== ПУБЛИЧНЫЕ API =====
                         .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/auth/login-admin").permitAll()
+                        .requestMatchers("/api/v1/auth/register").permitAll()
 
                         // ===== ВСЕ ОСТАЛЬНОЕ =====
                         .anyRequest().authenticated())
