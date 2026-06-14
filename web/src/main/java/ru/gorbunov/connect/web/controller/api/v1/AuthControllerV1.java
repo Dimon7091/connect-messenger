@@ -1,6 +1,7 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
 
+import jakarta.validation.Valid;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +70,7 @@ public class AuthControllerV1 {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> registerUser(@RequestBody UserCreateRequest request) {
+    public ResponseEntity<AuthResponse> registerUser(@RequestBody @Valid UserCreateRequest request) {
         var newUser = userProviderService.registerUser(request);
         String token = jwtUtils.generateToken(newUser);
         return ResponseEntity.ok()

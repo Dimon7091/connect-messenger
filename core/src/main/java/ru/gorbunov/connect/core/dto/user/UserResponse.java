@@ -1,5 +1,7 @@
 package ru.gorbunov.connect.core.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 @Setter
 public class UserResponse implements ExtendedUserDetails {
     private Long id;
+    @JsonProperty("userName")
     private String userName;
     private String email;
     private Set<String> roles;
