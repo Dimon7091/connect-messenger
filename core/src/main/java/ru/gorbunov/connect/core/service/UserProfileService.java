@@ -96,7 +96,7 @@ public class UserProfileService {
             return null;
         }
 
-        return storageProvider.generatePresignedUrl(
+        return storageProvider.generatePresignedDownloadUrl(
                 avatarKey,
                 StorageType.AVATAR,
                 60);
