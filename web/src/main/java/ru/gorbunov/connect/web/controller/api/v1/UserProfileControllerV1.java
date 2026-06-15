@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.service.UserProfileService;

@@ -1,6 +1,5 @@
 package ru.gorbunov.connect.web.config;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
@@ -10,8 +9,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
-import ru.gorbunov.connect.core.models.UserPrincipal;
-import ru.gorbunov.connect.web.util.JwtUtil;
 
 import java.util.Map;
 

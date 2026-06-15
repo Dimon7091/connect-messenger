@@ -63,7 +63,7 @@ public class WSChatControllerV1 {
         SendMessageRequest payload = request.getPayload();
         long senderId = Long.parseLong(principal.getName());
         long receiverId = Long.parseLong(payload.getReceiverId());
-        long chatId = Long. parseLong(payload.getChatId());
+        long chatId = Long.parseLong(payload.getChatId());
 
         log.info("📨 Send message from user {} to chat {}", senderId, payload.getChatId());
 
@@ -95,8 +95,8 @@ public class WSChatControllerV1 {
                 newResponse.setReplyContext(replyContext);
             }
             // Добовляем непрочитанные сообщения, время обновления получателю и в чат
-            var lastMessage = (payload.getText().length() > 40) ?
-                    payload.getText().substring(0, 40) + "..." : payload.getText();
+            var lastMessage = (payload.getText().length() > 40)
+                    ? payload.getText().substring(0, 40) + "..." : payload.getText();
             chatService.updateLastMessage(
                     Long.parseLong(payload.getChatId()),
                     lastMessage,
@@ -121,7 +121,8 @@ public class WSChatControllerV1 {
             );
             sw.stop();
             log.info("✅ Время записи и отправки сообщения: {} мс", sw.getTotalTimeMillis());
-            log.info("Sending MESSAGE_NEW to user {} via /queue/private, payload: {}", payload.getReceiverId(), newResponse);
+            log.info("Sending MESSAGE_NEW to user {} via /queue/private, payload: {}",
+                    payload.getReceiverId(), newResponse);
 
         } catch (Exception e) {
             log.error("❌ Error sending message", e);

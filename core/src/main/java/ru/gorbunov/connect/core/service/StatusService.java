@@ -40,7 +40,9 @@ public class StatusService {
 
     @Scheduled(fixedRate = 60000) // Раз в минуту
     public void syncWithDb() {
-        if (cache.isEmpty()) return;
+        if (cache.isEmpty()) {
+            return;
+        }
 
         // Для 1 ядра лучше итерироваться и обновлять
         cache.forEach((id, statusObj) -> {
@@ -49,8 +51,8 @@ public class StatusService {
 
         // Очищаем кэш для тех, кто уже давно OFFLINE, чтобы не забить 1ГБ ОЗУ
         cache.entrySet().removeIf(entry ->
-                UserStatus.Status.OFFLINE.equals(entry.getValue().getStatus()) &&
-                        entry.getValue().getLastSeen().isBefore(OffsetDateTime.now().minusMinutes(5))
+                UserStatus.Status.OFFLINE.equals(entry.getValue().getStatus())
+                        && entry.getValue().getLastSeen().isBefore(OffsetDateTime.now().minusMinutes(5))
         );
     }
 }

@@ -50,8 +50,8 @@ public class MessageControllerV1 {
             @AuthenticationPrincipal Jwt token
     ) {
         var currentUserId = Long.parseLong(token.getClaim("sub"));
-        OffsetDateTime timestamp = (beforeTimestamp != null) ?
-                DateUtils.parseTimestamp(beforeTimestamp) : OffsetDateTime.now();
+        OffsetDateTime timestamp = (beforeTimestamp != null)
+                ? DateUtils.parseTimestamp(beforeTimestamp) : OffsetDateTime.now();
         var messages = messageService.findChatMessages(
                 chatId,
                 limit,

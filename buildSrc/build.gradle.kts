@@ -1,5 +1,11 @@
 plugins {
     `kotlin-dsl`
+    checkstyle
+}
+
+checkstyle {
+    toolVersion = "10.12.5"
+    // Ваши остальные настройки, если они есть
 }
 
 repositories {

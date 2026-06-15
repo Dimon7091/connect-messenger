@@ -23,16 +23,22 @@ public class UserStatusSubscriptionService {
     }
 
     public void unsubscribe(Long subscriberId, Long targetUserId) {
-        if (subscriberId == null || targetUserId == null) return;
+        if (subscriberId == null || targetUserId == null) {
+            return;
+        }
         Set<Long> targets = subscriptions.get(subscriberId);
         if (targets != null) {
             targets.remove(targetUserId);
-            if (targets.isEmpty()) subscriptions.remove(subscriberId);
+            if (targets.isEmpty()) {
+                subscriptions.remove(subscriberId);
+            }
         }
         Set<Long> subscribers = subscribersByTarget.get(targetUserId);
         if (subscribers != null) {
             subscribers.remove(subscriberId);
-            if (subscribers.isEmpty()) subscribersByTarget.remove(targetUserId);
+            if (subscribers.isEmpty()) {
+                subscribersByTarget.remove(targetUserId);
+            }
         }
         log.debug("Пользователь {} отписался от статуса пользователя {}", subscriberId, targetUserId);
     }
@@ -57,7 +63,9 @@ public class UserStatusSubscriptionService {
                 Set<Long> subs = subscribersByTarget.get(target);
                 if (subs != null) {
                     subs.remove(userId);
-                    if (subs.isEmpty()) subscribersByTarget.remove(target);
+                    if (subs.isEmpty()) {
+                        subscribersByTarget.remove(target);
+                    }
                 }
             }
         }
@@ -71,7 +79,9 @@ public class UserStatusSubscriptionService {
                 Set<Long> targetsOfSub = subscriptions.get(sub);
                 if (targetsOfSub != null) {
                     targetsOfSub.remove(userId);
-                    if (targetsOfSub.isEmpty()) subscriptions.remove(sub);
+                    if (targetsOfSub.isEmpty()) {
+                        subscriptions.remove(sub);
+                    }
                 }
             }
         }

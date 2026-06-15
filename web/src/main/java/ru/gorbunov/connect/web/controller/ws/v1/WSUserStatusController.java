@@ -7,7 +7,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import ru.gorbunov.connect.core.dto.ws.SendMessageRequest;
 import ru.gorbunov.connect.core.dto.ws.UserStatusPayload;
 import ru.gorbunov.connect.core.dto.ws.WSEvent;
 import ru.gorbunov.connect.core.models.UserStatus;
@@ -36,8 +35,14 @@ public class WSUserStatusController {
 
         // Можно сразу отправить текущий статус пользователя, чтобы клиент отобразил его без ожидания события
         UserStatus currentStatus = statusService.getStatus(targetUserId);
-        if (currentStatus == null) currentStatus = new UserStatus(targetUserId, UserStatus.Status.OFFLINE, OffsetDateTime.now());
-        var payload = new UserStatusPayload(targetUserId, currentStatus.getStatus().toString(), currentStatus.getLastSeen());
+        if (currentStatus == null) {
+            currentStatus = new UserStatus(targetUserId, UserStatus.Status.OFFLINE, OffsetDateTime.now());
+        }
+        var payload = new UserStatusPayload(
+                targetUserId,
+                currentStatus.getStatus().toString(),
+                currentStatus.getLastSeen()
+        );
 
         messagingTemplate.convertAndSendToUser(
                 subscriberId.toString(),

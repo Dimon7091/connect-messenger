@@ -10,7 +10,6 @@ import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.AvatarType;
-import ru.gorbunov.connect.core.models.Profile;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.service.UserProfileService;
@@ -79,7 +78,9 @@ public class UserProviderService {
 
     // Вспомогательный метод для наполнения ответа профиля
     public void addAvatarUrls(ProfileResponse profileResponse, String avatarKey) {
-        if (avatarKey == null) return;
+        if (avatarKey == null) {
+            return;
+        }
 
         profileResponse.setAvatarUrl(
                 userProfileService.generateAvatarUrl(AvatarType.ORIGINAL.getValue() + avatarKey)

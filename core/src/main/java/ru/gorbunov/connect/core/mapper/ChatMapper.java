@@ -1,6 +1,5 @@
 package ru.gorbunov.connect.core.mapper;
 
-
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;

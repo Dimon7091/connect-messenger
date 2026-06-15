@@ -1,9 +1,6 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
-
 import jakarta.validation.Valid;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
-import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
@@ -34,7 +30,6 @@ import java.util.Map;
 @RequestMapping("/api/v1/auth")
 public class AuthControllerV1 {
 
-    private static final Log log = LogFactory.getLog(AuthControllerV1.class);
     @Autowired
     private UserService userService;
 

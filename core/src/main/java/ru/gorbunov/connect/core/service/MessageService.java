@@ -73,7 +73,7 @@ public class MessageService {
         List<Long> readBy = message.getReadBy();
         if (readBy == null) {
             readBy = new ArrayList<>();
-        };
+        }
         if (!readBy.contains(readerId)) {
             readBy.add(readerId);
             message.setReadBy(readBy);

@@ -1,6 +1,5 @@
 package ru.gorbunov.connect.core.dto.ws;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

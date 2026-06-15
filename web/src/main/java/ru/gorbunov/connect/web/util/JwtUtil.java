@@ -1,19 +1,15 @@
 package ru.gorbunov.connect.web.util;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
 import ru.gorbunov.connect.core.models.ExtendedUserDetails;
-import ru.gorbunov.connect.core.models.User;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component

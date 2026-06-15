@@ -26,7 +26,7 @@ public class UserStatus {
     private Status status;
     private OffsetDateTime lastSeen;
 
-    public enum Status{
+    public enum Status {
         ONLINE,
         OFFLINE
     }

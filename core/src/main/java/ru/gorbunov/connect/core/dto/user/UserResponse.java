@@ -1,14 +1,11 @@
 package ru.gorbunov.connect.core.dto.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import ru.gorbunov.connect.core.models.ExtendedUserDetails;
-import ru.gorbunov.connect.core.models.Profile;
 
 import java.util.Collection;
 import java.util.Set;

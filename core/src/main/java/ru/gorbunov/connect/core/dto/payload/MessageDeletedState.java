@@ -7,5 +7,4 @@ public record MessageDeletedState(
         List<Long> deletedBy,
         Long senderId,
         Long receiverId
-) {}
-
+) { }

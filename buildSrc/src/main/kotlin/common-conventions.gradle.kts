@@ -6,6 +6,7 @@ plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     id("io.freefair.lombok")
+    checkstyle
 }
 
 repositories {
@@ -19,6 +20,12 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         freeCompilerArgs.set(listOf("-Xjsr305=strict"))
     }
 }
+
+checkstyle {
+    toolVersion = "10.12.5"
+    // Ваши остальные настройки, если они есть
+}
+
 
 dependencies {
     // То, что нужно в каждом модуле (например, логирование)

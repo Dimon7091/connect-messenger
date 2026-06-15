@@ -14,7 +14,6 @@ import ru.gorbunov.connect.core.models.ChatParticipantId;
 import ru.gorbunov.connect.core.repository.ChatParticipantRepository;
 import ru.gorbunov.connect.core.repository.ChatRepository;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -143,7 +142,7 @@ public class ChatService {
 
         // Если чат помечен как удаленный у обоих участников то удаляем чат
         var isChatDeleteByAllUsers = chat.getParticipants().stream()
-                .allMatch(p -> p.getIsDeleted() == true);
+                .allMatch(ChatParticipant::getIsDeleted);
         if (isChatDeleteByAllUsers) {
             chatRepository.deleteById(chatId);
         }

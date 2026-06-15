@@ -18,7 +18,6 @@ import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.UserRepository;
 
-
 import java.util.List;
 
 @Service

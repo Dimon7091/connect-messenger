@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
-import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.AvatarType;
 import ru.gorbunov.connect.core.models.FileStorageProvider;
@@ -63,8 +62,18 @@ public class UserProfileService {
         String oldAvatarKey = user.getProfile().getAvatarKey();
         String newAvatarKey = userId + "-" + UUID.randomUUID() + extension;
         // Отправляем байты в хранилище через интерфейс
-        storageProvider.upload(AvatarType.ORIGINAL.getValue() + newAvatarKey, imageBytes, contentType, StorageType.AVATAR);
-        storageProvider.upload(AvatarType.THUMBNAIL.getValue() + newAvatarKey, resizedImageBytes, contentType, StorageType.AVATAR);
+        storageProvider.upload(
+                AvatarType.ORIGINAL.getValue() + newAvatarKey,
+                imageBytes,
+                contentType,
+                StorageType.AVATAR
+        );
+        storageProvider.upload(
+                AvatarType.THUMBNAIL.getValue() + newAvatarKey,
+                resizedImageBytes,
+                contentType,
+                StorageType.AVATAR
+        );
 
         // Сохраняем ТОЛЬКО СГЕНЕРИРОВАННЫЙ КЛЮЧ в базу данных этого пользователя
         user.getProfile().setAvatarKey(newAvatarKey);
@@ -83,7 +92,9 @@ public class UserProfileService {
     }
 
     public String generateAvatarUrl(String avatarKey) {
-        if (avatarKey == null) return null;
+        if (avatarKey == null) {
+            return null;
+        }
 
         return storageProvider.generatePresignedUrl(
                 avatarKey,

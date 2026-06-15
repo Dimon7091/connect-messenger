@@ -11,9 +11,7 @@ import ru.gorbunov.connect.core.dto.ws.MessageNewResponse;
 import ru.gorbunov.connect.core.dto.ws.ReplyContext;
 import ru.gorbunov.connect.core.models.Message;
 import ru.gorbunov.connect.core.service.orchestrators.MessageReplyService;
-
 import java.util.List;
-
 
 @Mapper(
         uses = {JsonNullableMapper.class},
@@ -24,7 +22,7 @@ import java.util.List;
 public abstract class MessageMapper {
 
     @Autowired
-    protected MessageReplyService messageReplyService;
+    private MessageReplyService messageReplyService;
 
     @Mapping(source = "attachments", target = "attachments", qualifiedByName = "toAttachmentDto")
     @Mapping(source = "status", target = "status")
@@ -55,7 +53,9 @@ public abstract class MessageMapper {
 
     @Named("addReplyContext")
     protected ReplyContext addReplyContext(Long replyToId) {
-        if (replyToId == null) return null;
+        if (replyToId == null) {
+            return null;
+        }
         return messageReplyService.getReplyContext(replyToId);
     }
 }

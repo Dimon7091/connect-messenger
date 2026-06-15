@@ -19,32 +19,32 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     void updateStatus(@Param("id") long id, @Param("status") MessageStatus status);
 
     @Modifying
-    @Query(value = "UPDATE messages " +
-            "SET read_by = read_by || CAST(:readerId AS jsonb) " +
-            "WHERE id = :id AND NOT (read_by @> CAST(:readerId AS jsonb))",
+    @Query(value = "UPDATE messages "
+            + "SET read_by = read_by || CAST(:readerId AS jsonb) "
+            + "WHERE id = :id AND NOT (read_by @> CAST(:readerId AS jsonb))",
             nativeQuery = true)
     void addReaderByUser(@Param("id") long id, @Param("readerId") long readerId);
 
-    @Query(value = "SELECT * FROM messages " +
-            "WHERE chat_id = :chatId " +
-            "AND created_at < :beforeTimestamp " + // Предположим, поле называется created_at
-            "ORDER BY created_at DESC " +        // Сначала новые
-            "LIMIT :limit",
+    @Query(value = "SELECT * FROM messages "
+            + "WHERE chat_id = :chatId "
+            + "AND created_at < :beforeTimestamp "
+            + "ORDER BY created_at DESC "
+            + "LIMIT :limit",
             nativeQuery = true)
     List<Message> findChatMessages(@Param("chatId") long chatId,
                                   @Param("limit") int limit,
                                   @Param("beforeTimestamp") OffsetDateTime beforeTimestamp);
-    @Query(value = "SELECT * FROM messages " +
-            "WHERE chat_id = :chatId " +
-            "ORDER BY created_at DESC " +
-            "LIMIT 1",
+    @Query(value = "SELECT * FROM messages "
+            + "WHERE chat_id = :chatId "
+            + "ORDER BY created_at DESC "
+            + "LIMIT 1",
             nativeQuery = true)
     Optional<Message> findLastChatMessage(@Param("chatId") long chatId);
 
-    @Query(value = "SELECT COUNT(*) FROM messages " +
-            "WHERE chat_id = :chatId " +
-            "AND sender_id != :userId " +
-            "AND NOT (read_by @> CAST(CAST(:userId AS text) AS jsonb))",
+    @Query(value = "SELECT COUNT(*) FROM messages "
+            + "WHERE chat_id = :chatId "
+            + "AND sender_id != :userId "
+            + "AND NOT (read_by @> CAST(CAST(:userId AS text) AS jsonb))",
             nativeQuery = true)
     Integer countUnreadMessagesByUser(@Param("chatId") long chatId, @Param("userId") long userId);
 
