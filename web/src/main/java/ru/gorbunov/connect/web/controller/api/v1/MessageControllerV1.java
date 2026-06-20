@@ -22,10 +22,13 @@ import ru.gorbunov.connect.core.dto.ws.WSEvent;
 import ru.gorbunov.connect.core.mapper.MessageMapper;
 import ru.gorbunov.connect.core.service.MessageService;
 import ru.gorbunov.connect.core.service.orchestrators.ChatCleanupService;
+import ru.gorbunov.connect.core.service.orchestrators.MessageReplyService;
 import ru.gorbunov.connect.core.util.DateUtils;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/messages")
@@ -38,6 +41,9 @@ public class MessageControllerV1 {
 
     @Autowired
     private ChatCleanupService chatCleanupService;
+
+    @Autowired
+    private MessageReplyService messageReplyService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -60,6 +66,9 @@ public class MessageControllerV1 {
         );
         return messages.stream()
                 .map(m -> mapper.toDto(m))
+                .peek(m -> Optional.ofNullable(m.getReplyToId())
+                        .map(Long::valueOf)
+                        .ifPresent(id -> m.setReplyContext(messageReplyService.getReplyContext(id))))
                 .toList();
     }
 

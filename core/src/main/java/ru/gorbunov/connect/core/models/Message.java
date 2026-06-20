@@ -11,7 +11,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -76,18 +75,5 @@ public class Message {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "read_by", columnDefinition = "jsonb")
     private List<Long> readBy;
-
-    // Вложенный класс для вложений
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Attachment {
-        private String id;        // ID файла в хранилище (S3/Minio)
-        private String url;       // Ссылка на файл
-        private String name;      // Оригинальное имя файла
-        private String type;      // image, video, file, audio
-        private Long size;        // Размер в байтах
-        private String previewUrl; // Для превью картинок
-    }
 }
 

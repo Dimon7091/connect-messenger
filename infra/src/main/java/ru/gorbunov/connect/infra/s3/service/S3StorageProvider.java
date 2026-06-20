@@ -86,6 +86,26 @@ public class S3StorageProvider implements FileStorageProvider {
     }
 
     @Override
+    public String generatePresignedUploadUrl(String key, StorageType type, long durationInMinutes, String contentType) {
+        String bucket = resolveBucket(type);
+
+        // Передаем contentType в запрос подписи — фронтенд обязан прислать такой же в PUT-запросе
+        PutObjectRequest objectRequest = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(contentType)
+                .build();
+
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(durationInMinutes))
+                .putObjectRequest(objectRequest)
+                .build();
+
+        PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
+        return presignedRequest.url().toExternalForm();
+    }
+
+    @Override
     public void delete(String key, StorageType type) {
         String bucket = resolveBucket(type);
 

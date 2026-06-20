@@ -27,5 +27,6 @@ yandex:
       avatars: connect-avatars
       chat-files: connect-chats-files
 
+
 server:
   port: 8080

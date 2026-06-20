@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.payload.MessageDeletedState;
 import ru.gorbunov.connect.core.dto.ws.SendMessageRequest;
+import ru.gorbunov.connect.core.mapper.MessageMapper;
 import ru.gorbunov.connect.core.models.Message;
 import ru.gorbunov.connect.core.models.MessageStatus;
 import ru.gorbunov.connect.core.repository.MessageRepository;
@@ -23,19 +24,22 @@ public class MessageService {
     @Autowired
     private MessageRepository messageRepository;
 
-    public Message createMessage(SendMessageRequest requestData) {
-        Message message = Message.builder()
-                .chatId(Long.valueOf(requestData.getChatId()))
-                .senderId(Long.valueOf(requestData.getSenderId()))
-                .receiverId(Long.valueOf(requestData.getReceiverId()))
-                .text(requestData.getText())
-                .status(MessageStatus.SENT)
-                .replyToId(requestData.getReplyToId() != null ? Long.valueOf(requestData.getReplyToId()) : null)
-                .timestamp(requestData.getTimestamp() != null ? OffsetDateTime.parse(requestData.getTimestamp()) : null)
-                .createdAt(OffsetDateTime.now())
-                .build();
+    @Autowired
+    private MessageMapper mapper;
 
-        return messageRepository.save(message);
+    public Message createMessage(SendMessageRequest requestData) {
+        Message newMessage = mapper.toEntity(requestData);
+
+        newMessage.setCreatedAt(OffsetDateTime.now());
+        if (requestData.getReplyToId() != null) {
+            newMessage.setReplyToId(Long.valueOf(requestData.getReplyToId()));
+        }
+
+        if (requestData.getAttachments() != null) {
+            newMessage.setAttachments(requestData.getAttachments());
+        }
+
+        return messageRepository.save(newMessage);
     }
 
     public Message getMessageById(Long messageId) {

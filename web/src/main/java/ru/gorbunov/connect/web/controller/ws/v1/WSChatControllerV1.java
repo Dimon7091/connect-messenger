@@ -85,14 +85,14 @@ public class WSChatControllerV1 {
                     new WSEvent<>(WSEvent.EventType.MESSAGE_SENT, sentResponse)
             );
 
-            // 3. Отправляем новое сообщение
-            MessageNewResponse newResponse = messageMapper.toDto(savedMessage);
+            // 3. Формируем новое сообщение
+            MessageNewResponse newMessageResponse = messageMapper.toDto(savedMessage);
             // Если сообщение это ответ на другое сообщение добовляем ReplyContext
             if (payload.getReplyToId() != null) {
                 ReplyContext replyContext = messageReplyService.getReplyContext(
                         Long.valueOf(payload.getReplyToId())
                 );
-                newResponse.setReplyContext(replyContext);
+                newMessageResponse.setReplyContext(replyContext);
             }
             // Добовляем непрочитанные сообщения, время обновления получателю и в чат
             var lastMessage = (payload.getText().length() > 40)
@@ -109,20 +109,22 @@ public class WSChatControllerV1 {
             chatResponse.setUnreadCount(chatParticipantService.getUnreadCount(chat.getId(), receiverId));
             chatResponse.setLastMessage(lastMessage);
             chatResponse.setUpdatedAt(chat.getUpdatedAt());
-            newResponse.setChat(chatResponse);
+            newMessageResponse.setChat(chatResponse);
+            newMessageResponse.setStatus(MessageStatus.SENT);
+            newMessageResponse.setAttachments(payload.getAttachments());
             // Устанавливаем статус чата если он удален у пользователя
             chatParticipantService.setIsDeleted(chat.getId(), receiverId, false);
 
-            // Отправляем получателю чата
+            // Отправляем сообщение получателю чата
             messagingTemplate.convertAndSendToUser(
                     payload.getReceiverId(),  // ← отправляем конкретному получателю
                     "/queue/private",            // ← в его личную очередь
-                    new WSEvent<>(WSEvent.EventType.MESSAGE_NEW, newResponse)
+                    new WSEvent<>(WSEvent.EventType.MESSAGE_NEW, newMessageResponse)
             );
             sw.stop();
             log.info("✅ Время записи и отправки сообщения: {} мс", sw.getTotalTimeMillis());
             log.info("Sending MESSAGE_NEW to user {} via /queue/private, payload: {}",
-                    payload.getReceiverId(), newResponse);
+                    payload.getReceiverId(), newMessageResponse);
 
         } catch (Exception e) {
             log.error("❌ Error sending message", e);

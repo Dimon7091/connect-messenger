@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.gorbunov.connect.core.models.Attachment;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,4 +21,5 @@ public class SendMessageRequest {
     private String text;
     private String replyToId;
     private String timestamp;
+    private List<Attachment> attachments;
 }

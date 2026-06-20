@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.gorbunov.connect.core.dto.chat.ChatResponse;
+import ru.gorbunov.connect.core.models.Attachment;
 import ru.gorbunov.connect.core.models.MessageStatus;
 
 import java.time.OffsetDateTime;
@@ -25,7 +26,7 @@ public class MessageNewWithReplyResponse {
     private OffsetDateTime createdAt;
     private MessageStatus status;
     private String replyToId;
-    private List<MessageNewResponse.AttachmentDto> attachments;
+    private List<Attachment> attachments;
     private List<String> readBy;
     private ReplyContext replyContext;
 }
