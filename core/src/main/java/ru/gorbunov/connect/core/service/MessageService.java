@@ -86,6 +86,10 @@ public class MessageService {
         }
     }
 
+    public void markAllAsReadByReceiver(Long chatId, Long receiverId) {
+        messageRepository.markAllAsReadByReceiver(chatId, MessageStatus.READ, receiverId);
+    }
+
     public void deleteMessages(List<Long> messagesIds) {
         messageRepository.deleteAllByIdInBatch(messagesIds);
     }

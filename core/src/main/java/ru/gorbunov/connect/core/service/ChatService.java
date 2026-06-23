@@ -20,6 +20,7 @@ import java.util.Objects;
 
 @Slf4j
 @Service
+@Transactional
 public class ChatService {
     @Autowired
     private ChatRepository chatRepository;

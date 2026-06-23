@@ -8,6 +8,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import ru.gorbunov.connect.core.dto.chat.ChatResponse;
+import ru.gorbunov.connect.core.dto.ws.AllMessagesReadPayload;
 import ru.gorbunov.connect.core.dto.ws.ErrorResponse;
 import ru.gorbunov.connect.core.dto.ws.MessageDeliveredPayload;
 import ru.gorbunov.connect.core.dto.ws.MessageNewResponse;
@@ -32,6 +33,7 @@ import ru.gorbunov.connect.core.service.orchestrators.MessageReplyService;
 import java.security.Principal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 
 @Slf4j
 @Controller
@@ -232,6 +234,53 @@ public class WSChatControllerV1 {
 
             messagingTemplate.convertAndSendToUser(
                     String.valueOf(readerId),
+                    "/queue/private",
+                    new WSEvent<>(WSEvent.EventType.ERROR, error)
+            );
+        }
+    }
+
+    // Подтверждение прочтения всех сообщений чата получателем
+    @MessageMapping("/all_messages_read")
+    @Transactional
+    public void handleAllMessageRead(
+            @Payload WSEvent<AllMessagesReadPayload> event,
+            Principal principal
+    ) {
+        AllMessagesReadPayload payload = event.getPayload();
+        Long receiverId = Long.valueOf(principal.getName());
+
+        log.info("👁️ AllChatMessages read: {} by user {}", payload.getChatId(), receiverId);
+
+        try {
+            // Обновляем статус в БД
+            messageService.markAllAsReadByReceiver(Long.valueOf(payload.getChatId()), receiverId);
+            chatParticipantService.cleanUnreadCount(Long.valueOf(payload.getChatId()), receiverId);
+
+            var chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
+            ChatParticipant sender = Objects.requireNonNull(chat.getParticipants().stream()
+                    .filter(p -> !Objects.equals(p.getId().getUserId(), receiverId))
+                    .findFirst()
+                    .orElse(null));
+            var senderId = sender.getId().getUserId();
+
+            // Пересылаем уведомление отправителю
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(senderId),
+                    "/queue/private",
+                    new WSEvent<>(WSEvent.EventType.ALL_MESSAGE_READ, payload)
+            );
+
+        } catch (Exception e) {
+            log.error("❌ Error processing read confirmation", e);
+
+            ErrorResponse error = ErrorResponse.builder()
+                    .message("Failed to process read confirmation")
+                    .body(e.getMessage())
+                    .build();
+
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(receiverId),
                     "/queue/private",
                     new WSEvent<>(WSEvent.EventType.ERROR, error)
             );

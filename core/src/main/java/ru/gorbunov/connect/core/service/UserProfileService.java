@@ -116,7 +116,7 @@ public class UserProfileService {
 
             // 1. Thumbnailator сжимает изображение прямо из входного потока
             BufferedImage resizedImage = Thumbnails.of(bais)
-                    .size(56, 56)
+                    .size(80, 80)
                     .keepAspectRatio(true) // Сохраняем пропорции (картинка не исказится)
                     .asBufferedImage();
 

@@ -25,6 +25,7 @@ public class WSEvent<T> {
         MESSAGE_SENT("message_sent"),
         MESSAGE_DELIVERED("message_delivered"),
         MESSAGE_READ("message_read"),
+        ALL_MESSAGE_READ("all_messages_read"),
         MESSAGE_DELETED("message_deleted"),
         USER_STATUS_SUBSCRIBE("user_status_subscribe"),
         USER_STATUS("user_status"),

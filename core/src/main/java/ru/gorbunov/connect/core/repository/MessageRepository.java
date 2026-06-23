@@ -59,4 +59,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Modifying
     @Query("UPDATE Message m SET m.deletedBy = :deletedBy WHERE m.id = :id")
     void updateDeletedBy(@Param("id") Long id, @Param("deletedBy") List<Long> deletedBy);
+
+    @Modifying
+    @Query("UPDATE Message m SET m.status = :status WHERE m.chatId = :chatId AND m.receiverId = :receiverId")
+    void markAllAsReadByReceiver(@Param("chatId") Long chatId,
+                       @Param("status") MessageStatus status,
+                       @Param("receiverId") Long receiverId);
+
 }
