@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
@@ -70,6 +71,13 @@ public class UserControllerV1 {
         var users = userProviderService.findAllUserDetails(pageable);
         return ResponseEntity.ok()
                 .body(users);
+    }
+
+    @GetMapping("/stat")
+    public ResponseEntity<UserStatResponse> stat() {
+        var response = userProviderService.getUsersStat();
+        return ResponseEntity.ok()
+                .body(response);
     }
 
     @GetMapping("/search")

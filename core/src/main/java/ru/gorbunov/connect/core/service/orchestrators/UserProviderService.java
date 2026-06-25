@@ -8,10 +8,12 @@ import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.AvatarType;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
+import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserProfileService;
 import ru.gorbunov.connect.core.service.UserService;
 
@@ -21,12 +23,19 @@ import java.util.List;
 public class UserProviderService {
     private final UserService userService;
     private final UserProfileService userProfileService;
+    private final StatusService statusService;
     private final UserMapper mapper;
 
 
-    public UserProviderService(UserService userService, UserProfileService userProfileService, UserMapper mapper) {
+    public UserProviderService(
+            UserService userService,
+            UserProfileService userProfileService,
+            UserMapper mapper,
+            StatusService statusService
+    ) {
         this.userService = userService;
         this.userProfileService = userProfileService;
+        this.statusService = statusService;
         this.mapper = mapper;
     }
 
@@ -74,6 +83,13 @@ public class UserProviderService {
         UserResponse response = mapper.toDto(user);
         addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
         return response;
+    }
+
+    public UserStatResponse getUsersStat() {
+        return new UserStatResponse(
+                userService.getTotalUsers(),
+                statusService.getAllOnlineUsersCount()
+        );
     }
 
     // Вспомогательный метод для наполнения ответа профиля

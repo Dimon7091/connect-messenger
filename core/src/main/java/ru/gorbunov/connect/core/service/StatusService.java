@@ -34,6 +34,16 @@ public class StatusService {
         return userStatusRepository.findById(userId).orElse(null);
     }
 
+    public long getAllOnlineUsersCount() {
+        long totalOnlineUsers = 0;
+        for (var entry : cache.entrySet()) {
+            if (entry.getValue().getStatus().equals(UserStatus.Status.ONLINE)) {
+                totalOnlineUsers ++;
+            }
+        }
+        return totalOnlineUsers;
+    }
+
     public void deleteStatusFromDatabase(Long userId) {
         userStatusRepository.deleteById(userId);
     }

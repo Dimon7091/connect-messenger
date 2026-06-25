@@ -69,13 +69,7 @@ public class UserService {
                 .orElse(null);
     }
 
-    public UserStatResponse getUsersStat() {
-        Long totalUsers = userRepository.count();
-        Long onlineUsers = 0L;
-        return new UserStatResponse(totalUsers, onlineUsers);
-    }
-
-    public Long totalUsers() {
+    public long getTotalUsers() {
         return userRepository.count();
     }
 

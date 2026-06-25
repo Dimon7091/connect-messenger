@@ -40,7 +40,7 @@ public class DataInitializer {
     public CommandLineRunner initializeDatabase() {
         return (args) -> {
             // Если юзер репозиторий пустой создаем админа
-            if (userService.totalUsers() == 0) {
+            if (userService.getTotalUsers() == 0) {
                 createUserAdmin(
                         "dimarik70rus@gmail.com",
                         "dimarik70",
