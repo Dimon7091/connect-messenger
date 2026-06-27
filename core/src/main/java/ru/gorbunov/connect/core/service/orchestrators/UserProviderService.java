@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.user.ProfileResponse;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
+import ru.gorbunov.connect.core.dto.user.UserAdminResponse;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
@@ -51,10 +52,16 @@ public class UserProviderService {
         return response;
     }
 
-    public Page<UserResponse> findAllUserDetails(Pageable pageable) {
-        Page<User> users = userService.findAllUsers(pageable);
+    public Page<UserAdminResponse> findAllUsersDetailsWithPagination(
+            Integer page,
+            Integer size,
+            String userName,
+            String sortBy,
+            String sortDir
+    ) {
+        Page<User> users = userService.findAllUsersWithPagination(page, size, userName, sortBy, sortDir);
         return users.map(user -> {
-            var dto = mapper.toDto(user);
+            var dto = mapper.toUserAdminDto(user);
             addAvatarUrls(dto.getProfile(), user.getProfile().getAvatarKey());
             return dto;
         });

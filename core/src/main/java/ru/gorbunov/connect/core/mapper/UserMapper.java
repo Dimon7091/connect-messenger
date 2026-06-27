@@ -12,13 +12,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.gorbunov.connect.core.dto.user.ProfileResponse;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
+import ru.gorbunov.connect.core.dto.user.UserAdminResponse;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.models.Profile;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
+import ru.gorbunov.connect.core.models.UserStatus;
 
+import java.time.OffsetDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,6 +47,13 @@ public abstract class UserMapper {
     @Mapping(source = "profile", target = "profile", qualifiedByName = "addProfileResponse")
     @Mapping(target = "authorities", ignore = true)
     public abstract UserResponse toDto(User entity);
+
+    @Mapping(source = "username", target = "userName")
+    @Mapping(source = "roles", target = "roles", qualifiedByName = "rolesEnumToString")
+    @Mapping(source = "profile", target = "profile", qualifiedByName = "addProfileResponse")
+    @Mapping(source = "userStatus", target = "status", qualifiedByName = "setStatus")
+    @Mapping(source = "userStatus", target = "lastSeen", qualifiedByName = "setLastSeen")
+    public abstract UserAdminResponse toUserAdminDto(User entity);
 
     // Update
     public abstract void updateUserName(UpdateUserNameRequest dto, @MappingTarget User entity);
@@ -71,5 +81,21 @@ public abstract class UserMapper {
                 null,
                 null
         );
+    }
+
+    @Named("setStatus")
+    protected String setStatus(UserStatus userStatus) {
+        if (userStatus == null) {
+            return UserStatus.Status.OFFLINE.toString();
+        }
+        return userStatus.getStatus().toString();
+    }
+
+    @Named("setLastSeen")
+    protected String setLastSeen(UserStatus userStatus) {
+        if (userStatus == null) {
+            return "";
+        }
+        return userStatus.getLastSeen().toString();
     }
 }

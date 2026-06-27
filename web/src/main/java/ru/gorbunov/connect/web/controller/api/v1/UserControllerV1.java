@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
+import ru.gorbunov.connect.core.dto.user.UserAdminResponse;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.service.StatusService;
@@ -63,12 +64,20 @@ public class UserControllerV1 {
     }
 
     @GetMapping("")
-    public ResponseEntity<Page<UserResponse>> index(
+    public ResponseEntity<Page<UserAdminResponse>> index(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
-            @RequestParam(value = "size", defaultValue = "10") Integer size
+            @RequestParam(value = "size", defaultValue = "10") Integer size,
+            @RequestParam(value = "userName", required = false) String userName,
+            @RequestParam(value = "sortBy", defaultValue = "userName", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        var users = userProviderService.findAllUserDetails(pageable);
+        var users = userProviderService.findAllUsersDetailsWithPagination(
+                page,
+                size,
+                userName,
+                sortBy,
+                sortDir
+        );
         return ResponseEntity.ok()
                 .body(users);
     }

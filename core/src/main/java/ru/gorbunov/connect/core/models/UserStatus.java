@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.core.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -20,6 +21,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class UserStatus {
     @Id
+    @Column(name = "user_id")
     private Long userId;
 
     @Enumerated(EnumType.STRING)

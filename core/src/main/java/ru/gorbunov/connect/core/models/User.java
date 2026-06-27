@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.core.models;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -13,6 +14,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -53,6 +56,10 @@ public class User implements ExtendedUserDetails {
 
     @Embedded
     private Profile profile;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
+    private UserStatus userStatus = null;
 
     @Column(nullable = false)
     private String passwordHash;

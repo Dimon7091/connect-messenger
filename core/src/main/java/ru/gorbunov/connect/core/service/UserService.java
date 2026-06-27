@@ -4,7 +4,10 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
@@ -17,6 +20,7 @@ import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.UserRepository;
+import ru.gorbunov.connect.core.specifications.UserSpecification;
 
 import java.util.List;
 
@@ -56,8 +60,26 @@ public class UserService {
                 orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
     }
 
-    public Page<User> findAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable);
+    public Page<User> findAllUsersWithPagination(
+            Integer page,
+            Integer size,
+            String userName,
+            String sortBy,
+            String sortDir
+    ) {
+        Specification<User> spec = UserSpecification.hasUserName(userName);
+        Sort sort = Sort.unsorted();
+        if (sortBy != null && sortDir != null) {
+            try {
+                Sort.Direction direction = Sort.Direction.fromString(sortDir);
+                sort = Sort.by(direction, sortBy);
+            } catch (IllegalArgumentException e) {
+                // если направление не asc/desc – можно проигнорировать или вернуть ошибку
+                sort = Sort.unsorted();
+            }
+        }
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return userRepository.findAll(spec, pageable);
     }
 
     public List<User> findByUserNameStartingWith(String userName) {
