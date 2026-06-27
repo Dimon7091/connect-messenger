@@ -38,7 +38,7 @@ public class StatusService {
         long totalOnlineUsers = 0;
         for (var entry : cache.entrySet()) {
             if (entry.getValue().getStatus().equals(UserStatus.Status.ONLINE)) {
-                totalOnlineUsers ++;
+                totalOnlineUsers++;
             }
         }
         return totalOnlineUsers;

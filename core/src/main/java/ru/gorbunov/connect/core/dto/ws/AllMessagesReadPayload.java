@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AllMessagesReadPayload{
-    String chatId;
+public class AllMessagesReadPayload {
+    private String chatId;
 }

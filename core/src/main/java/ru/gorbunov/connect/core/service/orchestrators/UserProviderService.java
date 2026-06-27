@@ -1,7 +1,6 @@
 package ru.gorbunov.connect.core.service.orchestrators;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.user.ProfileResponse;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;

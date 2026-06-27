@@ -2,8 +2,6 @@ package ru.gorbunov.connect.web.controller.api.v1;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -61,32 +59,6 @@ public class UserControllerV1 {
         var user = userProviderService.getUserDetails(Long.parseLong(jwt.getClaim("sub")));
         return ResponseEntity.ok()
                 .body(user);
-    }
-
-    @GetMapping("")
-    public ResponseEntity<Page<UserAdminResponse>> index(
-            @RequestParam(value = "page", defaultValue = "0") Integer page,
-            @RequestParam(value = "size", defaultValue = "10") Integer size,
-            @RequestParam(value = "userName", required = false) String userName,
-            @RequestParam(value = "sortBy", defaultValue = "userName", required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir
-    ) {
-        var users = userProviderService.findAllUsersDetailsWithPagination(
-                page,
-                size,
-                userName,
-                sortBy,
-                sortDir
-        );
-        return ResponseEntity.ok()
-                .body(users);
-    }
-
-    @GetMapping("/stat")
-    public ResponseEntity<UserStatResponse> stat() {
-        var response = userProviderService.getUsersStat();
-        return ResponseEntity.ok()
-                .body(response);
     }
 
     @GetMapping("/search")

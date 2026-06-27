@@ -21,7 +21,6 @@ import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.models.UserStatus;
 
-import java.time.OffsetDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
