@@ -1,7 +1,9 @@
 package ru.gorbunov.connect.core.service;
 
-import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
@@ -27,6 +30,8 @@ import java.util.List;
 @Transactional
 @Slf4j
 public class UserService {
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private UserRepository userRepository;
@@ -82,6 +87,8 @@ public class UserService {
     }
 
     public List<User> findByUserNameStartingWith(String userName) {
+        Session session = entityManager.unwrap(Session.class);
+        session.enableFilter("deletedUserFilter");
         return userRepository.findByUserNameStartingWith(userName);
     }
 
@@ -114,8 +121,7 @@ public class UserService {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
         mapper.updateUserName(requestData, user);
-        userRepository.save(user);
-        return user;
+        return userRepository.save(user);
     }
 
     // --- Delete ---

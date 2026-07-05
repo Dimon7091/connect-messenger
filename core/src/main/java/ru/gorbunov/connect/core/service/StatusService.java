@@ -1,10 +1,10 @@
 package ru.gorbunov.connect.core.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.gorbunov.connect.core.models.UserStatus;
 import ru.gorbunov.connect.core.repository.UserStatusRepository;
 

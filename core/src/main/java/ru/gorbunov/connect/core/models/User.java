@@ -23,6 +23,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.SQLDelete;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
@@ -43,6 +46,9 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
+@SQLDelete(sql = "UPDATE users SET is_deleted = true WHERE id = ?")
+@FilterDef(name = "deletedUserFilter")
+@Filter(name = "deletedUserFilter", condition = "is_deleted = false")
 public class User implements ExtendedUserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,7 +67,6 @@ public class User implements ExtendedUserDetails {
     @PrimaryKeyJoinColumn
     private UserStatus userStatus = null;
 
-    @Column(nullable = false)
     private String passwordHash;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
@@ -74,6 +79,19 @@ public class User implements ExtendedUserDetails {
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isFailedLoginLocked = false;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isBanned = false;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
+
+
     public void setRole(Role role) {
         if (roles == null) {
             roles = new HashSet<>();
@@ -82,9 +100,20 @@ public class User implements ExtendedUserDetails {
     }
 
     @Override
+    public boolean isEnabled() {
+        return !isBanned;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return !isFailedLoginLocked;
+    }
+
+    @Override
     public Long getId() {
         return this.id;
     }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

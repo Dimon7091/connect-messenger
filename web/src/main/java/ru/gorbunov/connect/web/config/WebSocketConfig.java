@@ -3,6 +3,7 @@ package ru.gorbunov.connect.web.config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -16,6 +17,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Autowired
     private AuthHandshakeInterceptor authHandshakeInterceptor;
+
+    @Autowired
+    private AuthChannelInterceptor authChannelInterceptor;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -45,5 +49,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         // Префикс для личных сообщений
         registry.setUserDestinationPrefix("/user");
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        // Подключаем интерцептор для проверки КАЖДОГО входящего сообщения
+        registration.interceptors(authChannelInterceptor);
     }
 }

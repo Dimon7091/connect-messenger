@@ -22,6 +22,9 @@ public class UserResponse implements ExtendedUserDetails {
     private String createdAt;
     private String lastSeen;
     private ProfileResponse profile;
+    private Boolean isDeleted;
+    private Boolean isBanned;
+
 
     @Override
     public Long getId() {

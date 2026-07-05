@@ -1,5 +1,7 @@
 package ru.gorbunov.connect.core.service.orchestrators;
 
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.user.ProfileResponse;
@@ -20,24 +22,13 @@ import ru.gorbunov.connect.core.service.UserService;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
+@Transactional
 public class UserProviderService {
     private final UserService userService;
     private final UserProfileService userProfileService;
     private final StatusService statusService;
     private final UserMapper mapper;
-
-
-    public UserProviderService(
-            UserService userService,
-            UserProfileService userProfileService,
-            UserMapper mapper,
-            StatusService statusService
-    ) {
-        this.userService = userService;
-        this.userProfileService = userProfileService;
-        this.statusService = statusService;
-        this.mapper = mapper;
-    }
 
     public UserResponse registerUser(UserCreateRequest request) {
         var user = userService.create(request, Role.ROLE_USER);
@@ -47,6 +38,13 @@ public class UserProviderService {
     public UserResponse getUserDetails(Long userId) {
         var user = userService.getUserById(userId);
         UserResponse response = mapper.toDto(user);
+        addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
+        return response;
+    }
+
+    public UserAdminResponse getUserDetailsForAdmin(Long userId) {
+        var user = userService.getUserById(userId);
+        UserAdminResponse response = mapper.toUserAdminDto(user);
         addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
         return response;
     }

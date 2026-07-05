@@ -2,19 +2,24 @@ package ru.gorbunov.connect.core.exception.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.gorbunov.connect.core.exception.ConflictException;
 import ru.gorbunov.connect.core.exception.EmailAlreadyExistsException;
+import ru.gorbunov.connect.core.exception.IllegalActionException;
 import ru.gorbunov.connect.core.exception.ResourceAlreadyExistsException;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
+import ru.gorbunov.connect.core.exception.UserDeletedException;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -48,8 +53,62 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<String> handleAccessDenied(AuthorizationDeniedException ex) {
+    public ResponseEntity<String> handleAuthorizationDenied(AuthorizationDeniedException ex) {
         // Теперь вместо ошибки в логах клиент получит 403
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не достаточно прав для доступа");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(Map.of(
+                        "error", "Access Denied",
+                        "message", ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<Map<String, String>> handleDisabled(DisabledException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of(
+                        "error", "Account disabled",
+                        "message", ex.getMessage(),
+                        "action", "LOGOUT_AND_REDIRECT",
+                        "errorCode", "AUTH_ACCOUNT_BANNED"
+                ));
+    }
+
+    @ExceptionHandler(IllegalActionException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalAction(IllegalActionException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "error", "Illegal action",
+                        "message", ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(UserDeletedException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalAction(UserDeletedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.GONE)
+                .body(Map.of(
+                        "error", "User deleted",
+                        "message", ex.getMessage(),
+                        "action", "LOGOUT_AND_REDIRECT",
+                        "errorCode", "USER_ACCOUNT_DELETED"
+                ));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalAction() {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of(
+                        "error", "Unauthorized",
+                        "message", "Неверный логин или пароль"
+                ));
     }
 }

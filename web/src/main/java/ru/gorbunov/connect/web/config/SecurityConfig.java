@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import ru.gorbunov.connect.core.service.CustomUserDetailsService;
@@ -38,6 +39,9 @@ public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtBanFilter jwtBanFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector)
@@ -65,6 +69,9 @@ public class SecurityConfig {
                         .decoder(jwtDecoder)
                         .jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .httpBasic(Customizer.withDefaults())
+
+                // 2. Добавляем фильтр проверки черного списка сразу ПОСЛЕ валидации OAuth2 токена
+                .addFilterAfter(jwtBanFilter, BearerTokenAuthenticationFilter.class)
                 .build();
     }
 

@@ -8,8 +8,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,8 +42,7 @@ public class AuthControllerV1 {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> createJwtForUser(
-            @RequestBody AuthRequest authRequest,
-            @AuthenticationPrincipal Jwt jwt
+            @RequestBody AuthRequest authRequest
     ) {
         // СОХРАНЯЕМ результат аутентификации
         Authentication authentication = authenticationManager.authenticate(
@@ -56,7 +53,7 @@ public class AuthControllerV1 {
         );
         // Теперь в authentication есть principal!
         User user = (User) authentication.getPrincipal();
-        UserResponse currentUser = userService.findByUserName(user.getUsername());
+        UserResponse currentUser = userProviderService.getUserDetails(user.getId());
         // Генерируем токен
         String token = jwtUtils.generateToken(user);
         var response = new AuthResponse(currentUser, token);

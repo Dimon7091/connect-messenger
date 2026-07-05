@@ -18,4 +18,8 @@ public class UserAdminResponse {
     private String lastSeen;
     private String status;
     private ProfileResponse profile;
+    @JsonProperty("isBanned")
+    private Boolean isBanned;
+    private Boolean isDeleted;
+
 }

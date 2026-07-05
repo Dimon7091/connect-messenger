@@ -1,7 +1,7 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,9 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
-import ru.gorbunov.connect.core.dto.user.UserAdminResponse;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
-import ru.gorbunov.connect.core.dto.user.UserStatResponse;
+import ru.gorbunov.connect.core.exception.UserDeletedException;
 import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
@@ -57,6 +56,9 @@ public class UserControllerV1 {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
         var user = userProviderService.getUserDetails(Long.parseLong(jwt.getClaim("sub")));
+        if (user.getIsDeleted()) {
+            throw new UserDeletedException("Пользователь удален");
+        }
         return ResponseEntity.ok()
                 .body(user);
     }
