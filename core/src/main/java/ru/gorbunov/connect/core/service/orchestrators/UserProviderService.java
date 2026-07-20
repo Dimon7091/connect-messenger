@@ -16,6 +16,7 @@ import ru.gorbunov.connect.core.models.AvatarType;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.service.StatusService;
+import ru.gorbunov.connect.core.service.UserBlockService;
 import ru.gorbunov.connect.core.service.UserProfileService;
 import ru.gorbunov.connect.core.service.UserService;
 
@@ -27,6 +28,7 @@ import java.util.List;
 public class UserProviderService {
     private final UserService userService;
     private final UserProfileService userProfileService;
+    private final UserBlockService userBlockService;
     private final StatusService statusService;
     private final UserMapper mapper;
 
@@ -39,6 +41,7 @@ public class UserProviderService {
         var user = userService.getUserById(userId);
         UserResponse response = mapper.toDto(user);
         addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
+        response.setBlackListIds(userBlockService.findBlockedUserIds(userId));
         return response;
     }
 

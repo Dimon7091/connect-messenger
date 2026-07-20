@@ -8,6 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import ru.gorbunov.connect.core.models.ExtendedUserDetails;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ public class UserResponse implements ExtendedUserDetails {
     private ProfileResponse profile;
     private Boolean isDeleted;
     private Boolean isBanned;
-
+    private List<Long> blackListIds;
 
     @Override
     public Long getId() {

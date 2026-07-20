@@ -15,6 +15,7 @@ import ru.gorbunov.connect.core.dto.ws.MessageNewResponse;
 import ru.gorbunov.connect.core.dto.ws.MessageReadPayload;
 import ru.gorbunov.connect.core.dto.ws.MessageSentResponse;
 import ru.gorbunov.connect.core.dto.ws.ReplyContext;
+import ru.gorbunov.connect.core.exception.UserBlockedException;
 import ru.gorbunov.connect.core.mapper.ChatMapper;
 import ru.gorbunov.connect.core.models.MessageStatus;
 import ru.gorbunov.connect.core.dto.ws.SendMessageRequest;
@@ -28,6 +29,7 @@ import ru.gorbunov.connect.core.service.ChatParticipantService;
 import ru.gorbunov.connect.core.service.ChatService;
 import ru.gorbunov.connect.core.service.MessageService;
 import org.springframework.util.StopWatch;
+import ru.gorbunov.connect.core.service.UserBlockService;
 import ru.gorbunov.connect.core.service.orchestrators.MessageReplyService;
 
 import java.security.Principal;
@@ -47,6 +49,7 @@ public class WSChatControllerV1 {
     private final ChatParticipantService chatParticipantService;
     private final ChatMapper chatMapper;
     private final MessageReplyService messageReplyService;
+    private final UserBlockService userBlockService;
 
     /**
      * 1. Отправка сообщения (send_message)
@@ -70,10 +73,15 @@ public class WSChatControllerV1 {
         log.info("📨 Send message from user {} to chat {}", senderId, payload.getChatId());
 
         try {
-            // 1. Сохраняем сообщение в БД
+            // Проверка на блокировку между пользователями
+            if (userBlockService.isEitherBlocked(senderId, receiverId)) {
+                throw new UserBlockedException("blocked by user");
+            }
+
+            // Сохраняем сообщение в БД
             Message savedMessage = messageService.createMessage(payload);
 
-            // 2. Отправляем подтверждение отправки отправителю (MessageSentResponse)
+            // Отправляем подтверждение отправки отправителю (MessageSentResponse)
             MessageSentResponse sentResponse = MessageSentResponse.builder()
                     .messageId(payload.getMessageId())      // временный ID от клиента
                     .serverMessageId(savedMessage.getId().toString())  // реальный ID из БД
@@ -87,7 +95,7 @@ public class WSChatControllerV1 {
                     new WSEvent<>(WSEvent.EventType.MESSAGE_SENT, sentResponse)
             );
 
-            // 3. Формируем новое сообщение
+            // Формируем новое сообщение
             MessageNewResponse newMessageResponse = messageMapper.toDto(savedMessage);
             // Если сообщение это ответ на другое сообщение добовляем ReplyContext
             if (payload.getReplyToId() != null) {
