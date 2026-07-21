@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
@@ -63,7 +64,7 @@ public class AuthControllerV1 {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> registerUser(@RequestBody @Valid UserCreateRequest request) {
-        var newUser = userProviderService.registerUser(request);
+        var newUser = userService.create(request, Role.ROLE_USER);
         String token = jwtUtils.generateToken(newUser);
         return ResponseEntity.ok()
                 .body(new AuthResponse(newUser, token));

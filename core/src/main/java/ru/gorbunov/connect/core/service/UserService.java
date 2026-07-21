@@ -40,7 +40,7 @@ public class UserService {
     private UserMapper mapper;
 
     // --- Create ---
-    public User create(UserCreateRequest requestData, Role role) {
+    public UserResponse create(UserCreateRequest requestData, Role role) {
         if (userRepository.existsByEmail(requestData.email())) {
             throw new EmailAlreadyExistsException(
                     "Пользователь с email: " + requestData.email() + " уже существует"
@@ -55,7 +55,8 @@ public class UserService {
 
         var user = mapper.toEntity(requestData);
         user.setRole(role);
-        return userRepository.save(user);
+        var createdUser = userRepository.save(user);
+        return mapper.toDto(createdUser);
     }
 
     // --- Read ---

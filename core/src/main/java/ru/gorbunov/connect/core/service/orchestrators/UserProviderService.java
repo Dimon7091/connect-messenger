@@ -7,13 +7,11 @@ import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.user.ProfileResponse;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserAdminResponse;
-import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.AvatarType;
-import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserBlockService;
@@ -31,11 +29,6 @@ public class UserProviderService {
     private final UserBlockService userBlockService;
     private final StatusService statusService;
     private final UserMapper mapper;
-
-    public UserResponse registerUser(UserCreateRequest request) {
-        var user = userService.create(request, Role.ROLE_USER);
-        return mapper.toDto(user);
-    }
 
     public UserResponse getUserDetails(Long userId) {
         var user = userService.getUserById(userId);
