@@ -50,7 +50,7 @@ public class DataInitializer {
                 );
             } else if (!userService.findUsersByRole(Role.ROLE_ADMIN).isEmpty()) {
                 User admin = userService.findUsersByRole(Role.ROLE_ADMIN).getFirst();
-                log.info("Admin user is already exist: {} ", admin.getEmail());
+                log.info("Admin user is already exist: {} ", admin.getUsername());
             }
             createTestUsers(20);
             createTestChat(60);
@@ -65,7 +65,6 @@ public class DataInitializer {
             String password
     ) {
         var adminData = new UserCreateRequest(
-                email,
                 userName,
                 firstName,
                 lastName,
@@ -79,7 +78,6 @@ public class DataInitializer {
     public void createTestUsers(Integer count) {
         for (int i = 0; i < count; i++) {
             var userData = new UserCreateRequest(
-                    faker.internet().emailAddress(),
                     faker.name().firstName().toLowerCase(),
                     faker.name().firstName(),
                     faker.name().lastName(),
@@ -93,7 +91,6 @@ public class DataInitializer {
 
     public void createTestChat(int messageCount) {
         var userData1 = new UserCreateRequest(
-                "dafsasddfd@gmail.com",
                 "vova91",
                 "Вова",
                 "Хроныч",
@@ -101,7 +98,6 @@ public class DataInitializer {
         );
 
         var userData2 = new UserCreateRequest(
-                "dafsdfd@gmail.com",
                 "dron70",
                 "Дрон",
                 "Дроныч",

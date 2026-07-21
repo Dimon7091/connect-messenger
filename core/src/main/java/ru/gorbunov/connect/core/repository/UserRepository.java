@@ -16,7 +16,6 @@ import java.util.Optional;
 @Repository
 @Transactional
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
-    Boolean existsByEmail(String email);
     Boolean existsByUserName(String userName);
     @Query(value = "SELECT isBanned FROM User WHERE id = :id")
     Boolean isBanned(@Param("id") Long id);

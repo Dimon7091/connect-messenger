@@ -41,12 +41,6 @@ public class UserService {
 
     // --- Create ---
     public UserResponse create(UserCreateRequest requestData, Role role) {
-        if (userRepository.existsByEmail(requestData.email())) {
-            throw new EmailAlreadyExistsException(
-                    "Пользователь с email: " + requestData.email() + " уже существует"
-            );
-        }
-
         if (userRepository.existsByUserName(requestData.userName())) {
             throw new UserNameAlreadyExistsException(
                     "Пользователь с именем пользователя: " + requestData.userName() + " уже существует"

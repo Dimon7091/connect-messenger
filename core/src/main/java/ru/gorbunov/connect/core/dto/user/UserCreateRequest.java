@@ -1,18 +1,10 @@
 package ru.gorbunov.connect.core.dto.user;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record UserCreateRequest(
-        @Email(
-                regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
-                message = "Неправильный формат email"
-        )
-        @NotBlank(message = "Email не может быть пустым")
-        String email,
-
         @NotBlank(message = "Имя пользователя не может быть пустым")
         @Size(max = 50, message = "Имя пользователя не может превышать 50 символов")
         @Pattern(
