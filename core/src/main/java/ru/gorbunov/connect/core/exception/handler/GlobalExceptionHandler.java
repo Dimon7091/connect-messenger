@@ -23,12 +23,16 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage())
         );
-        return ResponseEntity.unprocessableEntity().body(errors);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Ошибка валидации данных");
+        response.put("errors", errors);
+        return ResponseEntity.unprocessableEntity().body(response);
     }
 
     @ExceptionHandler

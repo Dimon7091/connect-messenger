@@ -15,9 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
-import ru.gorbunov.connect.core.exception.EmailAlreadyExistsException;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
-import ru.gorbunov.connect.core.exception.UserNameAlreadyExistsException;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
@@ -41,12 +39,6 @@ public class UserService {
 
     // --- Create ---
     public UserResponse create(UserCreateRequest requestData, Role role) {
-        if (userRepository.existsByUserName(requestData.userName())) {
-            throw new UserNameAlreadyExistsException(
-                    "Пользователь с именем пользователя: " + requestData.userName() + " уже существует"
-            );
-        }
-
         var user = mapper.toEntity(requestData);
         user.setRole(role);
         var createdUser = userRepository.save(user);

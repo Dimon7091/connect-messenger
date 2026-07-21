@@ -3,28 +3,33 @@ package ru.gorbunov.connect.core.dto.user;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import ru.gorbunov.connect.core.dto.user.validation.UniqueUserName;
 
 public record UserCreateRequest(
         @NotBlank(message = "Имя пользователя не может быть пустым")
-        @Size(max = 50, message = "Имя пользователя не может превышать 50 символов")
+        @Size(min = 3, max = 20, message = "Имя пользователя должно быть от 3 до 20 символов")
         @Pattern(
-                regexp = "^[a-zA-Z0-9]+$",
-                message = "Имя пользователя может содержать только английские буквы и цифры"
+                regexp = "^[a-zA-Z0-9._-]+$",
+                message = "Имя пользователя может содержать только английские буквы, цифры, дефис, подчеркивание, точку"
         )
+        @Pattern(
+                regexp = "^(?!^[0-9]+$).*$",
+                message = "Имя пользователя не может состоять только из цифр"
+        )
+        @UniqueUserName(message = "Имя пользователя уже занято")
         String userName,
 
         @NotBlank(message = "Имя не может быть пустым")
         @Size(max = 50, message = "Имя не может превышать 50 символов")
         @Pattern(
-                regexp = "^[a-zA-Zа-яА-ЯёЁ]+$",
+                regexp = "^[a-zA-Zа-яА-ЯёЁ]*$",
                 message = "Имя может содержать только буквы русского или английского языка"
         )
         String firstName,
 
-        @NotBlank(message = "Фамилия не может быть пустой")
         @Size(max = 50, message = "Фамилия не может превышать 50 символов")
         @Pattern(
-                regexp = "^[a-zA-Zа-яА-ЯёЁ]+$",
+                regexp = "^[a-zA-Zа-яА-ЯёЁ]*$",
                 message = "Фамилия может содержать только буквы русского или английского языка"
         )
         String lastName,
