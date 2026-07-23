@@ -42,7 +42,6 @@ public class DataInitializer {
             // Если юзер репозиторий пустой создаем админа
             if (userService.getTotalUsers() == 0) {
                 createUserAdmin(
-                        "dimarik70rus@gmail.com",
                         "dimarik70",
                         "Дмитрий",
                         "Горбунов",
@@ -58,7 +57,6 @@ public class DataInitializer {
     }
 
     public void createUserAdmin(
-            String email,
             String userName,
             String firstName,
             String lastName,
@@ -68,7 +66,8 @@ public class DataInitializer {
                 userName,
                 firstName,
                 lastName,
-                password
+                password,
+                "token"
         );
         var admin = userService.create(adminData, Role.ROLE_ADMIN);
         log.info("✅ Admin user created successfully!");
@@ -81,7 +80,8 @@ public class DataInitializer {
                     faker.name().firstName().toLowerCase(),
                     faker.name().firstName(),
                     faker.name().lastName(),
-                    faker.lorem().characters(8)
+                    faker.lorem().characters(8),
+                    "token"
             );
             var newUser = userService.create(userData, Role.ROLE_USER);
             log.info("✅ New user created, username: {}", newUser.getUsername());
@@ -94,14 +94,16 @@ public class DataInitializer {
                 "vova91",
                 "Вова",
                 "Хроныч",
-                "1234"
+                "1234",
+                "token"
         );
 
         var userData2 = new UserCreateRequest(
                 "dron70",
                 "Дрон",
                 "Дроныч",
-                "1234"
+                "1234",
+                "token"
         );
         var user1 = userService.create(userData1, Role.ROLE_USER);
         log.info("✅ New chat user created, username: {}", user1.getUsername());

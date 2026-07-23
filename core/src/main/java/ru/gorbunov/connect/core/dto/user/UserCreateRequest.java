@@ -36,5 +36,8 @@ public record UserCreateRequest(
 
         @NotBlank(message = "Пароль не может быть пустым")
         @Size(min = 8, max = 50, message = "Пароль должен быть от 8 до 50 символов")
-        String password
+        String password,
+
+        @NotBlank(message = "Отсутствует приглашение")
+        String invitationToken
 ) { }

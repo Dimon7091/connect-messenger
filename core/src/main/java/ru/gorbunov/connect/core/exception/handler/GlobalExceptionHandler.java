@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.gorbunov.connect.core.exception.ConflictException;
 import ru.gorbunov.connect.core.exception.EmailAlreadyExistsException;
 import ru.gorbunov.connect.core.exception.IllegalActionException;
+import ru.gorbunov.connect.core.exception.InvitationIsNotValidException;
 import ru.gorbunov.connect.core.exception.ResourceAlreadyExistsException;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.exception.UserDeletedException;
@@ -113,6 +114,16 @@ public class GlobalExceptionHandler {
                 .body(Map.of(
                         "error", "Unauthorized",
                         "message", "Неверный логин или пароль"
+                ));
+    }
+
+    @ExceptionHandler(InvitationIsNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleInvitationIsNotValidException() {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(Map.of(
+                        "error", "Приглашение не действительно",
+                        "message", "Ошибка валидации данных"
                 ));
     }
 }

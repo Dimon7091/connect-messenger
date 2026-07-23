@@ -16,6 +16,7 @@ logging:
 
 app:
   welcome-message: "Welcome to Spring"
+  url: ${APP_URL:отсутствует url в переменной окружения!}
 
 yandex:
   storage:
@@ -26,7 +27,6 @@ yandex:
     buckets:
       avatars: connect-avatars
       chat-files: connect-chats-files
-
 
 server:
   port: 8080

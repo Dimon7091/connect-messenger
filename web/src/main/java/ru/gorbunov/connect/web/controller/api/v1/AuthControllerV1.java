@@ -16,6 +16,7 @@ import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
+import ru.gorbunov.connect.core.service.InviteService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
 import ru.gorbunov.connect.web.dto.AuthRequest;
@@ -41,6 +42,9 @@ public class AuthControllerV1 {
     @Autowired
     private UserProviderService userProviderService;
 
+    @Autowired
+    private InviteService inviteService;
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> createJwtForUser(
             @RequestBody AuthRequest authRequest
@@ -64,6 +68,7 @@ public class AuthControllerV1 {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> registerUser(@RequestBody @Valid UserCreateRequest request) {
+        inviteService.validateAndConsumeInvitation(request.invitationToken());
         var newUser = userService.create(request, Role.ROLE_USER);
         String token = jwtUtils.generateToken(newUser);
         return ResponseEntity.ok()
