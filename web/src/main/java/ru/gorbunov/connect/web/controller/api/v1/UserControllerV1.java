@@ -22,6 +22,7 @@ import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserBlockService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
+import ru.gorbunov.connect.core.service.orchestrators.UserDeletionService;
 import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
 
 import java.util.List;
@@ -29,8 +30,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserControllerV1 {
-
-    private final UserService userService;
 
     @Autowired
     private StatusService statusService;
@@ -44,9 +43,10 @@ public class UserControllerV1 {
     @Autowired
     private UserBlockService userBlockService;
 
+    private final UserDeletionService userDeletionService;
 
-    public UserControllerV1(UserService userService) {
-        this.userService = userService;
+    public UserControllerV1(UserDeletionService userDeletionService) {
+        this.userDeletionService = userDeletionService;
     }
 
 
@@ -105,11 +105,10 @@ public class UserControllerV1 {
         userBlockService.removeBlockUserByUser(currentUserId, blockedId);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping()
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable("id") Long id) {
-        userService.delete(id);
-        userStatusSubscriptionService.cleanupUserFully(id);
-        statusService.deleteStatusFromDatabase(id);
+    public void softDelete( @AuthenticationPrincipal Jwt jwt) {
+        var currentUserId = Long.parseLong(jwt.getClaim("sub"));
+        userDeletionService.softDelete(currentUserId);
     }
 }
