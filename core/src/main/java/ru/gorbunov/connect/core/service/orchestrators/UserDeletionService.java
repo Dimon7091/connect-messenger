@@ -26,8 +26,10 @@ public class UserDeletionService {
     private Cache<Long, Boolean> usersDeletedCache;
     private UserMapper mapper;
 
-    public UserAdminResponse delete(Long userId, Long currentAdminId) {
-        if (currentAdminId.equals(userId)) {
+    public UserAdminResponse softDelete(Long userId) {
+        var isAdmin = userRepository.isAdmin(userId);
+
+        if (isAdmin) {
             throw new IllegalActionException("Вы не можете удалить аккаунт администратора.");
         }
 

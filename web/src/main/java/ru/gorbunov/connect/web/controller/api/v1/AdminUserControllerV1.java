@@ -82,11 +82,9 @@ public class AdminUserControllerV1 {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<UserAdminResponse> softDelete(
-            @PathVariable("id") Long userId,
-            @AuthenticationPrincipal Jwt token
+            @PathVariable("id") Long userId
     ) {
-        Long currentAdminId = Long.parseLong(token.getClaim("sub"));
-        var response = userDeletionService.delete(userId, currentAdminId);
+        var response = userDeletionService.softDelete(userId);
         return ResponseEntity.ok()
                 .body(response);
     }
