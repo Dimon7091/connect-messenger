@@ -1,6 +1,6 @@
 package ru.gorbunov.connect.core.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -8,10 +8,9 @@ import ru.gorbunov.connect.core.models.ExtendedUserDetails;
 import ru.gorbunov.connect.core.repository.UserRepository;
 
 @Service
+@AllArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Override
     public ExtendedUserDetails loadUserByUsername(String username) {

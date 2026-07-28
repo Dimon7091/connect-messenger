@@ -1,8 +1,8 @@
 package ru.gorbunov.connect.core.service;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.payload.MessageDeletedState;
 import ru.gorbunov.connect.core.dto.ws.SendMessageRequest;
@@ -18,14 +18,11 @@ import java.util.NoSuchElementException;
 
 @Slf4j
 @Transactional
+@AllArgsConstructor
 @Service
 public class MessageService {
-
-    @Autowired
-    private MessageRepository messageRepository;
-
-    @Autowired
-    private MessageMapper mapper;
+    private final MessageRepository messageRepository;
+    private final MessageMapper mapper;
 
     public Message createMessage(SendMessageRequest requestData) {
         Message newMessage = mapper.toEntity(requestData);

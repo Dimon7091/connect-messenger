@@ -1,14 +1,14 @@
 package ru.gorbunov.connect.core.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.models.ChatParticipantId;
 import ru.gorbunov.connect.core.repository.ChatParticipantRepository;
 
 @Service
+@AllArgsConstructor
 public class ChatParticipantService {
-    @Autowired
-    private ChatParticipantRepository chatParticipantRepository;
+    private final ChatParticipantRepository chatParticipantRepository;
 
     public void incrementUnreadCount(Long chatId, Long userId) {
         var participantId = new ChatParticipantId(chatId, userId);

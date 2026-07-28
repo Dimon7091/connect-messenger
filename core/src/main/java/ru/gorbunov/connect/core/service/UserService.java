@@ -2,9 +2,9 @@ package ru.gorbunov.connect.core.service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,17 +24,14 @@ import ru.gorbunov.connect.core.specifications.UserSpecification;
 
 import java.util.List;
 
+@AllArgsConstructor
 @Service
 @Transactional
 @Slf4j
 public class UserService {
     @PersistenceContext
     private EntityManager entityManager;
-
-    @Autowired
     private UserRepository userRepository;
-
-    @Autowired
     private UserMapper mapper;
 
     // --- Create ---

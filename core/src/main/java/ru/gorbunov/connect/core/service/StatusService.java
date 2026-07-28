@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Transactional
 public class StatusService {
-
     private final UserStatusRepository userStatusRepository;
     private final Map<Long, UserStatus> cache = new ConcurrentHashMap<>();
 

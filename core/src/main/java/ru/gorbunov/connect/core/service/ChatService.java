@@ -1,8 +1,8 @@
 package ru.gorbunov.connect.core.service;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.chat.ChatResponse;
@@ -20,19 +20,13 @@ import java.util.Objects;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 @Transactional
 public class ChatService {
-    @Autowired
-    private ChatRepository chatRepository;
-
-    @Autowired
-    private ChatParticipantRepository chatParticipantRepository;
-
-    @Autowired
-    private ChatParticipantService chatParticipantService;
-
-    @Autowired
-    private ChatMapper mapper;
+    private final ChatRepository chatRepository;
+    private final ChatParticipantRepository chatParticipantRepository;
+    private final ChatParticipantService chatParticipantService;
+    private final ChatMapper mapper;
 
     @Transactional
     public Chat createOrGetDirectChat(Long userId1, Long userId2) {

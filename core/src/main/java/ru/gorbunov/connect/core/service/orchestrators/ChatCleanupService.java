@@ -1,12 +1,11 @@
 package ru.gorbunov.connect.core.service.orchestrators;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.payload.MessagesDeletedPayload;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
-import ru.gorbunov.connect.core.repository.ChatRepository;
 import ru.gorbunov.connect.core.service.ChatParticipantService;
 import ru.gorbunov.connect.core.service.ChatService;
 import ru.gorbunov.connect.core.service.MessageService;
@@ -17,19 +16,11 @@ import java.util.Objects;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class ChatCleanupService {
-
-    @Autowired
     private MessageService messageService;
-
-    @Autowired
     private ChatService chatService;
-
-    @Autowired
     private ChatParticipantService chatParticipantService;
-
-    @Autowired
-    private ChatRepository chatRepository;
 
     public void clearChatForUser(Long chatId, Long userId) {
         chatService.deleteChatForUser(chatId, userId);

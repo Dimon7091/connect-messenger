@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.core.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
@@ -19,21 +20,12 @@ import java.io.IOException;
 import java.util.UUID;
 
 @Slf4j
+@AllArgsConstructor
 @Service
 public class UserProfileService {
-
     private final FileStorageProvider storageProvider;
     private final UserRepository userRepository;
     private final UserMapper mapper;
-
-    public UserProfileService(FileStorageProvider storageProvider,
-                              UserRepository userRepository,
-                              UserMapper mapper
-    ) {
-        this.storageProvider = storageProvider;
-        this.userRepository = userRepository;
-        this.mapper = mapper;
-    }
 
     public User updateUserProfile(Long userId, UserProfileUpdateRequest requestData) {
         User user = userRepository.findById(userId)
