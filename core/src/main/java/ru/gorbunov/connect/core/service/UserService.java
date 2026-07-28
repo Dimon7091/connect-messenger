@@ -35,11 +35,10 @@ public class UserService {
     private UserMapper mapper;
 
     // --- Create ---
-    public UserResponse create(UserCreateRequest requestData, Role role) {
+    public User create(UserCreateRequest requestData, Role role) {
         var user = mapper.toEntity(requestData);
         user.setRole(role);
-        var createdUser = userRepository.save(user);
-        return mapper.toDto(createdUser);
+        return userRepository.save(user);
     }
 
     // --- Read ---

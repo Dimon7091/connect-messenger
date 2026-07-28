@@ -6,7 +6,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
-import ru.gorbunov.connect.core.models.ExtendedUserDetails;
+import ru.gorbunov.connect.core.models.User;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -17,7 +17,7 @@ public class JwtUtil {
     @Autowired
     private JwtEncoder encoder;
 
-    public String generateToken(ExtendedUserDetails user) {
+    public String generateToken(User user) {
         // Текущее время в UTC
         ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
 
@@ -31,7 +31,6 @@ public class JwtUtil {
                 .issuedAt(now.toInstant())
                 .expiresAt(now.plusMonths(1).toInstant())  // ✅ +1 месяц
                 .subject(String.valueOf(user.getId()))
-                .claim("sub", user.getId())
                 .claim("preferred_username", user.getUsername())
                 .claim("roles", roles)
                 .build();

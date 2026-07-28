@@ -30,6 +30,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -49,7 +50,7 @@ import java.util.stream.Collectors;
 @SQLDelete(sql = "UPDATE users SET is_deleted = true WHERE id = ?")
 @FilterDef(name = "deletedUserFilter")
 @Filter(name = "deletedUserFilter", condition = "is_deleted = false")
-public class User implements ExtendedUserDetails {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -105,12 +106,6 @@ public class User implements ExtendedUserDetails {
     public boolean isAccountNonLocked() {
         return !isFailedLoginLocked;
     }
-
-    @Override
-    public Long getId() {
-        return this.id;
-    }
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

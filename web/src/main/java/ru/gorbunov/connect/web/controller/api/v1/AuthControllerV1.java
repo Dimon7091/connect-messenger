@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.service.InviteService;
@@ -45,6 +46,9 @@ public class AuthControllerV1 {
     @Autowired
     private InviteService inviteService;
 
+    @Autowired
+    private UserMapper mapper;
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> createJwtForUser(
             @RequestBody AuthRequest authRequest
@@ -71,8 +75,9 @@ public class AuthControllerV1 {
         inviteService.validateAndConsumeInvitation(request.invitationToken());
         var newUser = userService.create(request, Role.ROLE_USER);
         String token = jwtUtils.generateToken(newUser);
+        var userResponse = mapper.toDto(newUser);
         return ResponseEntity.ok()
-                .body(new AuthResponse(newUser, token));
+                .body(new AuthResponse(userResponse, token));
     }
 
     @PostMapping("/login-admin")

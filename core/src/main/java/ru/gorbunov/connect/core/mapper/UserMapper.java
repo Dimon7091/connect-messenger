@@ -42,9 +42,8 @@ public abstract class UserMapper {
     public abstract User toEntity(UserCreateRequest dto);
 
     @Mapping(source = "username", target = "userName")
-    @Mapping(source = "roles", target = "roles", qualifiedByName = "rolesEnumToString")
+    @Mapping(target = "roles", ignore = true)
     @Mapping(source = "profile", target = "profile", qualifiedByName = "addProfileResponse")
-    @Mapping(target = "authorities", ignore = true)
     public abstract UserResponse toDto(User entity);
 
     @Mapping(source = "username", target = "userName")
