@@ -32,8 +32,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE User SET isBanned = :flag WHERE id = :id")
     void updateIsBanned(@Param("id") Long id, @Param("flag") boolean flag);
-    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END " +
-            "FROM User u JOIN u.roles r " +
-            "WHERE u.id = :id AND r = ru.gorbunov.connect.core.models.Role.ROLE_ADMIN AND u.isDeleted = false")
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END "
+            + "FROM User u JOIN u.roles r "
+            + "WHERE u.id = :id AND r = ru.gorbunov.connect.core.models.Role.ROLE_ADMIN AND u.isDeleted = false")
     boolean isAdmin(@Param("id") Long userId);
 }

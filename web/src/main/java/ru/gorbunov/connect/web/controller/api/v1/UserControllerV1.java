@@ -20,7 +20,6 @@ import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.exception.UserDeletedException;
 import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserBlockService;
-import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
 import ru.gorbunov.connect.core.service.orchestrators.UserDeletionService;
 import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
@@ -107,7 +106,7 @@ public class UserControllerV1 {
 
     @DeleteMapping()
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void softDelete( @AuthenticationPrincipal Jwt jwt) {
+    public void softDelete(@AuthenticationPrincipal Jwt jwt) {
         var currentUserId = Long.parseLong(jwt.getClaim("sub"));
         userDeletionService.softDelete(currentUserId);
     }
