@@ -1,6 +1,6 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,36 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.exception.UserDeletedException;
-import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserBlockService;
-import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
 import ru.gorbunov.connect.core.service.orchestrators.UserDeletionService;
 import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
 
 import java.util.List;
 
+@AllArgsConstructor
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserControllerV1 {
-
-    @Autowired
-    private StatusService statusService;
-
-    @Autowired
-    private UserProviderService userProviderService;
-
-    @Autowired
-    private UserStatusSubscriptionService userStatusSubscriptionService;
-
-    @Autowired
-    private UserBlockService userBlockService;
-
+    private final UserProviderService userProviderService;
+    private final UserBlockService userBlockService;
     private final UserDeletionService userDeletionService;
-
-    public UserControllerV1(UserDeletionService userDeletionService) {
-        this.userDeletionService = userDeletionService;
-    }
-
 
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<UserResponse> show(@PathVariable("id") Long id) {
