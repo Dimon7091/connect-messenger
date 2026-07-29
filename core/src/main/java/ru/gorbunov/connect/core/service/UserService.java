@@ -34,14 +34,16 @@ public class UserService {
     private UserRepository userRepository;
     private UserMapper mapper;
 
-    // --- Create ---
     public User create(UserCreateRequest requestData, Role role) {
         var user = mapper.toEntity(requestData);
         user.setRole(role);
         return userRepository.save(user);
     }
 
-    // --- Read ---
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
     public User getUserById(Long id) {
         return userRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
@@ -99,7 +101,18 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
     }
 
-    // --- Update ---
+    public boolean isAdmin(Long userId) {
+        return userRepository.isAdmin(userId);
+    }
+
+    public boolean isAdmin(String userName) {
+        return userRepository.isAdmin(userName);
+    }
+
+    public boolean isDeleted(Long userId) {
+        return userRepository.isDeleted(userId);
+    }
+
     public User updateUserName(Long id, UpdateUserNameRequest requestData) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
@@ -107,7 +120,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // --- Delete ---
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("Пользователь не найден");

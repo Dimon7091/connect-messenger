@@ -9,7 +9,6 @@ import ru.gorbunov.connect.core.exception.IllegalActionException;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.FileStorageProvider;
 import ru.gorbunov.connect.core.models.StorageType;
-import ru.gorbunov.connect.core.repository.UserRepository;
 import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.UserStatusSubscriptionService;
@@ -21,13 +20,12 @@ public class UserDeletionService {
     private final UserService userService;
     private final UserStatusSubscriptionService userStatusSubscriptionService;
     private final StatusService statusService;
-    private final UserRepository userRepository;
     private final FileStorageProvider storageProvider;
     private Cache<Long, Boolean> usersDeletedCache;
     private UserMapper mapper;
 
     public UserAdminResponse softDelete(Long userId) {
-        var isAdmin = userRepository.isAdmin(userId);
+        var isAdmin = userService.isAdmin(userId);
 
         if (isAdmin) {
             throw new IllegalActionException("Вы не можете удалить аккаунт администратора.");
@@ -46,7 +44,7 @@ public class UserDeletionService {
         var avatarKey = user.getProfile().getAvatarKey();
         user.getProfile().setAvatarKey(null);
         user.setIsDeleted(true);
-        var userAsDeleted = userRepository.save(user);
+        var userAsDeleted = userService.save(user);
 
         if (avatarKey != null) {
             storageProvider.delete(avatarKey, StorageType.AVATAR);
@@ -64,7 +62,7 @@ public class UserDeletionService {
             return cache;
         }
 
-        boolean deleted = userRepository.isDeleted(userId);
+        boolean deleted = userService.isDeleted(userId);
         usersDeletedCache.put(userId, deleted);
         return deleted;
     }

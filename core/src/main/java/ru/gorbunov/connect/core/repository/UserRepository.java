@@ -36,4 +36,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
             + "FROM User u JOIN u.roles r "
             + "WHERE u.id = :id AND r = ru.gorbunov.connect.core.models.Role.ROLE_ADMIN AND u.isDeleted = false")
     boolean isAdmin(@Param("id") Long userId);
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END "
+            + "FROM User u JOIN u.roles r "
+            + "WHERE u.userName = :userName AND r = ru.gorbunov.connect.core.models.Role.ROLE_ADMIN AND u.isDeleted = false")
+    boolean isAdmin(@Param("userName") String userName);
 }
