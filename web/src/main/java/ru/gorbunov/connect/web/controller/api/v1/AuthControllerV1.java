@@ -2,8 +2,8 @@ package ru.gorbunov.connect.web.controller.api.v1;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -83,12 +83,9 @@ public class AuthControllerV1 {
     @PostMapping("/login-admin")
     public ResponseEntity<Map<String, String>> creteJwtForAdmin(@RequestBody AuthRequest authRequest) {
         // Проверка роли admin
-        var adminDetails = userService.findByUserName(authRequest.username());
-        boolean isAdmin = adminDetails.getRoles().stream()
-                .anyMatch(a -> a.equals("ROLE_ADMIN"));
+        boolean isAdmin = userService.isAdmin(authRequest.username());
         if (!isAdmin) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Доступ запрещен"));
+            throw new AccessDeniedException("Доступ запрещен");
         }
         // СОХРАНЯЕМ результат аутентификации
         Authentication authentication = authenticationManager.authenticate(
