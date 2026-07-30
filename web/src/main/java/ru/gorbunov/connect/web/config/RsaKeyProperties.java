@@ -3,6 +3,7 @@ package ru.gorbunov.connect.web.config;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -18,9 +19,8 @@ import java.util.Base64;
 
 @Component
 @ConfigurationProperties(prefix = "rsa")
-
-@Getter
 @Setter
+@Slf4j
 public class RsaKeyProperties {
     // ИЗМЕНЕНИЕ: храним как String, а не как RSA ключи
     private String privateKey;
@@ -29,6 +29,7 @@ public class RsaKeyProperties {
     // Эти поля будут заполнены после конвертации
     private RSAPrivateKey rsaPrivateKey;
     private RSAPublicKey rsaPublicKey;
+
 
     @PostConstruct
     public void init() throws Exception {
@@ -61,11 +62,15 @@ public class RsaKeyProperties {
 
     private RSAPrivateKey convertPrivateKey(String pem) throws Exception {
         String cleaned = pem
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replace("-----BEGIN RSA PRIVATE KEY-----", "")
-                .replace("-----END RSA PRIVATE KEY-----", "")
-                .replaceAll("\\s", "");
+                .replaceAll("-----BEGIN.*?-----", "")
+                .replaceAll("-----END.*?-----", "")
+                .replaceAll("[^A-Za-z0-9+/=]", "");
+
+        // Дополняем до кратности 4
+        int mod = cleaned.length() % 4;
+        if (mod != 0) {
+            cleaned += "=".repeat(4 - mod);
+        }
 
         byte[] decoded = Base64.getDecoder().decode(cleaned);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -75,11 +80,15 @@ public class RsaKeyProperties {
 
     private RSAPublicKey convertPublicKey(String pem) throws Exception {
         String cleaned = pem
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "")
-                .replace("-----BEGIN RSA PUBLIC KEY-----", "")
-                .replace("-----END RSA PUBLIC KEY-----", "")
-                .replaceAll("\\s", "");
+                .replaceAll("-----BEGIN.*?-----", "")
+                .replaceAll("-----END.*?-----", "")
+                .replaceAll("[^A-Za-z0-9+/=]", "");
+
+        // Дополняем до кратности 4
+        int mod = cleaned.length() % 4;
+        if (mod != 0) {
+            cleaned += "=".repeat(4 - mod);
+        }
 
         byte[] decoded = Base64.getDecoder().decode(cleaned);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");

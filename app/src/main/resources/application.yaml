@@ -18,6 +18,10 @@ app:
   welcome-message: "Welcome to Spring"
   url: ${APP_URL:отсутствует url в переменной окружения!}
 
+rsa:
+  private-key: ${RSA_PRIVATE_KEY}
+  public-key: ${RSA_PUBLIC_KEY}
+
 yandex:
   storage:
     endpoint: https://storage.yandexcloud.net
