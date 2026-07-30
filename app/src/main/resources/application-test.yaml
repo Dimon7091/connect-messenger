@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:test_db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false  # false = одна строка, true = красивое форматирование
+        use_sql_comments: false
+        jdbc.batch_size: 500
+        order_updates: true
+        order_inserts: true
+        generate_statistics: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
