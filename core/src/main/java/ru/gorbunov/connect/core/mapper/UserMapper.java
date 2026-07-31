@@ -36,8 +36,8 @@ public abstract class UserMapper {
     private PasswordEncoder passwordEncoder;
 
     @Mapping(source = "password", target = "passwordHash", qualifiedByName = "hashPassword")
-    @Mapping(source = "firstName", target = "profile.firstName")
-    @Mapping(source = "lastName", target = "profile.lastName")
+    @Mapping(source = "firstName", target = "profile.firstName", qualifiedByName = "capitalize")
+    @Mapping(source = "lastName", target = "profile.lastName", qualifiedByName = "capitalize")
     @Mapping(target = "profile.avatarKey", expression = "java(null)")
     public abstract User toEntity(UserCreateRequest dto);
 
@@ -69,6 +69,14 @@ public abstract class UserMapper {
         return rawRoles.stream()
                 .map(Enum::name)
                 .collect(Collectors.toSet());
+    }
+
+    @Named("capitalize")
+    protected String capitalize(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        return value.substring(0, 1).toUpperCase() + value.substring(1);
     }
 
     @Named("addProfileResponse")

@@ -2,6 +2,7 @@ package ru.gorbunov.connect.web.controller.api.v1;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +25,8 @@ import ru.gorbunov.connect.web.dto.AuthRequest;
 import ru.gorbunov.connect.web.dto.AuthResponse;
 import ru.gorbunov.connect.web.util.JwtUtil;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,12 +74,12 @@ public class AuthControllerV1 {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> registerUser(@RequestBody @Valid UserCreateRequest request) {
+    public ResponseEntity<AuthResponse> registerUser(@RequestBody @Valid UserCreateRequest request) throws URISyntaxException {
         inviteService.validateAndConsumeInvitation(request.invitationToken());
         var newUser = userService.create(request, Role.ROLE_USER);
         String token = jwtUtils.generateToken(newUser);
         var userResponse = mapper.toDto(newUser);
-        return ResponseEntity.ok()
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new AuthResponse(userResponse, token));
     }
 
