@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.dto.ws.SendMessageRequest;
 import ru.gorbunov.connect.core.models.Role;
@@ -19,6 +20,7 @@ import java.time.OffsetDateTime;
 
 @Slf4j
 @Configuration
+@Profile("dev")
 public class DataInitializer {
 
     @Autowired
