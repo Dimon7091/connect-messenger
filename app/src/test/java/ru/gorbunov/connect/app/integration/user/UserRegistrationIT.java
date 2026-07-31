@@ -1,28 +1,24 @@
 package ru.gorbunov.connect.app.integration.user;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Arrays;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Slf4j
 public class UserRegistrationIT extends UserBaseIT{
     private final String url = "/api/v1/auth/register";
 
     @Nested
     @DisplayName("Создание пользователя — валидные данные")
+    @Transactional
     class UserCreateValid {
 
         @ParameterizedTest(name = "[{index}] Юзернейм: \"{0}\" -> Ожидается 201 Created")
@@ -118,6 +114,7 @@ public class UserRegistrationIT extends UserBaseIT{
 
     @Nested
     @DisplayName("Создание пользователя — не валидные данные")
+    @Transactional
     class UserCreateInvalid {
 
         @ParameterizedTest(name = "[{index}] Юзернейм: \"{0}\" -> Ожидается 422 unprocessable")
@@ -212,18 +209,5 @@ public class UserRegistrationIT extends UserBaseIT{
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden());
         }
-    }
-
-    // Вспомогательный метод для создания приглашения
-    String createInvitationToken() throws MalformedURLException {
-        URL uri;
-        uri = new URL(inviteService.create().invitationUrl());
-        String query = uri.getQuery();
-        return Arrays.stream(query.split("&"))
-                .map(param -> param.split("="))
-                .filter(pair -> pair.length > 1 && pair[0].equals("invitationToken"))
-                .map(pair -> pair[1])
-                .findFirst()
-                .orElse(null);
     }
 }
