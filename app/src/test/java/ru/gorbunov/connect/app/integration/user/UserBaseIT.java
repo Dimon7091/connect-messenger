@@ -7,8 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.gorbunov.connect.core.repository.UserRepository;
+import ru.gorbunov.connect.core.service.BanService;
 import ru.gorbunov.connect.core.service.InviteService;
 import ru.gorbunov.connect.core.service.UserService;
+import ru.gorbunov.connect.core.service.orchestrators.UserDeletionService;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -28,6 +30,10 @@ public class UserBaseIT {
     protected UserRepository userRepository;
     @Autowired
     protected InviteService inviteService;
+    @Autowired
+    protected BanService banService;
+    @Autowired
+    protected UserDeletionService userDeletionService;
 
     // Вспомогательный метод для создания приглашения
     String createInvitationToken() throws MalformedURLException {
