@@ -56,17 +56,21 @@ public class UserControllerV1 {
                 .body(users);
     }
 
-    @PatchMapping("/{id}/update-username")
+    @PatchMapping("/me/update-username")
     public ResponseEntity<UserResponse> updateUserName(
-            @PathVariable("id") Long id,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestBody UpdateUserNameRequest requestData
     ) {
-        var updatedUser = userProviderService.updateUserName(id, requestData);
+        var currentUserId = Long.parseLong(jwt.getClaim("sub"));
+        var updatedUser = userProviderService.updateUserName(
+                currentUserId,
+                requestData
+        );
         return ResponseEntity.ok()
                 .body(updatedUser);
     }
 
-    @PostMapping("/{id}/blacklist")
+    @PostMapping("/me/blacklist/{id}")
     public ResponseEntity<Long> addToBlackList(
             @PathVariable("id") Long blockedId,
             @AuthenticationPrincipal Jwt jwt
@@ -77,7 +81,7 @@ public class UserControllerV1 {
                 .body(response);
     }
 
-    @DeleteMapping("/{id}/blacklist")
+    @DeleteMapping("/me/blacklist/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeFromBlackList(
             @PathVariable("id") Long blockedId,
@@ -87,7 +91,7 @@ public class UserControllerV1 {
         userBlockService.removeBlockUserByUser(currentUserId, blockedId);
     }
 
-    @DeleteMapping()
+    @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void softDelete(@AuthenticationPrincipal Jwt jwt) {
         var currentUserId = Long.parseLong(jwt.getClaim("sub"));

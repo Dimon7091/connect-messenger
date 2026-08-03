@@ -20,7 +20,7 @@ import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/users/me")
 public class UserProfileControllerV1 {
 
     @Autowired
@@ -29,11 +29,12 @@ public class UserProfileControllerV1 {
     @Autowired
     private UserProviderService userProviderService;
 
-    @PostMapping("/{id}/profile/upload-avatar")
+    @PostMapping("/profile/upload-avatar")
     public ResponseEntity<String> uploadAvatar(
-            @PathVariable("id") Long userId,
-            @RequestParam("file") MultipartFile file) throws IOException {
-
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        var currentUserId = Long.parseLong(jwt.getClaim("sub"));
         // Валидация: проверяем, что файл не пустой
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("Файл не выбран");
@@ -41,7 +42,7 @@ public class UserProfileControllerV1 {
 
         // Передаем ID пользователя, массив байт, тип файла (image/png) и оригинальное имя файла в Core-слой
         userProfileService.changeAvatar(
-                userId,
+                currentUserId,
                 file.getBytes(),
                 file.getContentType(),
                 file.getOriginalFilename()
@@ -50,13 +51,13 @@ public class UserProfileControllerV1 {
         return ResponseEntity.ok("Аватар успешно обновлен!");
     }
 
-    @PostMapping("/{id}/profile/update")
+    @PostMapping("/profile/update")
     public ResponseEntity<UserResponse> updateUserProfile(
             @Valid @RequestBody UserProfileUpdateRequest requestData,
-            @AuthenticationPrincipal Jwt token
+            @AuthenticationPrincipal Jwt jwt
     ) {
-        var userId = Long.parseLong(token.getClaim("sub"));
-        var response = userProviderService.updateUserProfile(userId, requestData);
+        var currentUserId = Long.parseLong(jwt.getClaim("sub"));
+        var response = userProviderService.updateUserProfile(currentUserId, requestData);
         return ResponseEntity.ok()
                 .body(response);
     }

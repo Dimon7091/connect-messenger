@@ -3,7 +3,6 @@ package ru.gorbunov.connect.core.dto.user;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.openapitools.jackson.nullable.JsonNullable;
 
 public record UpdateUserNameRequest(
         @JsonProperty("username")
@@ -12,5 +11,5 @@ public record UpdateUserNameRequest(
                 regexp = "^[a-zA-Z0-9]+$", // Убран \n
                 message = "Имя пользователя может содержать только английские буквы и цифры"
         )
-        JsonNullable<String> userName
+        String userName
 ) { }
