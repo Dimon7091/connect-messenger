@@ -54,12 +54,12 @@ public class AuthControllerV1 {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> createJwtForUser(
-            @RequestBody AuthRequest authRequest
+            @RequestBody @Valid AuthRequest authRequest
     ) {
         // СОХРАНЯЕМ результат аутентификации
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        authRequest.username(),
+                        authRequest.username().toLowerCase(),
                         authRequest.password()
                 )
         );

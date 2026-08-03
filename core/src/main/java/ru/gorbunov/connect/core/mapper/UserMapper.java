@@ -35,6 +35,7 @@ public abstract class UserMapper {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Mapping(source = "userName", target = "userName", qualifiedByName = "lowercase")
     @Mapping(source = "password", target = "passwordHash", qualifiedByName = "hashPassword")
     @Mapping(source = "firstName", target = "profile.firstName", qualifiedByName = "capitalize")
     @Mapping(source = "lastName", target = "profile.lastName", qualifiedByName = "capitalize")
@@ -78,6 +79,15 @@ public abstract class UserMapper {
         }
         return value.substring(0, 1).toUpperCase() + value.substring(1);
     }
+
+    @Named("lowercase")
+    protected String lowercase(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        return value.toLowerCase();
+    }
+
 
     @Named("addProfileResponse")
     protected ProfileResponse addProfileResponse(Profile profile) {
