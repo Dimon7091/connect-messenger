@@ -11,6 +11,7 @@ import ru.gorbunov.connect.core.service.BanService;
 import ru.gorbunov.connect.core.service.InviteService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.orchestrators.UserDeletionService;
+import ru.gorbunov.connect.web.util.JwtUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,6 +35,8 @@ public class UserBaseIT {
     protected BanService banService;
     @Autowired
     protected UserDeletionService userDeletionService;
+    @Autowired
+    protected JwtUtil jwtUtil;
 
     // Вспомогательный метод для создания приглашения
     String createInvitationToken() throws MalformedURLException {
