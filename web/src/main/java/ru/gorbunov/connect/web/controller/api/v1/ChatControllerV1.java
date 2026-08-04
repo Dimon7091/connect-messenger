@@ -55,7 +55,7 @@ public class ChatControllerV1 {
     ) {
         var currentUserId = Long.parseLong(token.getClaim("sub"));
         var chat = chatService.createOrGetDirectChat(
-                requestData.participants().getFirst(), requestData.participants().getLast()
+                currentUserId, requestData.companionId()
         );
         chatParticipantService.setIsDeleted(chat.getId(), currentUserId, false);
         return mapper.toDto(chat);
