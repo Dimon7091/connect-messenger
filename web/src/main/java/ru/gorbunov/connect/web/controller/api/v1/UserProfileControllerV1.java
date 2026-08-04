@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,7 +51,7 @@ public class UserProfileControllerV1 {
         return ResponseEntity.ok("Аватар успешно обновлен!");
     }
 
-    @PostMapping("/profile/update")
+    @PatchMapping("/profile/update")
     public ResponseEntity<UserResponse> updateUserProfile(
             @Valid @RequestBody UserProfileUpdateRequest requestData,
             @AuthenticationPrincipal Jwt jwt

@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.web.controller.api.v1;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +60,7 @@ public class UserControllerV1 {
     @PatchMapping("/me/update-username")
     public ResponseEntity<UserResponse> updateUserName(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody UpdateUserNameRequest requestData
+            @RequestBody @Valid UpdateUserNameRequest requestData
     ) {
         var currentUserId = Long.parseLong(jwt.getClaim("sub"));
         var updatedUser = userProviderService.updateUserName(
