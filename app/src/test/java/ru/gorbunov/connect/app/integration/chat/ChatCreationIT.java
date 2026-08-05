@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Transactional
-public class ChatCreateIT extends ChatBaseIT {
+public class ChatCreationIT extends ChatBaseIT {
     private final String baseUrl = "/api/v1/chats";
     private User testUser1;
     private User testUser2;
