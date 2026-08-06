@@ -13,6 +13,7 @@ import ru.gorbunov.connect.core.models.User;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -60,8 +61,10 @@ public class ChatCreationIT extends ChatBaseIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.participants")
-                        .value(arrayContainingInAnyOrder(testUser1.getId(), testUser2.getId()), Long[].class));
+                .andExpect(jsonPath("$.participants", containsInAnyOrder(
+                        String.valueOf(testUser1.getId()),
+                        String.valueOf(testUser2.getId())
+                )));
     }
 
     @Test
@@ -76,8 +79,10 @@ public class ChatCreationIT extends ChatBaseIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestByUser1)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.participants")
-                        .value(arrayContainingInAnyOrder(testUser1.getId(), testUser2.getId()), Long[].class))
+                .andExpect(jsonPath("$.participants", containsInAnyOrder(
+                        String.valueOf(testUser1.getId()),
+                        String.valueOf(testUser2.getId())
+                )))
                 .andReturn();
 
         String jsonResponse = mvcResult.getResponse().getContentAsString();
@@ -93,8 +98,10 @@ public class ChatCreationIT extends ChatBaseIT {
                         .content(objectMapper.writeValueAsString(requestByUser2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(existingChat.getId()))
-                .andExpect(jsonPath("$.participants")
-                        .value(arrayContainingInAnyOrder(testUser1.getId(), testUser2.getId()), Long[].class))
+                .andExpect(jsonPath("$.participants", containsInAnyOrder(
+                        String.valueOf(testUser1.getId()),
+                        String.valueOf(testUser2.getId())
+                )))
                 .andReturn();
     }
 
