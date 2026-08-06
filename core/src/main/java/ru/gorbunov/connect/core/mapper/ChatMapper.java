@@ -24,9 +24,9 @@ public abstract class ChatMapper {
     public abstract ChatResponse toDto(Chat entity);
 
     @Named("toParticipantsId")
-    protected List<Long> toParticipantsId(List<ChatParticipant> rawParticipants) {
+    protected List<String> toParticipantsId(List<ChatParticipant> rawParticipants) {
         return rawParticipants.stream()
-                .map(p -> p.getId().getUserId())
+                .map(p -> p.getId().getUserId().toString())
                 .toList();
     }
 }

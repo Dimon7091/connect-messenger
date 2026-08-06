@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.core.models;
 
+import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -26,6 +27,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.validator.constraints.UUID;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
@@ -52,7 +54,7 @@ import java.util.stream.Collectors;
 @Filter(name = "deletedUserFilter", condition = "is_deleted = false")
 public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Tsid
     private Long id;
 
     @Column(unique = true, nullable = false)

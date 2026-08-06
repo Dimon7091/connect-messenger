@@ -15,7 +15,7 @@ import java.util.List;
 public class ChatResponse {
     private Long id;
     private String type;
-    private List<Long> participants;
+    private List<String> participants;
     private Integer unreadCount;
     private String lastMessage;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")

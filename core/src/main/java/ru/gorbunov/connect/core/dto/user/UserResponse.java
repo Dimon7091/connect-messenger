@@ -9,7 +9,7 @@ import java.util.Set;
 @Getter
 @Setter
 public class UserResponse {
-    private Long id;
+    private String id;
     private String userName;
     private Set<String> roles;
     private String createdAt;
