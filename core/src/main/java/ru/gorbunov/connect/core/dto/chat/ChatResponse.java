@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChatResponse {
-    private Long id;
+    private String id;
     private String type;
     private List<String> participants;
     private Integer unreadCount;

@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.core.models;
 
+import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,8 +27,7 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 public class Chat {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Tsid
     private Long id;
 
     @Column(unique = true)
