@@ -11,11 +11,13 @@ import ru.gorbunov.connect.core.models.ChatParticipant;
 import ru.gorbunov.connect.core.models.ChatParticipantId;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.ChatRepository;
+import ru.gorbunov.connect.core.service.BanService;
+import ru.gorbunov.connect.core.service.ChatService;
 import ru.gorbunov.connect.core.service.UserService;
+import ru.gorbunov.connect.core.service.orchestrators.UserDeletionService;
 import ru.gorbunov.connect.web.util.JwtUtil;
 
 import java.time.OffsetDateTime;
-import java.util.Map;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,6 +33,14 @@ public class ChatBaseIT {
     protected JwtUtil jwtUtil;
     @Autowired
     protected ChatRepository chatRepository;
+    @Autowired
+    protected UserDeletionService userDeletionService;
+    @Autowired
+    protected BanService banService;
+    @Autowired
+    protected ChatService chatService;
+    @Autowired
+    protected jakarta.persistence.EntityManager entityManager;
 
     protected Chat createChat(User userA, User userB) {
         String directKey = Math.min(userA.getId(), userB.getId())
