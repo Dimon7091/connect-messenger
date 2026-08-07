@@ -7,13 +7,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
+import ru.gorbunov.connect.app.integration.BaseIT;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class UserRegistrationIT extends UserBaseIT{
+public class UserRegistrationIT extends BaseIT {
     private final String url = "/api/v1/auth/register";
 
     @Nested

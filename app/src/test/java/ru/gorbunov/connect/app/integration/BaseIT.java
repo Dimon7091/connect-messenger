@@ -1,4 +1,4 @@
-package ru.gorbunov.connect.app.integration.chat;
+package ru.gorbunov.connect.app.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,18 +11,23 @@ import ru.gorbunov.connect.core.models.ChatParticipant;
 import ru.gorbunov.connect.core.models.ChatParticipantId;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.ChatRepository;
+import ru.gorbunov.connect.core.repository.UserRepository;
 import ru.gorbunov.connect.core.service.BanService;
 import ru.gorbunov.connect.core.service.ChatService;
+import ru.gorbunov.connect.core.service.InviteService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.orchestrators.UserDeletionService;
 import ru.gorbunov.connect.web.util.JwtUtil;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class ChatBaseIT {
+public class BaseIT {
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
@@ -30,17 +35,34 @@ public class ChatBaseIT {
     @Autowired
     protected UserService userService;
     @Autowired
+    protected UserRepository userRepository;
+    @Autowired
+    protected InviteService inviteService;
+    @Autowired
+    protected BanService banService;
+    @Autowired
+    protected UserDeletionService userDeletionService;
+    @Autowired
     protected JwtUtil jwtUtil;
     @Autowired
     protected ChatRepository chatRepository;
     @Autowired
-    protected UserDeletionService userDeletionService;
-    @Autowired
-    protected BanService banService;
-    @Autowired
     protected ChatService chatService;
     @Autowired
     protected jakarta.persistence.EntityManager entityManager;
+
+    // Вспомогательные методы
+    protected String createInvitationToken() throws MalformedURLException {
+        URL uri;
+        uri = new URL(inviteService.create().invitationUrl());
+        String query = uri.getQuery();
+        return Arrays.stream(query.split("&"))
+                .map(param -> param.split("="))
+                .filter(pair -> pair.length > 1 && pair[0].equals("invitationToken"))
+                .map(pair -> pair[1])
+                .findFirst()
+                .orElse(null);
+    }
 
     protected Chat createChat(User userA, User userB) {
         String directKey = Math.min(userA.getId(), userB.getId())

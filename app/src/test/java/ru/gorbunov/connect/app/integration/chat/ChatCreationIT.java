@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
+import ru.gorbunov.connect.app.integration.BaseIT;
 import ru.gorbunov.connect.core.dto.chat.ChatResponse;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.models.Role;
@@ -12,14 +13,13 @@ import ru.gorbunov.connect.core.models.User;
 
 import java.util.Map;
 
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Transactional
-public class ChatCreationIT extends ChatBaseIT {
+public class ChatCreationIT extends BaseIT {
     private final String baseUrl = "/api/v1/chats";
     private User testUser1;
     private User testUser2;

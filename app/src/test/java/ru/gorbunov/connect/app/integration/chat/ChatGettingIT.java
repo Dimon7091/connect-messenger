@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
+import ru.gorbunov.connect.app.integration.BaseIT;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
 import ru.gorbunov.connect.core.models.Chat;
 import ru.gorbunov.connect.core.models.Role;
@@ -19,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Transactional
-public class ChatGettingIT extends ChatBaseIT{
+public class ChatGettingIT extends BaseIT {
     private final String baseUrl = "/api/v1/chats";
 
     @Nested
