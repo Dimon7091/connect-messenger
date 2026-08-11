@@ -52,6 +52,7 @@ public class ChatService {
                         chatParticipant1.setIsDeleted(false);
                         chatParticipant1.setIsMuted(false);
                         chatParticipant1.setIsChatEmpty(true);
+                        chatParticipant1.setUnreadCount(0);
 
                         // Создание второго участника чата
                         var chatParticipantId2 = new ChatParticipantId(savedChat.getId(), userId2);
@@ -61,10 +62,11 @@ public class ChatService {
                         chatParticipant2.setIsDeleted(false);
                         chatParticipant2.setIsMuted(false);
                         chatParticipant2.setIsChatEmpty(true);
+                        chatParticipant2.setUnreadCount(0);
 
                         savedChat.addParticipant(chatParticipant1);
                         savedChat.addParticipant(chatParticipant2);
-                        return savedChat;
+                        return chatRepository.save(savedChat);
                     } catch (DataIntegrityViolationException e) {
                         // 4. Если за это время кто-то уже успел создать такой чат,
                         // просто находим его снова
