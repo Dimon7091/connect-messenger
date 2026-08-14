@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.core.models;
 
+import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

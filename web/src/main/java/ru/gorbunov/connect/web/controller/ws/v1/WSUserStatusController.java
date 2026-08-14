@@ -39,7 +39,7 @@ public class WSUserStatusController {
             currentStatus = new UserStatus(targetUserId, UserStatus.Status.OFFLINE, OffsetDateTime.now());
         }
         var payload = new UserStatusPayload(
-                targetUserId,
+                targetUserId.toString(),
                 currentStatus.getStatus().toString(),
                 currentStatus.getLastSeen()
         );
@@ -61,7 +61,7 @@ public class WSUserStatusController {
     // Метод для рассылки статуса подписчикам (будет вызываться из WebSocketEventListener)
     public void broadcastStatusToSubscribers(Long targetUserId, UserStatus.Status status, OffsetDateTime timestamp) {
         Set<Long> subscribers = subscriptionService.getSubscribers(targetUserId);
-        UserStatusPayload payload = new UserStatusPayload(targetUserId, status.toString(), timestamp);
+        UserStatusPayload payload = new UserStatusPayload(targetUserId.toString(), status.toString(), timestamp);
         WSEvent<UserStatusPayload> event = new WSEvent<>(WSEvent.EventType.USER_STATUS, payload);
 
         for (Long subscriberId : subscribers) {

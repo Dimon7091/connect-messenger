@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserStatusPayload {
-    private Long userId;
+    private String userId;
     private String status;  // "online" | "offline" | "away"
     private OffsetDateTime lastSeen;
 }
