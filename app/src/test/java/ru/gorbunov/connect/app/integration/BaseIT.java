@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.gorbunov.connect.core.models.Chat;
 import ru.gorbunov.connect.core.models.ChatParticipant;
 import ru.gorbunov.connect.core.models.ChatParticipantId;
+import ru.gorbunov.connect.core.models.Message;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.ChatRepository;
 import ru.gorbunov.connect.core.repository.MessageRepository;
@@ -24,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.List;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -101,4 +103,15 @@ public class BaseIT {
         savedChat.addParticipant(chatParticipant2);
         return chatRepository.save(savedChat);
     }
+
+    protected Message createMessage(Long chatId, Long senderId, Long receiverId, String text) {
+        Message newMessage = new Message();
+        newMessage.setChatId(chatId);
+        newMessage.setSenderId(senderId);
+        newMessage.setReceiverId(receiverId);
+        newMessage.setText(text);
+        newMessage.setCreatedAt(OffsetDateTime.now());
+        newMessage.setTimestamp(OffsetDateTime.now());
+        return messageRepository.save(newMessage);
+    };
 }
