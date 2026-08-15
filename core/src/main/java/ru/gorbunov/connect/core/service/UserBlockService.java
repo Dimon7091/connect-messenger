@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.gorbunov.connect.core.dto.user.UserBlockResponse;
 import ru.gorbunov.connect.core.models.BlockId;
 import ru.gorbunov.connect.core.models.UserBlock;
 import ru.gorbunov.connect.core.repository.UserBlockRepository;
@@ -17,11 +18,11 @@ public class UserBlockService {
     private final UserBlockRepository userBlockRepository;
     private final Cache<BlockId, Boolean>  userBlockCache;
 
-    public long blockUserByUser(Long blockerId, Long blockedId) {
+    public UserBlockResponse blockUserByUser(Long blockerId, Long blockedId) {
         UserBlock newBlock = new UserBlock(blockerId, blockedId);
         userBlockRepository.save(newBlock);
         userBlockCache.invalidate(new BlockId(blockerId, blockedId));
-        return blockedId;
+        return new UserBlockResponse(blockedId.toString());
     }
 
     public void removeBlockUserByUser(Long blockerId, Long blockedId) {

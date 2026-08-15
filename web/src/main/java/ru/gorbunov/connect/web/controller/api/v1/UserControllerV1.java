@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
+import ru.gorbunov.connect.core.dto.user.UserBlockResponse;
 import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.exception.UserDeletedException;
 import ru.gorbunov.connect.core.service.UserBlockService;
@@ -72,7 +73,7 @@ public class UserControllerV1 {
     }
 
     @PostMapping("/me/blacklist/{id}")
-    public ResponseEntity<Long> addToBlackList(
+    public ResponseEntity<UserBlockResponse> addToBlackList(
             @PathVariable("id") Long blockedId,
             @AuthenticationPrincipal Jwt jwt
     ) {

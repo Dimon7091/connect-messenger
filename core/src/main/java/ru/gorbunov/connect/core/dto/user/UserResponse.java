@@ -16,5 +16,5 @@ public class UserResponse {
     private ProfileResponse profile;
     private Boolean isDeleted;
     private Boolean isBanned;
-    private List<Long> blackListIds;
+    private List<String> blackListIds;
 }

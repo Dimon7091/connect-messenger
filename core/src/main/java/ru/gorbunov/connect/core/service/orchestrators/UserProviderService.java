@@ -34,7 +34,10 @@ public class UserProviderService {
         var user = userService.getUserById(userId);
         UserResponse response = mapper.toDto(user);
         addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
-        response.setBlackListIds(userBlockService.findBlockedUserIds(userId));
+        var blacklistIdsAsString = userBlockService.findBlockedUserIds(userId).stream()
+                .map(Object::toString)
+                .toList();
+        response.setBlackListIds(blacklistIdsAsString);
         return response;
     }
 
