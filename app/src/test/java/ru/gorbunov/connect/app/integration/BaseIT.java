@@ -11,6 +11,7 @@ import ru.gorbunov.connect.core.models.ChatParticipant;
 import ru.gorbunov.connect.core.models.ChatParticipantId;
 import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.ChatRepository;
+import ru.gorbunov.connect.core.repository.MessageRepository;
 import ru.gorbunov.connect.core.repository.UserRepository;
 import ru.gorbunov.connect.core.service.BanService;
 import ru.gorbunov.connect.core.service.ChatService;
@@ -50,6 +51,8 @@ public class BaseIT {
     protected ChatService chatService;
     @Autowired
     protected jakarta.persistence.EntityManager entityManager;
+    @Autowired
+    protected MessageRepository messageRepository;
 
     // Вспомогательные методы
     protected String createInvitationToken() throws MalformedURLException {
@@ -82,6 +85,7 @@ public class BaseIT {
         chatParticipant1.setIsDeleted(false);
         chatParticipant1.setIsMuted(false);
         chatParticipant1.setIsChatEmpty(true);
+        chatParticipant1.setUnreadCount(0);
 
         // Создание второго участника чата
         var chatParticipantId2 = new ChatParticipantId(savedChat.getId(), userB.getId());
@@ -91,9 +95,10 @@ public class BaseIT {
         chatParticipant2.setIsDeleted(false);
         chatParticipant2.setIsMuted(false);
         chatParticipant2.setIsChatEmpty(true);
+        chatParticipant1.setUnreadCount(0);
 
         savedChat.addParticipant(chatParticipant1);
         savedChat.addParticipant(chatParticipant2);
-        return savedChat;
+        return chatRepository.save(savedChat);
     }
 }
