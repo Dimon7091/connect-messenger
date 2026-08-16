@@ -48,11 +48,16 @@ public class MessageService {
             Long chatId,
             Integer limit,
             OffsetDateTime beforeTimestamp,
-            Long userId
+            Long currentUserId
     ) {
-        var messages = messageRepository.findChatMessages(chatId, limit, beforeTimestamp);
+        var messages = messageRepository.findChatMessages(
+                chatId,
+                limit,
+                currentUserId,
+                beforeTimestamp
+        );
         return messages.stream()
-                .filter(m -> m.getDeletedBy() == null || !m.getDeletedBy().contains(userId))
+                .filter(m -> m.getDeletedBy() == null || !m.getDeletedBy().contains(currentUserId))
                 .toList();
     }
 

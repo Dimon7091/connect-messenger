@@ -25,15 +25,16 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             nativeQuery = true)
     void addReaderByUser(@Param("id") long id, @Param("readerId") long readerId);
 
-    @Query(value = "SELECT * FROM messages "
-            + "WHERE chat_id = :chatId "
-            + "AND created_at < :beforeTimestamp "
-            + "ORDER BY created_at DESC "
-            + "LIMIT :limit",
-            nativeQuery = true)
+    @Query("SELECT m FROM Message m "
+            + "WHERE m.chatId = :chatId "
+            + "AND m.createdAt < :beforeTimestamp "
+            + "AND (m.senderId = :currentUserId OR m.receiverId = :currentUserId) "
+            + "ORDER BY m.createdAt DESC")
     List<Message> findChatMessages(@Param("chatId") long chatId,
-                                  @Param("limit") int limit,
-                                  @Param("beforeTimestamp") OffsetDateTime beforeTimestamp);
+                                   @Param("limit") int limit,
+                                   @Param("currentUserId") long currentUserId,
+                                   @Param("beforeTimestamp") OffsetDateTime beforeTimestamp);
+
     @Query(value = "SELECT * FROM messages "
             + "WHERE chat_id = :chatId "
             + "ORDER BY created_at DESC "
