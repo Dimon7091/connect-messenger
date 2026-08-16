@@ -216,7 +216,7 @@ public class MessageSendingIT extends BaseIT {
 
         // Ждем 5 секунд, пока сообщение долетит до Получателя
         WSEvent<?> receivedEvent = receiverQueue.poll(5, TimeUnit.SECONDS);
-        List<Message> chatMessages = messageRepository.findChatMessages(chatAC.getId(), 1, timestamp);
+        List<Message> chatMessages = messageRepository.findChatMessages(chatAC.getId(), 1, userC.getId(), timestamp);
 
         assertNull(receivedEvent, "UserC не должен получть сообщение!");
         assertThat(chatMessages)
@@ -257,7 +257,7 @@ public class MessageSendingIT extends BaseIT {
         senderSession.send("/app/message_sent", messageEvent);
 
         // Проверка базы данных
-        List<Message> chatMessages = messageRepository.findChatMessages(chatCB.getId(), 1, timestamp);
+        List<Message> chatMessages = messageRepository.findChatMessages(chatCB.getId(), 1, userB.getId(), timestamp);
 
         assertThat(chatMessages)
                 .withFailMessage("В базе данных найдены сообщения!")
