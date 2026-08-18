@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import ru.gorbunov.connect.app.integration.BaseIT;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
@@ -21,6 +19,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,6 +33,7 @@ public class MessageDeletionIT extends BaseIT {
     private User userC;
 
     private String jwtTokenA;
+    private String jwtTokenB;
     private String jwtTokenC;
 
     private Chat chatAB;
@@ -67,6 +67,7 @@ public class MessageDeletionIT extends BaseIT {
         userC = userService.create(userCCreateRequest, Role.ROLE_USER);
 
         jwtTokenA = jwtUtil.generateToken(userA);
+        jwtTokenB = jwtUtil.generateToken(userB);
         jwtTokenC = jwtUtil.generateToken(userC);
 
         chatAB = createChat(userA, userB);
@@ -184,5 +185,48 @@ public class MessageDeletionIT extends BaseIT {
                 .isEqualTo(message.getText());
     }
 
+    @Test
+    @DisplayName("Удаления истории сообщений при удалении чата обоями участниками")
+    void deleteChat_byBothParticipant_deletedChatAndMessages() throws Exception {
+        String deleteChatUrl = "/api/v1/chats";
 
+        OffsetDateTime timestamp = OffsetDateTime.now().plusMinutes(1);
+
+        var userAmessage = createMessage(
+                chatAB.getId(),
+                userA.getId(),
+                userB.getId(),
+                "Сообщение userA"
+        );
+
+        var userBmessage = createMessage(
+                chatAB.getId(),
+                userA.getId(),
+                userB.getId(),
+                "Сообщение userA"
+        );
+
+        // Зарос на удаление чата пользователя A
+        mockMvc.perform(delete(deleteChatUrl + "/" + chatAB.getId())
+                        .header("Authorization", "Bearer " + jwtTokenA))
+                .andExpect(status().isNoContent());
+
+        // Зарос на удаление чата пользователя B
+        mockMvc.perform(delete(deleteChatUrl + "/" + chatAB.getId())
+                        .header("Authorization", "Bearer " + jwtTokenB))
+                .andExpect(status().isNoContent());
+
+        // Проверка базы данных
+        assertThat(messageRepository.existsById(userAmessage.getId()))
+                .withFailMessage("Сообщение пользователя A не удалилось из базы данных!")
+                .isFalse();
+
+        assertThat(messageRepository.existsById(userBmessage.getId()))
+                .withFailMessage("Сообщение пользователя B не удалилось из базы данных!")
+                .isFalse();
+
+        assertThat(chatRepository.existsById(chatAB.getId()))
+                .withFailMessage("Чат не удалился из базы данных!")
+                .isFalse();
+    }
 }
