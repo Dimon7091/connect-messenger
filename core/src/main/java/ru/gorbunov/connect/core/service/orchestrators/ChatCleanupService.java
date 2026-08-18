@@ -2,8 +2,10 @@ package ru.gorbunov.connect.core.service.orchestrators;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.gorbunov.connect.core.dto.payload.MessagesDeletedPayload;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.service.ChatParticipantService;
@@ -17,6 +19,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @AllArgsConstructor
+@Transactional
 public class ChatCleanupService {
     private MessageService messageService;
     private ChatService chatService;
@@ -42,19 +45,23 @@ public class ChatCleanupService {
         }
     }
 
-    public MessagesDeletedPayload deleteMessages(List<Long> messageIds, Long chatId, Long userId) {
+    public MessagesDeletedPayload deleteMessages(List<Long> messageIds, Long chatId, Long currentUserId) {
         // Находим id собеседника
         var participantsId = chatService.getChatParticipantsByChatId(chatId).stream()
                 .map(p -> p.getId().getUserId())
                 .toList();
+
+        if (!participantsId.contains(currentUserId)) {
+            throw new AccessDeniedException("Нет доступа для удаления сообщения!");
+        }
+
         Long receiverId = participantsId.stream()
-                .filter(p -> !Objects.equals(p, userId))
+                .filter(p -> !Objects.equals(p, currentUserId))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Участник не найден"));
 
-        if (participantsId.contains(userId)) {
-            messageService.deleteMessages(messageIds);
-        }
+        messageService.deleteMessages(messageIds);
+
         // Обновляем последнее сообщение чата, время обновления, колличество не прочитанных сообщений
         var lastMessage = messageService.getLastChatMessage(chatId);
         var updatedAt = OffsetDateTime.now();
