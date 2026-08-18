@@ -61,6 +61,12 @@ public class ChatControllerV1 {
         return mapper.toDto(chat);
     }
 
+    @GetMapping()
+    private List<ChatResponse> getAllUserChats(@AuthenticationPrincipal Jwt token) {
+        var currentUserId = Long.parseLong(token.getClaim("sub"));
+        return chatService.findAllDirectChatsByUser(currentUserId);
+    }
+
     @GetMapping("/{id}")
     private ChatResponse getChat(@PathVariable("id") Long chatId) {
         var chat = chatService.findChatById(chatId);
@@ -70,19 +76,13 @@ public class ChatControllerV1 {
         return mapper.toDto(chat);
     }
 
-    @GetMapping("/users")
-    private List<ChatResponse> getAllUserChats(@AuthenticationPrincipal Jwt token) {
-        var currentUserId = Long.parseLong(token.getClaim("sub"));
-        return chatService.findAllDirectChatsByUser(currentUserId);
-    }
-
     @GetMapping("/participants")
     private ChatResponse getChatByParticipants(@RequestParam("id1") long userId1,
                                                @RequestParam("id2") long userId2) {
         return mapper.toDto(chatService.findChatByParticipants(userId1, userId2));
     }
 
-    @DeleteMapping("/{id}/participant")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteChatForUser(
             @PathVariable("id") Long chatId,
@@ -91,7 +91,7 @@ public class ChatControllerV1 {
         chatCleanupService.clearChatForUser(chatId, currentUserId);
     }
 
-    @DeleteMapping("/{id}/clear-chat-history")
+    @DeleteMapping("/{id}/history")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void clearChatHistory(
             @PathVariable("id") Long chatId,

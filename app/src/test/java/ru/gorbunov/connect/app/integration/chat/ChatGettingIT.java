@@ -78,7 +78,7 @@ public class ChatGettingIT extends BaseIT {
         @DisplayName("Получение списка чатов для userA  - ожидается 200 ok")
         void getChatForUserA_validData_returns200() throws Exception {
 
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + jwtTokenA)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -95,7 +95,7 @@ public class ChatGettingIT extends BaseIT {
         @DisplayName("Получение списка чатов для userB - ожидается 200 ok")
         void getChatForUserB_validData_returns200() throws Exception {
 
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + jwtTokenB)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -111,7 +111,7 @@ public class ChatGettingIT extends BaseIT {
         @DisplayName("Получение списка чатов для userC - ожидается 200 ok")
         void getChatForUserC_validData_returns200() throws Exception {
 
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + jwtTokenC)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -128,14 +128,14 @@ public class ChatGettingIT extends BaseIT {
         void deleteChatForUserA_shouldRemoveChatOnlyForThatUser() throws Exception {
             chatService.deleteChatForUser(chatAB.getId(), userA.getId());
 
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + jwtTokenA)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").value(hasSize(1)))
                     .andExpect(jsonPath("$[0].id").value(chatAC.getId().toString()));
 
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + jwtTokenB)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -149,14 +149,14 @@ public class ChatGettingIT extends BaseIT {
             chatService.deleteChatForUser(chatAB.getId(), userA.getId());
             chatService.deleteChatForUser(chatAB.getId(), userB.getId());
 
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + jwtTokenA)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").value(hasSize(1)))
                     .andExpect(jsonPath("$[0].id").value(chatAC.getId().toString()));
 
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + jwtTokenB)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -188,7 +188,7 @@ public class ChatGettingIT extends BaseIT {
         @Test
         @DisplayName("Запрос без заголовка Authorization - ожидается 401")
         void getChat_withoutJwt_returns401() throws Exception {
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isUnauthorized());
         }
@@ -196,7 +196,7 @@ public class ChatGettingIT extends BaseIT {
         @Test
         @DisplayName("Запрос без заголовка Authorization - ожидается 401")
         void getChat_invalidJwt_returns401() throws Exception {
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + "invalidJwt")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isUnauthorized());
@@ -207,7 +207,7 @@ public class ChatGettingIT extends BaseIT {
         void getChat_deletedUser_returns401() throws Exception {
             userDeletionService.softDelete(tempUser.getId());
 
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + tempJwtToken)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isGone());
@@ -218,7 +218,7 @@ public class ChatGettingIT extends BaseIT {
         void getChat_blockedUser_returns401() throws Exception {
             banService.toggleUserBlockStatus(tempUser.getId(), true);
 
-            mockMvc.perform(get(baseUrl + "/users")
+            mockMvc.perform(get(baseUrl)
                             .header("Authorization", "Bearer " + tempJwtToken)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isUnauthorized());
