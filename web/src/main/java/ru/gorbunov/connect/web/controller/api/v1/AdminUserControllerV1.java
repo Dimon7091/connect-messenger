@@ -46,7 +46,7 @@ public class AdminUserControllerV1 {
             @RequestParam(value = "sortBy", defaultValue = "userName", required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir
     ) {
-        var users = userProviderService.findAllUsersDetailsWithPagination(
+        var users = userProviderService.findAllUsersDetailsWithPaginationForAdmin(
                 page,
                 size,
                 userName,

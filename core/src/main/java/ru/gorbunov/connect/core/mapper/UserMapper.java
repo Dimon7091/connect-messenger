@@ -14,8 +14,9 @@ import ru.gorbunov.connect.core.dto.user.ProfileResponse;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserAdminResponse;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
+import ru.gorbunov.connect.core.dto.user.UserPrivateResponse;
 import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
-import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserPublicResponse;
 import ru.gorbunov.connect.core.models.Profile;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
@@ -45,7 +46,12 @@ public abstract class UserMapper {
     @Mapping(source = "username", target = "userName")
     @Mapping(target = "roles", ignore = true)
     @Mapping(source = "profile", target = "profile", qualifiedByName = "addProfileResponse")
-    public abstract UserResponse toDto(User entity);
+    public abstract UserPrivateResponse toPrivateDto(User entity);
+
+    @Mapping(source = "username", target = "userName")
+    @Mapping(source = "profile", target = "profile", qualifiedByName = "addProfileResponse")
+    public abstract UserPublicResponse toPublicDto(User entity);
+
 
     @Mapping(source = "username", target = "userName")
     @Mapping(source = "roles", target = "roles", qualifiedByName = "rolesEnumToString")

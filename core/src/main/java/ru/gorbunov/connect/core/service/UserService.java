@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
-import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserPrivateResponse;
 import ru.gorbunov.connect.core.exception.ResourceNotFoundException;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.Role;
@@ -22,6 +22,7 @@ import ru.gorbunov.connect.core.models.User;
 import ru.gorbunov.connect.core.repository.UserRepository;
 import ru.gorbunov.connect.core.specifications.UserSpecification;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -86,10 +87,10 @@ public class UserService {
         return userRepository.count();
     }
 
-    public UserResponse findByUserName(String userName) {
+    public UserPrivateResponse findByUserName(String userName) {
         var user = userRepository.findByUserName(userName)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
-        return mapper.toDto(user);
+        return mapper.toPrivateDto(user);
     }
 
     public List<User> findUsersByRole(Role role) {

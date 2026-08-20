@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import ru.gorbunov.connect.core.dto.user.UserPrivateResponse;
 import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
-import ru.gorbunov.connect.core.dto.user.UserResponse;
 import ru.gorbunov.connect.core.service.UserProfileService;
 import ru.gorbunov.connect.core.service.orchestrators.UserProviderService;
 
@@ -52,7 +52,7 @@ public class UserProfileControllerV1 {
     }
 
     @PatchMapping("/profile/update")
-    public ResponseEntity<UserResponse> updateUserProfile(
+    public ResponseEntity<UserPrivateResponse> updateUserProfile(
             @Valid @RequestBody UserProfileUpdateRequest requestData,
             @AuthenticationPrincipal Jwt jwt
     ) {

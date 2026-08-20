@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 import ru.gorbunov.connect.core.dto.user.ProfileResponse;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserAdminResponse;
+import ru.gorbunov.connect.core.dto.user.UserPrivateResponse;
 import ru.gorbunov.connect.core.dto.user.UserProfileUpdateRequest;
-import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserPublicResponse;
 import ru.gorbunov.connect.core.dto.user.UserStatResponse;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.AvatarType;
 import ru.gorbunov.connect.core.models.User;
+import ru.gorbunov.connect.core.repository.UserRepository;
 import ru.gorbunov.connect.core.service.StatusService;
 import ru.gorbunov.connect.core.service.UserBlockService;
 import ru.gorbunov.connect.core.service.UserProfileService;
@@ -30,14 +32,23 @@ public class UserProviderService {
     private final StatusService statusService;
     private final UserMapper mapper;
 
-    public UserResponse getUserDetails(Long userId) {
+    private final UserRepository userRepository;
+
+    public UserPrivateResponse getUserDetailsForAuth(Long userId) {
         var user = userService.getUserById(userId);
-        UserResponse response = mapper.toDto(user);
+        UserPrivateResponse response = mapper.toPrivateDto(user);
         addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
         var blacklistIdsAsString = userBlockService.findBlockedUserIds(userId).stream()
                 .map(Object::toString)
                 .toList();
         response.setBlackListIds(blacklistIdsAsString);
+        return response;
+    }
+
+    public UserPublicResponse findUserPublicDetails(Long userId) {
+        var user = userService.getUserById(userId);
+        UserPublicResponse response = mapper.toPublicDto(user);
+        addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
         return response;
     }
 
@@ -48,7 +59,7 @@ public class UserProviderService {
         return response;
     }
 
-    public Page<UserAdminResponse> findAllUsersDetailsWithPagination(
+    public Page<UserAdminResponse> findAllUsersDetailsWithPaginationForAdmin(
             Integer page,
             Integer size,
             String userName,
@@ -63,27 +74,27 @@ public class UserProviderService {
         });
     }
 
-    public List<UserResponse> findAllUserDetailsByUserName(String userName) {
+    public List<UserPublicResponse> findAllUserPublicDetailsByUserName(String userName) {
         var users = userService.findByUserNameStartingWith(userName);
         return users.stream()
                 .map(user -> {
-                    var dto = mapper.toDto(user);
+                    var dto = mapper.toPublicDto(user);
                     addAvatarUrls(dto.getProfile(), user.getProfile().getAvatarKey());
                     return dto;
                 })
                 .toList();
     }
 
-    public UserResponse updateUserName(Long userId, UpdateUserNameRequest requestData) {
+    public UserPrivateResponse updateUserName(Long userId, UpdateUserNameRequest requestData) {
         var user = userService.updateUserName(userId, requestData);
-        UserResponse response = mapper.toDto(user);
+        UserPrivateResponse response = mapper.toPrivateDto(user);
         addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
         return response;
     }
 
-    public UserResponse updateUserProfile(Long userId, UserProfileUpdateRequest requestData) {
+    public UserPrivateResponse updateUserProfile(Long userId, UserProfileUpdateRequest requestData) {
         var user = userProfileService.updateUserProfile(userId, requestData);
-        UserResponse response = mapper.toDto(user);
+        UserPrivateResponse response = mapper.toPrivateDto(user);
         addAvatarUrls(response.getProfile(), user.getProfile().getAvatarKey());
         return response;
     }

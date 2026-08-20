@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UpdateUserNameRequest;
 import ru.gorbunov.connect.core.dto.user.UserBlockResponse;
-import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserPrivateResponse;
+import ru.gorbunov.connect.core.dto.user.UserPublicResponse;
 import ru.gorbunov.connect.core.exception.UserDeletedException;
 import ru.gorbunov.connect.core.service.UserBlockService;
 import ru.gorbunov.connect.core.service.orchestrators.UserDeletionService;
@@ -35,15 +36,15 @@ public class UserControllerV1 {
     private final UserDeletionService userDeletionService;
 
     @GetMapping("/{id:\\d+}")
-    public ResponseEntity<UserResponse> show(@PathVariable("id") Long id) {
-        var user = userProviderService.getUserDetails(id);
+    public ResponseEntity<UserPublicResponse> show(@PathVariable("id") Long id) {
+        var user = userProviderService.findUserPublicDetails(id);
         return ResponseEntity.ok()
                 .body(user);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
-        var user = userProviderService.getUserDetails(Long.parseLong(jwt.getClaim("sub")));
+    public ResponseEntity<UserPrivateResponse> me(@AuthenticationPrincipal Jwt jwt) {
+        var user = userProviderService.getUserDetailsForAuth(Long.parseLong(jwt.getClaim("sub")));
         if (user.getIsDeleted()) {
             throw new UserDeletedException("Пользователь удален");
         }
@@ -52,14 +53,14 @@ public class UserControllerV1 {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<UserResponse>> search(@RequestParam("username") String userName) {
-        var users = userProviderService.findAllUserDetailsByUserName(userName);
+    public ResponseEntity<List<UserPublicResponse>> search(@RequestParam("username") String userName) {
+        var users = userProviderService.findAllUserPublicDetailsByUserName(userName);
         return ResponseEntity.ok()
                 .body(users);
     }
 
     @PatchMapping("/me/update-username")
-    public ResponseEntity<UserResponse> updateUserName(
+    public ResponseEntity<UserPrivateResponse> updateUserName(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid UpdateUserNameRequest requestData
     ) {

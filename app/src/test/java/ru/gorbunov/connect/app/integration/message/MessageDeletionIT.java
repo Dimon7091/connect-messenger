@@ -190,8 +190,6 @@ public class MessageDeletionIT extends BaseIT {
     void deleteChat_byBothParticipant_deletedChatAndMessages() throws Exception {
         String deleteChatUrl = "/api/v1/chats";
 
-        OffsetDateTime timestamp = OffsetDateTime.now().plusMinutes(1);
-
         var userAmessage = createMessage(
                 chatAB.getId(),
                 userA.getId(),

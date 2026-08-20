@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.gorbunov.connect.core.dto.user.UserCreateRequest;
-import ru.gorbunov.connect.core.dto.user.UserResponse;
+import ru.gorbunov.connect.core.dto.user.UserPrivateResponse;
 import ru.gorbunov.connect.core.mapper.UserMapper;
 import ru.gorbunov.connect.core.models.Role;
 import ru.gorbunov.connect.core.models.User;
@@ -25,7 +25,6 @@ import ru.gorbunov.connect.web.dto.AuthRequest;
 import ru.gorbunov.connect.web.dto.AuthResponse;
 import ru.gorbunov.connect.web.util.JwtUtil;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class AuthControllerV1 {
         );
         // Теперь в authentication есть principal!
         User user = (User) authentication.getPrincipal();
-        UserResponse currentUser = userProviderService.getUserDetails(user.getId());
+        UserPrivateResponse currentUser = userProviderService.getUserDetailsForAuth(user.getId());
         // Генерируем токен
         String token = jwtUtils.generateToken(user);
         var response = new AuthResponse(currentUser, token);
@@ -78,7 +77,7 @@ public class AuthControllerV1 {
         inviteService.validateAndConsumeInvitation(request.invitationToken());
         var newUser = userService.create(request, Role.ROLE_USER);
         String token = jwtUtils.generateToken(newUser);
-        var userResponse = mapper.toDto(newUser);
+        var userResponse = mapper.toPrivateDto(newUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new AuthResponse(userResponse, token));
     }
