@@ -20,6 +20,8 @@ import ru.gorbunov.connect.core.service.UserBlockService;
 import ru.gorbunov.connect.core.service.UserProfileService;
 import ru.gorbunov.connect.core.service.UserService;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -77,6 +79,22 @@ public class UserProviderService {
     public List<UserPublicResponse> findAllUserPublicDetailsByUserName(String userName) {
         var users = userService.findByUserNameStartingWith(userName);
         return users.stream()
+                .map(user -> {
+                    var dto = mapper.toPublicDto(user);
+                    addAvatarUrls(dto.getProfile(), user.getProfile().getAvatarKey());
+                    return dto;
+                })
+                .toList();
+    }
+
+    public List<UserPublicResponse> findAllBlockedUsersByUser(Long userId) {
+        List<Long> blockedIds = userBlockService.findBlockedUserIds(userId);
+        List<User> blockedUsers;
+        if (blockedIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        blockedUsers = userService.findUsersInBatches(blockedIds);
+        return blockedUsers.stream()
                 .map(user -> {
                     var dto = mapper.toPublicDto(user);
                     addAvatarUrls(dto.getProfile(), user.getProfile().getAvatarKey());

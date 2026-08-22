@@ -50,6 +50,22 @@ public class UserService {
                 orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
     }
 
+    public List<User> findUsersInBatches(List<Long> ids) {
+        List<User> result = new ArrayList<>();
+        int batchSize = 500; // Размер одного пакета
+
+        for (int i = 0; i < ids.size(); i += batchSize) {
+            // Вычисляем конечный индекс, чтобы не выйти за границы списка
+            int end = Math.min(i + batchSize, ids.size());
+            List<Long> batch = ids.subList(i, end);
+
+            // Вызываем репозиторий для текущего батча
+            result.addAll(userRepository.findAllById(batch));
+        }
+
+        return result;
+    }
+
     public Page<User> findAllUsersWithPagination(
             Integer page,
             Integer size,

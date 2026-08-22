@@ -1,5 +1,6 @@
 package ru.gorbunov.connect.core.repository;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,6 +17,7 @@ import java.util.Optional;
 @Repository
 @Transactional
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
+    @NotNull List<User> findAllById(@NotNull Iterable<Long> ids);
     Boolean existsByUserName(String userName);
     @Query(value = "SELECT isBanned FROM User WHERE id = :id")
     Boolean isBanned(@Param("id") Long id);

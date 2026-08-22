@@ -73,6 +73,16 @@ public class UserControllerV1 {
                 .body(updatedUser);
     }
 
+    @GetMapping("/me/blacklist")
+    public ResponseEntity<List<UserPublicResponse>> blackList(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        var currentUserId = Long.parseLong(jwt.getClaim("sub"));
+        var user = userProviderService.findAllBlockedUsersByUser(currentUserId);
+        return ResponseEntity.ok()
+                .body(user);
+    }
+
     @PostMapping("/me/blacklist/{id}")
     public ResponseEntity<UserBlockResponse> addToBlackList(
             @PathVariable("id") Long blockedId,
