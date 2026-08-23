@@ -17,6 +17,7 @@ import ru.gorbunov.connect.core.repository.UserRepository;
 import ru.gorbunov.connect.core.service.BanService;
 import ru.gorbunov.connect.core.service.ChatService;
 import ru.gorbunov.connect.core.service.InviteService;
+import ru.gorbunov.connect.core.service.UserBlockService;
 import ru.gorbunov.connect.core.service.UserService;
 import ru.gorbunov.connect.core.service.orchestrators.UserDeletionService;
 import ru.gorbunov.connect.web.util.JwtUtil;
@@ -55,6 +56,8 @@ public class BaseIT {
     protected jakarta.persistence.EntityManager entityManager;
     @Autowired
     protected MessageRepository messageRepository;
+    @Autowired
+    protected UserBlockService userBlockService;
 
     // Вспомогательные методы
     protected String createInvitationToken() throws MalformedURLException {
