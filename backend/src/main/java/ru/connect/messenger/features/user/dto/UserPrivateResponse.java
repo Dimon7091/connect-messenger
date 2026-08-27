@@ -1,0 +1,20 @@
+package ru.connect.messenger.features.user.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+import java.util.Set;
+
+@Getter
+@Setter
+public class UserPrivateResponse {
+    private String id;
+    private String userName;
+    private Set<String> roles;
+    private String createdAt;
+    private ProfileResponse profile;
+    private Boolean isDeleted;
+    private Boolean isBanned;
+    private List<String> blackListIds;
+}
