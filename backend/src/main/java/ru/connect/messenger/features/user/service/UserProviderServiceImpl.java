@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import ru.connect.messenger.features.user.api.UserProviderService;
 import ru.connect.messenger.features.user.domain.AvatarType;
 import ru.connect.messenger.features.user.domain.User;
 import ru.connect.messenger.features.user.dto.ProfileResponse;
@@ -14,8 +15,7 @@ import ru.connect.messenger.features.user.dto.UserProfileUpdateRequest;
 import ru.connect.messenger.features.user.dto.UserPublicResponse;
 import ru.connect.messenger.features.user.dto.UserStatResponse;
 import ru.connect.messenger.features.user.mapper.UserMapper;
-import ru.connect.messenger.features.user.repository.UserRepository;
-import ru.connect.messenger.features.userstatus.UserStatusService;
+import ru.connect.messenger.features.userstatus.UserStatusServiceImpl;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,14 +23,12 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 @Transactional
-public class UserProviderService {
-    private final UserService userService;
+public class UserProviderServiceImpl implements UserProviderService {
+    private final UserServiceImpl userService;
     private final UserProfileService userProfileService;
     private final UserBlockService userBlockService;
-    private final UserStatusService userStatusService;
+    private final UserStatusServiceImpl userStatusServiceImpl;
     private final UserMapper mapper;
-
-    private final UserRepository userRepository;
 
     public UserPrivateResponse getUserDetailsForAuth(Long userId) {
         var user = userService.getUserById(userId);
@@ -116,7 +114,7 @@ public class UserProviderService {
     public UserStatResponse getUsersStat() {
         return new UserStatResponse(
                 userService.getTotalUsers(),
-                userStatusService.getAllOnlineUsersCount()
+                userStatusServiceImpl.getAllOnlineUsersCount()
         );
     }
 

@@ -61,9 +61,9 @@ public class ChatGettingIT extends BaseIT {
                     "12345678",
                     "token"
             );
-            userA = getUserService().create(userACreateRequest, Role.ROLE_USER);
-            userB = getUserService().create(userBCreateRequest, Role.ROLE_USER);
-            userC = getUserService().create(userCCreateRequest, Role.ROLE_USER);
+            userA = getUserServiceImpl().create(userACreateRequest, Role.ROLE_USER);
+            userB = getUserServiceImpl().create(userBCreateRequest, Role.ROLE_USER);
+            userC = getUserServiceImpl().create(userCCreateRequest, Role.ROLE_USER);
             jwtTokenA = getJwtTokenProvider().generateToken(userA);
             jwtTokenB = getJwtTokenProvider().generateToken(userB);
             jwtTokenC = getJwtTokenProvider().generateToken(userC);
@@ -183,7 +183,7 @@ public class ChatGettingIT extends BaseIT {
                     "12345678",
                     "token"
             );
-            tempUser = getUserService().create(tempUserCreateRequest, Role.ROLE_USER);
+            tempUser = getUserServiceImpl().create(tempUserCreateRequest, Role.ROLE_USER);
             tempJwtToken = getJwtTokenProvider().generateToken(tempUser);
         }
 
@@ -207,7 +207,7 @@ public class ChatGettingIT extends BaseIT {
         @Test
         @DisplayName("Запрос удаленного пользователя - ожидается 410")
         void getChat_deletedUser_returns401() throws Exception {
-            getUserDeletionService().softDelete(tempUser.getId());
+            getUserDeletionOrchestrator().softDelete(tempUser.getId());
 
             getMockMvc().perform(get(baseUrl)
                             .header("Authorization", "Bearer " + tempJwtToken)

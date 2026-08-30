@@ -1,23 +1,22 @@
 package ru.connect.messenger.core;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
-import ru.connect.messenger.features.user.domain.User;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 @Component
 public class JwtTokenProvider {
-    @Autowired
     private JwtEncoder encoder;
 
-    public String generateToken(User user) {
+    public String generateToken(SecurityUser user) {
         // Текущее время в UTC
         ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
 

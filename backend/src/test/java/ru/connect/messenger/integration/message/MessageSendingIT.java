@@ -87,9 +87,9 @@ public class MessageSendingIT extends BaseIT {
                 "12345678",
                 "token"
         );
-        userA = getUserService().create(userACreateRequest, Role.ROLE_USER);
-        userB = getUserService().create(userBCreateRequest, Role.ROLE_USER);
-        userC = getUserService().create(userCCreateRequest, Role.ROLE_USER);
+        userA = getUserServiceImpl().create(userACreateRequest, Role.ROLE_USER);
+        userB = getUserServiceImpl().create(userBCreateRequest, Role.ROLE_USER);
+        userC = getUserServiceImpl().create(userCCreateRequest, Role.ROLE_USER);
         jwtTokenA = getJwtTokenProvider().generateToken(userA);
         jwtTokenB = getJwtTokenProvider().generateToken(userB);
         jwtTokenC = getJwtTokenProvider().generateToken(userC);
@@ -228,7 +228,7 @@ public class MessageSendingIT extends BaseIT {
     @DisplayName("Проверка отправки сообщения удаленному пользователю - ожидается провал")
     void sendMessage_toDeletedUser_fail() throws Exception {
         OffsetDateTime timestamp = OffsetDateTime.now();
-        getUserDeletionService().softDelete(userB.getId());
+        getUserDeletionOrchestrator().softDelete(userB.getId());
 
         String urlUserC = "ws://localhost:" + port + "/chat-ws?token=" + jwtTokenC;
         String urlUserB = "ws://localhost:" + port + "/chat-ws?token=" + jwtTokenB;

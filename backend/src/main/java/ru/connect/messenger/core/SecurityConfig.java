@@ -1,6 +1,6 @@
 package ru.connect.messenger.core;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,24 +24,17 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
 @EnableWebSecurity
+@AllArgsConstructor
 @EnableMethodSecurity(
         prePostEnabled = true,     // ✅ @PreAuthorize, @PostAuthorize
         securedEnabled = true,     // ✅ @Secured
         jsr250Enabled = true       // ✅ @RolesAllowed
 )  // Для Spring Security 6+
 public class SecurityConfig {
-
-    @Autowired
-    private JwtDecoder jwtDecoder;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    private JwtBanFilter jwtBanFilter;
+    private final JwtDecoder jwtDecoder;
+    private final PasswordEncoder passwordEncoder;
+    private final UserDetailsService userDetailsService;
+    private final JwtFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector)
@@ -71,7 +64,7 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults())
 
                 // 2. Добавляем фильтр проверки черного списка сразу ПОСЛЕ валидации OAuth2 токена
-                .addFilterAfter(jwtBanFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(jwtFilter, BearerTokenAuthenticationFilter.class)
                 .build();
     }
 

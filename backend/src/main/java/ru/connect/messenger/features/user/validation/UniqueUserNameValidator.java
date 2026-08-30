@@ -2,17 +2,13 @@ package ru.connect.messenger.features.user.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.connect.messenger.features.user.repository.UserRepository;
-
+@AllArgsConstructor
 @Component
 public class UniqueUserNameValidator implements ConstraintValidator<UniqueUserName, String> {
-
     private final UserRepository userRepository;
-
-    public UniqueUserNameValidator(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public boolean isValid(String userName, ConstraintValidatorContext context) {

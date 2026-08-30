@@ -43,8 +43,8 @@ public class UserAuthenticationIT extends BaseIT {
                 userPassword2,
                 "token"
         );
-        testUser1 = getUserService().create(request1, Role.ROLE_USER);
-        testUser2 = getUserService().create(request2, Role.ROLE_USER);
+        testUser1 = getUserServiceImpl().create(request1, Role.ROLE_USER);
+        testUser2 = getUserServiceImpl().create(request2, Role.ROLE_USER);
     }
 
     @Test
@@ -156,7 +156,7 @@ public class UserAuthenticationIT extends BaseIT {
     @Test
     @DisplayName("Вход удаленного пользователя - ожидается 401")
     void loginUser_userDeleted_returns401() throws Exception {
-        getUserDeletionService().softDelete(testUser2.getId());
+        getUserDeletionOrchestrator().softDelete(testUser2.getId());
 
         var request = new AuthRequest(
                 userName2,

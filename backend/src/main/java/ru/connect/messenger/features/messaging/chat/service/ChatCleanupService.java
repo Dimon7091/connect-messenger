@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.connect.messenger.core.exception.ResourceNotFoundException;
 import ru.connect.messenger.features.messaging.message.dto.MessagesDeletedPayload;
-import ru.connect.messenger.features.messaging.message.service.MessageService;
+import ru.connect.messenger.features.messaging.message.service.MessageServiceImpl;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -19,8 +19,8 @@ import java.util.Objects;
 @AllArgsConstructor
 @Transactional
 public class ChatCleanupService {
-    private MessageService messageService;
-    private ChatService chatService;
+    private MessageServiceImpl messageService;
+    private ChatServiceImpl chatService;
     private ChatParticipantService chatParticipantService;
 
     public void clearChatForUser(Long chatId, Long userId) {

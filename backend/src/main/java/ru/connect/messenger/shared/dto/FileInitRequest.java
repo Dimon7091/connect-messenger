@@ -1,4 +1,4 @@
-package ru.connect.messenger.features.storage.dto;
+package ru.connect.messenger.shared.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

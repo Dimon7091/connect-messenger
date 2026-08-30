@@ -1,25 +1,24 @@
 package ru.connect.messenger.features.messaging.chat.service;
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.connect.messenger.features.storage.FileStorageProvider;
-import ru.connect.messenger.features.storage.S3FilenameValidator;
-import ru.connect.messenger.features.storage.StorageType;
-import ru.connect.messenger.features.storage.dto.FileDownloadUrlResponse;
-import ru.connect.messenger.features.storage.dto.FileInitResponse;
+import ru.connect.messenger.shared.domain.StorageType;
+import ru.connect.messenger.features.storage.FilenameStorageValidator;
+import ru.connect.messenger.shared.dto.FileDownloadUrlResponse;
+import ru.connect.messenger.shared.dto.FileInitResponse;
 
+@AllArgsConstructor
 @Service
 public class ChatFileService {
-    private final FileStorageProvider storageProvider;
+    private final FileStorageProvider fileStorageProvider;
+    private final FilenameStorageValidator filenameStorageValidator;
     private static final Long URL_EXPIRATION_MINUTES = 60L;
 
-    public ChatFileService(FileStorageProvider storageProvider) {
-        this.storageProvider = storageProvider;
-    }
-
     public FileInitResponse getFileUploadUrl(String originalFileName, String mimeType, Long fileSize) {
-       String fileKey = S3FilenameValidator.generateSafeS3Key(originalFileName);
+       String fileKey = filenameStorageValidator.generateSafeS3Key(originalFileName);
 
-       String uploadUrl = storageProvider.generatePresignedUploadUrl(
+       String uploadUrl = fileStorageProvider.generatePresignedUploadUrl(
                fileKey, StorageType.CHAT_FILE,
                URL_EXPIRATION_MINUTES,
                mimeType
@@ -28,7 +27,7 @@ public class ChatFileService {
     }
 
     public FileDownloadUrlResponse getFileDownloadUrl(String fileKey) {
-        var downloadUrl = storageProvider.generatePresignedDownloadUrl(
+        var downloadUrl = fileStorageProvider.generatePresignedDownloadUrl(
                 fileKey,
                 StorageType.CHAT_FILE,
                 URL_EXPIRATION_MINUTES

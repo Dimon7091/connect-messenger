@@ -21,14 +21,10 @@ import java.util.Base64;
 @Setter
 @Slf4j
 public class RsaKeyProperties {
-    // ИЗМЕНЕНИЕ: храним как String, а не как RSA ключи
     private String privateKey;
     private String publicKey;
-
-    // Эти поля будут заполнены после конвертации
     private RSAPrivateKey rsaPrivateKey;
     private RSAPublicKey rsaPublicKey;
-
 
     @PostConstruct
     public void init() throws Exception {

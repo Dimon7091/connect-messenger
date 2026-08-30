@@ -3,13 +3,14 @@ package ru.connect.messenger.features.messaging.message.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.connect.messenger.features.messaging.message.domain.ReplyContext;
-import ru.connect.messenger.features.user.service.UserService;
+import ru.connect.messenger.features.user.api.UserService;
+import ru.connect.messenger.features.user.service.UserServiceImpl;
 
 @Service
 @AllArgsConstructor
 public class MessageReplyService {
-    private MessageService messageService;
-    private UserService userService;
+    private final MessageServiceImpl messageService;
+    private final UserService userService;
 
     public ReplyContext getReplyContext(Long replyToId) {
         var msg =  messageService.getMessageById(replyToId);

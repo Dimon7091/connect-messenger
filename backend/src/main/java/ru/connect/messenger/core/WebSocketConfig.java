@@ -1,5 +1,6 @@
 package ru.connect.messenger.core;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -12,14 +13,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Slf4j
 @Configuration
+@AllArgsConstructor
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-
-    @Autowired
-    private AuthHandshakeInterceptor authHandshakeInterceptor;
-
-    @Autowired
-    private AuthChannelInterceptor authChannelInterceptor;
+    private final AuthHandshakeInterceptor authHandshakeInterceptor;
+    private final AuthChannelInterceptor authChannelInterceptor;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {

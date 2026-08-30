@@ -1,9 +1,8 @@
 package ru.connect.messenger.features.messaging.chat.api;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,34 +19,20 @@ import ru.connect.messenger.features.messaging.chat.dto.ChatResponse;
 import ru.connect.messenger.features.messaging.chat.mapper.ChatMapper;
 import ru.connect.messenger.features.messaging.chat.service.ChatCleanupService;
 import ru.connect.messenger.features.messaging.chat.service.ChatParticipantService;
-import ru.connect.messenger.features.messaging.chat.service.ChatService;
-import ru.connect.messenger.features.messaging.message.service.MessageService;
+import ru.connect.messenger.features.messaging.chat.service.ChatServiceImpl;
 
 
 import java.util.List;
 
+@AllArgsConstructor
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/chats")
 public class ChatControllerV1 {
-
-    @Autowired
-    private ChatService chatService;
-
-    @Autowired
-    private ChatParticipantService chatParticipantService;
-
-    @Autowired
-    private MessageService messageService;
-
-    @Autowired
-    private ChatCleanupService chatCleanupService;
-
-    @Autowired
-    private ChatMapper mapper;
-
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final ChatServiceImpl chatService;
+    private final ChatParticipantService chatParticipantService;
+    private final ChatCleanupService chatCleanupService;
+    private final ChatMapper mapper;
 
     @PostMapping("")
     private ChatResponse createOrGetDirectChat(

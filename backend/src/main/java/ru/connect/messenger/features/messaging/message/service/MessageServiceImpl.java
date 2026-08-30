@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.connect.messenger.features.messaging.message.api.MessageService;
 import ru.connect.messenger.features.messaging.message.domain.Message;
 import ru.connect.messenger.features.messaging.message.domain.MessageStatus;
 import ru.connect.messenger.features.messaging.message.dto.MessageDeletedState;
@@ -20,7 +21,7 @@ import java.util.NoSuchElementException;
 @Transactional
 @AllArgsConstructor
 @Service
-public class MessageService {
+public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final MessageMapper mapper;
 

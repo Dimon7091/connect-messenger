@@ -1,8 +1,8 @@
 package ru.connect.messenger.core;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -11,23 +11,18 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
-import ru.connect.messenger.features.user.service.UserBanService;
-import ru.connect.messenger.features.user.service.UserDeletionService;
+import ru.connect.messenger.core.client.UserBanChecker;
+import ru.connect.messenger.core.client.UserDeletedChecker;
 
 import java.util.Map;
 
 @Slf4j
 @Component
+@AllArgsConstructor
 public class AuthHandshakeInterceptor implements HandshakeInterceptor {
-
-    @Autowired
-    private JwtDecoder decoder;
-
-    @Autowired
-    private UserBanService userBanService;
-
-    @Autowired
-    private UserDeletionService userDeletionService;
+    private final JwtDecoder decoder;
+    private final UserBanChecker userBanChecker;
+    private final UserDeletedChecker userDeletedChecker;
 
     @Override
     public boolean beforeHandshake(
@@ -65,13 +60,13 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
             log.info("JWT validated successfully for userId: {}", userId);
 
             // Проверка бизнес-статусов (Рекомендуется использовать кэш внутри сервисов)
-            if (userBanService.isUserBanned(userId)) {
+            if (userBanChecker.isUserBanned(userId)) {
                 log.warn("❌ Connection rejected: User {} is banned", userId);
                 response.setStatusCode(HttpStatus.FORBIDDEN);
                 return false;
             }
 
-            if (userDeletionService.isUserDeleted(userId)) {
+            if (userDeletedChecker.isUserDeleted(userId)) {
                 log.warn("❌ Connection rejected: User {} is deleted", userId);
                 response.setStatusCode(HttpStatus.FORBIDDEN);
                 return false;

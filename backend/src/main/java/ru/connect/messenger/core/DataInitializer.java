@@ -1,42 +1,31 @@
 package ru.connect.messenger.core;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import ru.connect.messenger.features.messaging.chat.service.ChatService;
+import ru.connect.messenger.features.messaging.api.ChatService;
+import ru.connect.messenger.features.messaging.message.api.MessageService;
 import ru.connect.messenger.features.messaging.message.dto.SendMessageRequest;
-import ru.connect.messenger.features.messaging.message.service.MessageService;
+import ru.connect.messenger.features.user.api.UserService;
 import ru.connect.messenger.features.user.domain.Role;
 import ru.connect.messenger.features.user.domain.User;
 import ru.connect.messenger.features.user.dto.UserCreateRequest;
-import ru.connect.messenger.features.user.repository.UserRepository;
-import ru.connect.messenger.features.user.service.UserService;
 
 import java.time.OffsetDateTime;
 
+@AllArgsConstructor
 @Slf4j
 @Configuration
 @Profile("dev")
 public class DataInitializer {
-
-    @Autowired
     private Faker faker;
-
-    @Autowired
     private UserService userService;
-
-    @Autowired
     private MessageService messageService;
-
-    @Autowired
     private ChatService chatService;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Bean
     public CommandLineRunner initializeDatabase() {

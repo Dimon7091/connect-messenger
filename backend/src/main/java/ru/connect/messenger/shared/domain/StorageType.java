@@ -1,4 +1,4 @@
-package ru.connect.messenger.features.storage;
+package ru.connect.messenger.shared.domain;
 
 public enum StorageType {
     AVATAR,

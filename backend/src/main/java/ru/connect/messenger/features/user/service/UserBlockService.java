@@ -8,13 +8,14 @@ import ru.connect.messenger.features.user.domain.BlockId;
 import ru.connect.messenger.features.user.domain.UserBlock;
 import ru.connect.messenger.features.user.dto.UserBlockResponse;
 import ru.connect.messenger.features.user.repository.UserBlockRepository;
+import ru.connect.messenger.features.user.api.UserBlockChecker;
 
 import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class UserBlockService {
+public class UserBlockService implements UserBlockChecker {
     private final UserBlockRepository userBlockRepository;
     private final Cache<BlockId, Boolean>  userBlockCache;
 
@@ -32,6 +33,7 @@ public class UserBlockService {
         log.info("********** Удаление блокировки: {}, {}", blockId.getBlockerId(), blockId.getBlockedId());
     }
 
+    @Override
     public boolean isEitherBlocked(Long userA, Long userB) {
         BlockId directKey = new BlockId(userA, userB);
         BlockId reverseKey = new BlockId(userB, userA);

@@ -13,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.connect.messenger.core.exception.ResourceNotFoundException;
+import ru.connect.messenger.features.user.api.UserService;
 import ru.connect.messenger.features.user.domain.Role;
 import ru.connect.messenger.features.user.domain.User;
 import ru.connect.messenger.features.user.dto.UpdateUserNameRequest;
@@ -29,11 +30,11 @@ import java.util.List;
 @Service
 @Transactional
 @Slf4j
-public class UserService {
+public class UserServiceImpl implements UserService {
     @PersistenceContext
-    private EntityManager entityManager;
-    private UserRepository userRepository;
-    private UserMapper mapper;
+    private final EntityManager entityManager;
+    private final UserRepository userRepository;
+    private final UserMapper mapper;
 
     public User create(UserCreateRequest requestData, Role role) {
         var user = mapper.toEntity(requestData);

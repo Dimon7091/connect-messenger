@@ -13,24 +13,24 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import ru.connect.messenger.core.client.UserBanChecker;
+import ru.connect.messenger.core.client.UserDeletedChecker;
 import ru.connect.messenger.core.exception.UserDeletedException;
-import ru.connect.messenger.features.user.service.UserBanService;
-import ru.connect.messenger.features.user.service.UserDeletionService;
 
 import java.io.IOException;
 
 @Component
 @Slf4j
-public class JwtBanFilter extends OncePerRequestFilter {
-    private final UserBanService userBanService;
-    private final UserDeletionService userDeletionService;
+public class JwtFilter extends OncePerRequestFilter {
+    private final UserBanChecker userBanChecker;
+    private final UserDeletedChecker userDeletedChecker;
     private final HandlerExceptionResolver resolver;
 
-    public JwtBanFilter(UserBanService userBanService,
-                        @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver,
-                        UserDeletionService userDeletionService) {
-        this.userBanService = userBanService;
-        this.userDeletionService = userDeletionService;
+    public JwtFilter(UserBanChecker userBanChecker,
+                     UserDeletedChecker userDeletedChecker,
+                     @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
+        this.userBanChecker = userBanChecker;
+        this.userDeletedChecker = userDeletedChecker;
         this.resolver = resolver;
     }
 
@@ -47,7 +47,7 @@ public class JwtBanFilter extends OncePerRequestFilter {
             try {
                 Long userId = Long.valueOf(jwtAuth.getToken().getClaimAsString("sub"));
 
-                if (userBanService.isUserBanned(userId)) {
+                if (userBanChecker.isUserBanned(userId)) {
                     SecurityContextHolder.clearContext();
 
                     resolver.resolveException(request, response, null,
@@ -55,7 +55,7 @@ public class JwtBanFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                if (userDeletionService.isUserDeleted(userId)) {
+                if (userDeletedChecker.isUserDeleted(userId)) {
                     SecurityContextHolder.clearContext();
 
                     resolver.resolveException(request, response, null,

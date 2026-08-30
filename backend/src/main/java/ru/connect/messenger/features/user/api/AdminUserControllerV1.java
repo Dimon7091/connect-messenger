@@ -21,17 +21,17 @@ import ru.connect.messenger.features.user.dto.UserAdminResponse;
 import ru.connect.messenger.features.user.dto.UserIsBannedUpdateRequest;
 import ru.connect.messenger.features.user.dto.UserStatResponse;
 import ru.connect.messenger.features.user.service.UserBanService;
-import ru.connect.messenger.features.user.service.UserDeletionService;
-import ru.connect.messenger.features.user.service.UserProviderService;
+import ru.connect.messenger.orchestrator.UserDeletionOrchestrator;
+import ru.connect.messenger.features.user.service.UserProviderServiceImpl;
 
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
 @AllArgsConstructor
 public class AdminUserControllerV1 {
-    private final UserProviderService userProviderService;
+    private final UserProviderServiceImpl userProviderService;
     private final UserBanService userBanService;
-    private final UserDeletionService userDeletionService;
+    private final UserDeletionOrchestrator userDeletionOrchestrator;
 
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<UserAdminResponse> show(@PathVariable("id") Long id) {
@@ -86,7 +86,7 @@ public class AdminUserControllerV1 {
     public ResponseEntity<UserAdminResponse> softDelete(
             @PathVariable("id") Long userId
     ) {
-        var response = userDeletionService.softDelete(userId);
+        var response = userDeletionOrchestrator.softDelete(userId);
         return ResponseEntity.ok()
                 .body(response);
     }

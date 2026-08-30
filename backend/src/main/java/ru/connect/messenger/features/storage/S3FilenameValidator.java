@@ -1,16 +1,20 @@
 package ru.connect.messenger.features.storage;
 
+import org.springframework.stereotype.Service;
+
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-public class S3FilenameValidator {
+@Service
+public class S3FilenameValidator implements FilenameStorageValidator {
 
     private static final String SAFE_CHAR_REGEX = "[^a-zA-Z0-9.\\-_]";
     private static final int S3_MAX_KEY_LENGTH_BYTES = 1024;
     private static final String DEFAULT_EXTENSION = ".bin";
     private static final String TRUNCATED_SUFFIX = "_truncated";
 
-    public static String generateSafeS3Key(String originalFilename) {
+    @Override
+    public String generateSafeS3Key(String originalFilename) {
         if (originalFilename == null || originalFilename.strip().isEmpty()) {
             return generateFallbackName();
         }

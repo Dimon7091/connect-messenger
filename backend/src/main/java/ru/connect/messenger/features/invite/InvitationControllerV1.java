@@ -8,13 +8,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/v1/admin/invitations")
 @PreAuthorize("hasRole('ADMIN')")
 public class InvitationControllerV1 {
-    private final InviteService inviteService;
+    private final InviteServiceImpl inviteService;
 
     @PostMapping
     public ResponseEntity<InvitationResponse> createToken() {

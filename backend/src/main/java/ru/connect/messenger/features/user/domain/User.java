@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 @SQLDelete(sql = "UPDATE users SET is_deleted = true WHERE id = ?")
 @FilterDef(name = "deletedUserFilter")
 @Filter(name = "deletedUserFilter", condition = "is_deleted = false")
-public class User implements UserDetails {
+public class User {
     @Id
     @Tsid
     private Long id;
@@ -96,29 +96,10 @@ public class User implements UserDetails {
         this.roles.add(role);
     }
 
-    @Override
-    public boolean isEnabled() {
-        return !isBanned;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return !isFailedLoginLocked;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.name()))
-                .collect(Collectors.toSet());
-    }
-
-    @Override
     public String getPassword() {
         return this.passwordHash;
     }
 
-    @Override
     public String getUsername() {
         return this.userName;
     }

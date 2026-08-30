@@ -1,5 +1,7 @@
 package ru.connect.messenger.features.storage;
 
+import ru.connect.messenger.shared.domain.StorageType;
+
 import java.io.InputStream;
 
 public interface FileStorageProvider {

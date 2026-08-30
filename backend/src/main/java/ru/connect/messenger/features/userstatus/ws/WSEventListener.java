@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import ru.connect.messenger.features.userstatus.UserStatus;
-import ru.connect.messenger.features.userstatus.UserStatusService;
+import ru.connect.messenger.features.userstatus.UserStatusServiceImpl;
 import ru.connect.messenger.features.userstatus.UserStatusSubscriptionService;
 
 import java.time.OffsetDateTime;
@@ -17,8 +17,7 @@ import java.time.OffsetDateTime;
 @RequiredArgsConstructor
 @Slf4j
 public class WSEventListener {
-
-    private final UserStatusService userStatusService;
+    private final UserStatusServiceImpl userStatusServiceImpl;
     private final WSUserStatusController userStatusController;
     private final UserStatusSubscriptionService subscriptionService;
 
@@ -43,7 +42,7 @@ public class WSEventListener {
 
     private void updateAndBroadcastStatus(Long userId, UserStatus.Status status) {
         // 1. Обновляем в кэше (StatusService сам синхронизирует с БД раз в минуту)
-        userStatusService.updateInCache(userId, status);
+        userStatusServiceImpl.updateInCache(userId, status);
 
         // 2. Рассылаем всем статус
         userStatusController.broadcastStatusToSubscribers(userId, status, OffsetDateTime.now());

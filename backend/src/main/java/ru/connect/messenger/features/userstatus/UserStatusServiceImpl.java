@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.connect.messenger.features.user.repository.UserStatusRepository;
+import ru.connect.messenger.features.userstatus.ws.UserStatusService;
 
 
 import java.time.OffsetDateTime;
@@ -16,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class UserStatusService {
+public class UserStatusServiceImpl implements UserStatusService {
     private final UserStatusRepository userStatusRepository;
     private final Map<Long, UserStatus> cache = new ConcurrentHashMap<>();
 

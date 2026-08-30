@@ -22,8 +22,8 @@ import ru.connect.messenger.features.user.dto.UserBlockResponse;
 import ru.connect.messenger.features.user.dto.UserPrivateResponse;
 import ru.connect.messenger.features.user.dto.UserPublicResponse;
 import ru.connect.messenger.features.user.service.UserBlockService;
-import ru.connect.messenger.features.user.service.UserDeletionService;
-import ru.connect.messenger.features.user.service.UserProviderService;
+import ru.connect.messenger.orchestrator.UserDeletionOrchestrator;
+import ru.connect.messenger.features.user.service.UserProviderServiceImpl;
 
 import java.util.List;
 
@@ -31,9 +31,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserControllerV1 {
-    private final UserProviderService userProviderService;
+    private final UserProviderServiceImpl userProviderService;
     private final UserBlockService userBlockService;
-    private final UserDeletionService userDeletionService;
+    private final UserDeletionOrchestrator userDeletionOrchestrator;
 
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<UserPublicResponse> show(@PathVariable("id") Long id) {
@@ -108,6 +108,6 @@ public class UserControllerV1 {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void softDelete(@AuthenticationPrincipal Jwt jwt) {
         var currentUserId = Long.parseLong(jwt.getClaim("sub"));
-        userDeletionService.softDelete(currentUserId);
+        userDeletionOrchestrator.softDelete(currentUserId);
     }
 }

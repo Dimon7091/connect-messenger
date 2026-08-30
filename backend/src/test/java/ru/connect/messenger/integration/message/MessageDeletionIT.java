@@ -63,9 +63,9 @@ public class MessageDeletionIT extends BaseIT {
                 "token"
         );
 
-        userA = getUserService().create(userACreateRequest, Role.ROLE_USER);
-        userB = getUserService().create(userBCreateRequest, Role.ROLE_USER);
-        userC = getUserService().create(userCCreateRequest, Role.ROLE_USER);
+        userA = getUserServiceImpl().create(userACreateRequest, Role.ROLE_USER);
+        userB = getUserServiceImpl().create(userBCreateRequest, Role.ROLE_USER);
+        userC = getUserServiceImpl().create(userCCreateRequest, Role.ROLE_USER);
 
         jwtTokenA = getJwtTokenProvider().generateToken(userA);
         jwtTokenB = getJwtTokenProvider().generateToken(userB);

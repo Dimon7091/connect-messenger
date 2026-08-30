@@ -8,20 +8,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.connect.messenger.core.JwtTokenProvider;
-import ru.connect.messenger.features.invite.InviteService;
+import ru.connect.messenger.features.invite.InviteServiceImpl;
 import ru.connect.messenger.features.messaging.chat.domain.Chat;
 import ru.connect.messenger.features.messaging.chat.domain.ChatParticipant;
 import ru.connect.messenger.features.messaging.chat.domain.ChatParticipantId;
 import ru.connect.messenger.features.messaging.chat.repository.ChatRepository;
-import ru.connect.messenger.features.messaging.chat.service.ChatService;
+import ru.connect.messenger.features.messaging.chat.service.ChatServiceImpl;
 import ru.connect.messenger.features.messaging.message.domain.Message;
 import ru.connect.messenger.features.messaging.message.repository.MessageRepository;
 import ru.connect.messenger.features.user.domain.User;
 import ru.connect.messenger.features.user.repository.UserRepository;
 import ru.connect.messenger.features.user.service.UserBanService;
 import ru.connect.messenger.features.user.service.UserBlockService;
-import ru.connect.messenger.features.user.service.UserDeletionService;
-import ru.connect.messenger.features.user.service.UserService;
+import ru.connect.messenger.orchestrator.UserDeletionOrchestrator;
+import ru.connect.messenger.features.user.service.UserServiceImpl;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,21 +38,21 @@ public class BaseIT {
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private InviteService inviteService;
+    private InviteServiceImpl inviteServiceImpl;
     @Autowired
     private UserBanService userBanService;
     @Autowired
-    private UserDeletionService userDeletionService;
+    private UserDeletionOrchestrator userDeletionOrchestrator;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
     private ChatRepository chatRepository;
     @Autowired
-    private ChatService chatService;
+    private ChatServiceImpl chatService;
     @Autowired
     private jakarta.persistence.EntityManager entityManager;
     @Autowired
@@ -63,7 +63,7 @@ public class BaseIT {
     // Вспомогательные методы
     protected String createInvitationToken() throws MalformedURLException {
         URL uri;
-        uri = new URL(inviteService.create().invitationUrl());
+        uri = new URL(inviteServiceImpl.create().invitationUrl());
         String query = uri.getQuery();
         return Arrays.stream(query.split("&"))
                 .map(param -> param.split("="))

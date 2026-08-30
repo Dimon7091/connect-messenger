@@ -1,4 +1,4 @@
-package ru.connect.messenger.features.storage.dto;
+package ru.connect.messenger.shared.dto;
 
 public record FileInitResponse(
         String uploadUrl,

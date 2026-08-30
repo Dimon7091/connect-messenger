@@ -47,8 +47,8 @@ public class UserUpdatingIT extends BaseIT {
                 "userPassword2",
                 "token"
         );
-        testUser1 = getUserService().create(request1, Role.ROLE_USER);
-        testUser2 = getUserService().create(request2, Role.ROLE_USER);
+        testUser1 = getUserServiceImpl().create(request1, Role.ROLE_USER);
+        testUser2 = getUserServiceImpl().create(request2, Role.ROLE_USER);
 
         jwtToken1 = getJwtTokenProvider().generateToken(testUser1);
         jwtToken2 = getJwtTokenProvider().generateToken(testUser2);

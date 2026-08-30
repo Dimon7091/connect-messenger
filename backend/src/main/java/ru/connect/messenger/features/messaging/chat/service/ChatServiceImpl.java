@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.connect.messenger.core.exception.ResourceNotFoundException;
+import ru.connect.messenger.features.messaging.api.ChatService;
 import ru.connect.messenger.features.messaging.chat.domain.Chat;
 import ru.connect.messenger.features.messaging.chat.domain.ChatParticipant;
 import ru.connect.messenger.features.messaging.chat.domain.ChatParticipantId;
@@ -22,7 +23,7 @@ import java.util.Objects;
 @Service
 @AllArgsConstructor
 @Transactional
-public class ChatService {
+public class ChatServiceImpl implements ChatService {
     private final ChatRepository chatRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final ChatParticipantService chatParticipantService;

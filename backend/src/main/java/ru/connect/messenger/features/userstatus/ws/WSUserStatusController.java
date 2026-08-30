@@ -9,7 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import ru.connect.messenger.features.userstatus.UserStatus;
 import ru.connect.messenger.features.userstatus.UserStatusPayload;
-import ru.connect.messenger.features.userstatus.UserStatusService;
+import ru.connect.messenger.features.userstatus.UserStatusServiceImpl;
 import ru.connect.messenger.features.userstatus.UserStatusSubscriptionService;
 import ru.connect.messenger.shared.dto.WSEvent;
 
@@ -21,9 +21,8 @@ import java.util.Set;
 @Controller
 @RequiredArgsConstructor
 public class WSUserStatusController {
-
     private final UserStatusSubscriptionService subscriptionService;
-    private final UserStatusService userStatusService;
+    private final UserStatusServiceImpl userStatusServiceImpl;
     private final SimpMessagingTemplate messagingTemplate;
 
     // Подписка на статус определённого пользователя
@@ -34,7 +33,7 @@ public class WSUserStatusController {
         subscriptionService.subscribe(subscriberId, targetUserId);
 
         // Можно сразу отправить текущий статус пользователя, чтобы клиент отобразил его без ожидания события
-        UserStatus currentStatus = userStatusService.getStatus(targetUserId);
+        UserStatus currentStatus = userStatusServiceImpl.getStatus(targetUserId);
         if (currentStatus == null) {
             currentStatus = new UserStatus(targetUserId, UserStatus.Status.OFFLINE, OffsetDateTime.now());
         }

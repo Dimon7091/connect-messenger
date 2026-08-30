@@ -1,28 +1,30 @@
-package ru.connect.messenger.features.user.service;
+package ru.connect.messenger.orchestrator;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.connect.messenger.core.client.UserDeletedChecker;
 import ru.connect.messenger.core.exception.IllegalActionException;
 import ru.connect.messenger.features.storage.FileStorageProvider;
-import ru.connect.messenger.features.storage.StorageType;
+import ru.connect.messenger.features.user.api.UserService;
+import ru.connect.messenger.features.userstatus.ws.UserStatusService;
+import ru.connect.messenger.shared.domain.StorageType;
 import ru.connect.messenger.features.user.dto.UserAdminResponse;
 import ru.connect.messenger.features.user.mapper.UserMapper;
-import ru.connect.messenger.features.userstatus.UserStatusService;
 import ru.connect.messenger.features.userstatus.UserStatusSubscriptionService;
 
 
 @Service
 @AllArgsConstructor
 @Transactional
-public class UserDeletionService {
+public class UserDeletionOrchestrator implements UserDeletedChecker {
     private final UserService userService;
     private final UserStatusSubscriptionService userStatusSubscriptionService;
     private final UserStatusService userStatusService;
     private final FileStorageProvider storageProvider;
-    private Cache<Long, Boolean> usersDeletedCache;
-    private UserMapper mapper;
+    private final Cache<Long, Boolean> usersDeletedCache;
+    private final UserMapper mapper;
 
     public UserAdminResponse softDelete(Long userId) {
         var isAdmin = userService.isAdmin(userId);
@@ -56,6 +58,7 @@ public class UserDeletionService {
         return mapper.toUserAdminDto(userAsDeleted);
     }
 
+    @Override
     public boolean isUserDeleted(Long userId) {
         Boolean cache = usersDeletedCache.getIfPresent(userId);
         if (cache != null) {

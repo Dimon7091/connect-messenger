@@ -1,4 +1,4 @@
-package ru.connect.messenger.features.messaging;
+package ru.connect.messenger.features.messaging.api;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import ru.connect.messenger.features.messaging.chat.domain.ChatParticipant;
 import ru.connect.messenger.features.messaging.chat.dto.ChatResponse;
 import ru.connect.messenger.features.messaging.chat.mapper.ChatMapper;
 import ru.connect.messenger.features.messaging.chat.service.ChatParticipantService;
-import ru.connect.messenger.features.messaging.chat.service.ChatService;
+import ru.connect.messenger.features.messaging.chat.service.ChatServiceImpl;
 import ru.connect.messenger.features.messaging.message.domain.Message;
 import ru.connect.messenger.features.messaging.message.domain.MessageStatus;
 import ru.connect.messenger.features.messaging.message.domain.ReplyContext;
@@ -27,8 +27,8 @@ import ru.connect.messenger.features.messaging.message.dto.SendMessageRequest;
 import ru.connect.messenger.features.messaging.message.dto.TypingPayload;
 import ru.connect.messenger.features.messaging.message.mapper.MessageMapper;
 import ru.connect.messenger.features.messaging.message.service.MessageReplyService;
-import ru.connect.messenger.features.messaging.message.service.MessageService;
-import ru.connect.messenger.features.user.service.UserBlockService;
+import ru.connect.messenger.features.messaging.message.service.MessageServiceImpl;
+import ru.connect.messenger.features.user.api.UserBlockChecker;
 import ru.connect.messenger.shared.dto.ErrorResponse;
 import ru.connect.messenger.shared.dto.WSEvent;
 
@@ -40,16 +40,16 @@ import java.util.Objects;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-public class WSChatControllerV1 {
+public class WSMessagingControllerV1 {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final MessageService messageService;
+    private final MessageServiceImpl messageService;
     private final ChatService chatService;
     private final MessageMapper messageMapper;
     private final ChatParticipantService chatParticipantService;
     private final ChatMapper chatMapper;
     private final MessageReplyService messageReplyService;
-    private final UserBlockService userBlockService;
+    private final UserBlockChecker userBlockChecker;
 
     /**
      * 1. Отправка сообщения (send_message)
@@ -74,7 +74,7 @@ public class WSChatControllerV1 {
 
         try {
             // Проверка на блокировку между пользователями
-            if (userBlockService.isEitherBlocked(senderId, receiverId)) {
+            if (userBlockChecker.isEitherBlocked(senderId, receiverId)) {
                 throw new UserBlockedException("blocked by user");
             }
 

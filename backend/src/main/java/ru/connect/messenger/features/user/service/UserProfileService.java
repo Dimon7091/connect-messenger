@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
 import ru.connect.messenger.features.storage.FileStorageProvider;
-import ru.connect.messenger.features.storage.StorageType;
+import ru.connect.messenger.shared.domain.StorageType;
 import ru.connect.messenger.features.user.domain.AvatarType;
 import ru.connect.messenger.features.user.domain.User;
 import ru.connect.messenger.features.user.dto.UserProfileUpdateRequest;

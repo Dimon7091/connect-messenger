@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.connect.messenger.features.user.dto.UserPrivateResponse;
 import ru.connect.messenger.features.user.dto.UserProfileUpdateRequest;
 import ru.connect.messenger.features.user.service.UserProfileService;
-import ru.connect.messenger.features.user.service.UserProviderService;
+import ru.connect.messenger.features.user.service.UserProviderServiceImpl;
 
 import java.io.IOException;
 
@@ -27,7 +27,7 @@ public class UserProfileControllerV1 {
     private UserProfileService userProfileService;
 
     @Autowired
-    private UserProviderService userProviderService;
+    private UserProviderServiceImpl userProviderService;
 
     @PostMapping("/profile/upload-avatar")
     public ResponseEntity<String> uploadAvatar(
