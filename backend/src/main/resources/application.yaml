@@ -9,7 +9,10 @@ spring:
 
 logging:
   level:
-    org.springframework.web: DEBUG
+    root: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+    com.zaxxer.hikari: WARN
 
   pattern:
     dateformat: "yyyy-MM-dd HH:mm:ss"  # ✅ Формат даты
@@ -31,6 +34,11 @@ yandex:
     buckets:
       avatars: connect-avatars
       chat-files: connect-chats-files
+
+onesignal:
+  base-url: ${ONESIGNAL_BASE_URL}
+  app-id: ${ONESIGNAL_APP_ID}
+  api-key: ${ONESIGNAL_API_KEY}
 
 server:
   port: 8080
