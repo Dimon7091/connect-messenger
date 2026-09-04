@@ -20,7 +20,7 @@ import ru.connect.messenger.features.user.domain.User;
 import ru.connect.messenger.features.user.repository.UserRepository;
 import ru.connect.messenger.features.user.service.UserBanService;
 import ru.connect.messenger.features.user.service.UserBlockService;
-import ru.connect.messenger.orchestrator.UserDeletionOrchestrator;
+import ru.connect.messenger.features.user.service.UserDeletionOrchestrator;
 import ru.connect.messenger.features.user.service.UserServiceImpl;
 
 import java.net.MalformedURLException;

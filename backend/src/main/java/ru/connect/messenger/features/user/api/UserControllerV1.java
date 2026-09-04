@@ -22,7 +22,7 @@ import ru.connect.messenger.features.user.dto.UserBlockResponse;
 import ru.connect.messenger.features.user.dto.UserPrivateResponse;
 import ru.connect.messenger.features.user.dto.UserPublicResponse;
 import ru.connect.messenger.features.user.service.UserBlockService;
-import ru.connect.messenger.orchestrator.UserDeletionOrchestrator;
+import ru.connect.messenger.features.user.service.UserDeletionOrchestrator;
 import ru.connect.messenger.features.user.service.UserProviderServiceImpl;
 
 import java.util.List;

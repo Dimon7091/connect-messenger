@@ -1,4 +1,4 @@
-package ru.connect.messenger.orchestrator;
+package ru.connect.messenger.features.user.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.AllArgsConstructor;

@@ -7,34 +7,28 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StopWatch;
-import ru.connect.messenger.core.exception.UserBlockedException;
 import ru.connect.messenger.features.messaging.chat.domain.Chat;
 import ru.connect.messenger.features.messaging.chat.domain.ChatParticipant;
-import ru.connect.messenger.features.messaging.chat.dto.ChatResponse;
 import ru.connect.messenger.features.messaging.chat.mapper.ChatMapper;
 import ru.connect.messenger.features.messaging.chat.service.ChatParticipantService;
-import ru.connect.messenger.features.messaging.chat.service.ChatServiceImpl;
 import ru.connect.messenger.features.messaging.message.domain.Message;
-import ru.connect.messenger.features.messaging.message.domain.MessageStatus;
-import ru.connect.messenger.features.messaging.message.domain.ReplyContext;
 import ru.connect.messenger.features.messaging.message.dto.AllMessagesReadPayload;
 import ru.connect.messenger.features.messaging.message.dto.MessageDeliveredPayload;
-import ru.connect.messenger.features.messaging.message.dto.MessageNewResponse;
 import ru.connect.messenger.features.messaging.message.dto.MessageReadPayload;
-import ru.connect.messenger.features.messaging.message.dto.MessageSentResponse;
 import ru.connect.messenger.features.messaging.message.dto.SendMessageRequest;
 import ru.connect.messenger.features.messaging.message.dto.TypingPayload;
 import ru.connect.messenger.features.messaging.message.mapper.MessageMapper;
 import ru.connect.messenger.features.messaging.message.service.MessageReplyService;
 import ru.connect.messenger.features.messaging.message.service.MessageServiceImpl;
+import ru.connect.messenger.features.notification.NotificationService;
 import ru.connect.messenger.features.user.api.UserBlockChecker;
+import ru.connect.messenger.features.messaging.MessagingOrchestrator;
 import ru.connect.messenger.shared.dto.ErrorResponse;
 import ru.connect.messenger.shared.dto.WSEvent;
 
 import java.security.Principal;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -50,6 +44,8 @@ public class WSMessagingControllerV1 {
     private final ChatMapper chatMapper;
     private final MessageReplyService messageReplyService;
     private final UserBlockChecker userBlockChecker;
+    private final NotificationService notificationService;
+    private final MessagingOrchestrator messagingOrchestrator;
 
     /**
      * 1. Отправка сообщения (send_message)
@@ -63,94 +59,19 @@ public class WSMessagingControllerV1 {
             @Payload WSEvent<SendMessageRequest> request,
             Principal principal
     ) {
-        StopWatch sw = new StopWatch();
-        sw.start("Message sent");
-        SendMessageRequest payload = request.getPayload();
-        long senderId = Long.parseLong(principal.getName());
-        long receiverId = Long.parseLong(payload.getReceiverId());
-        long chatId = Long.parseLong(payload.getChatId());
+        var sentMessage = messagingOrchestrator.sendMessage(request, principal);
 
-        log.info("📨 Send messaging from user {} to chat {}", senderId, payload.getChatId());
-
-        try {
-            // Проверка на блокировку между пользователями
-            if (userBlockChecker.isEitherBlocked(senderId, receiverId)) {
-                throw new UserBlockedException("blocked by user");
-            }
-
-            // Сохраняем сообщение в БД
-            Message savedMessage = messageService.createMessage(payload);
-
-            // Отправляем подтверждение отправки отправителю (MessageSentResponse)
-            MessageSentResponse sentResponse = MessageSentResponse.builder()
-                    .messageId(payload.getMessageId())      // временный ID от клиента
-                    .serverMessageId(savedMessage.getId().toString())  // реальный ID из БД
-                    .status(MessageStatus.SENT)
-                    .timestamp(OffsetDateTime.now(ZoneOffset.UTC).toString())
-                    .build();
-
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(senderId),
-                    "/queue/private",
-                    new WSEvent<>(WSEvent.EventType.MESSAGE_SENT, sentResponse)
-            );
-
-            // Формируем новое сообщение
-            MessageNewResponse newMessageResponse = messageMapper.toDto(savedMessage);
-            // Если сообщение это ответ на другое сообщение добовляем ReplyContext
-            if (payload.getReplyToId() != null) {
-                ReplyContext replyContext = messageReplyService.getReplyContext(
-                        Long.valueOf(payload.getReplyToId())
-                );
-                newMessageResponse.setReplyContext(replyContext);
-            }
-            // Добовляем непрочитанные сообщения, время обновления получателю и в чат
-            var lastMessage = (payload.getText().length() > 40)
-                    ? payload.getText().substring(0, 40) + "..." : payload.getText();
-            chatService.updateLastMessage(
-                    Long.parseLong(payload.getChatId()),
-                    lastMessage,
-                    OffsetDateTime.parse(payload.getTimestamp()));
-            chatParticipantService.incrementUnreadCount(chatId, receiverId);
-            chatParticipantService.setIsChatEmpty(chatId, senderId, false);
-            chatParticipantService.setIsChatEmpty(chatId, receiverId, false);
-            Chat chat = chatService.findChatById(Long.valueOf(payload.getChatId()));
-            ChatResponse chatResponse = chatMapper.toDto(chat);
-            chatResponse.setUnreadCount(chatParticipantService.getUnreadCount(chat.getId(), receiverId));
-            chatResponse.setLastMessage(lastMessage);
-            chatResponse.setUpdatedAt(chat.getUpdatedAt());
-            newMessageResponse.setChat(chatResponse);
-            newMessageResponse.setStatus(MessageStatus.SENT);
-            newMessageResponse.setAttachments(payload.getAttachments());
-            // Устанавливаем статус чата если он удален у пользователя
-            chatParticipantService.setIsDeleted(chat.getId(), receiverId, false);
-
-            // Отправляем сообщение получателю чата
-            messagingTemplate.convertAndSendToUser(
-                    payload.getReceiverId(),  // ← отправляем конкретному получателю
-                    "/queue/private",            // ← в его личную очередь
-                    new WSEvent<>(WSEvent.EventType.MESSAGE_NEW, newMessageResponse)
-            );
-            sw.stop();
-            log.info("✅ Время записи и отправки сообщения: {} мс", sw.getTotalTimeMillis());
-            log.info("Sending MESSAGE_NEW to user {} via /queue/private, payload: {}",
-                    payload.getReceiverId(), newMessageResponse);
-
-        } catch (Exception e) {
-            log.error("❌ Error sending messaging", e);
-
-            // Отправляем ошибку отправителю
-            ErrorResponse error = ErrorResponse.builder()
-                    .message("Failed to send messaging")
-                    .body(e.getMessage())
-                    .build();
-
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(senderId),
-                    "/queue/private",
-                    new WSEvent<>(WSEvent.EventType.ERROR, error)
-            );
-        }
+        var additionalData = Map.of(
+                "type", "TEXT_MESSAGE",
+                "action", "OPEN_PUSH_WINDOW"
+        );
+        notificationService.sendPushToUsers(
+                List.of(String.valueOf(sentMessage.getReceiverId())),
+                "Новое сообщение",
+                sentMessage.getText(),
+                additionalData,
+                "push"
+        );
     }
 
     /**
