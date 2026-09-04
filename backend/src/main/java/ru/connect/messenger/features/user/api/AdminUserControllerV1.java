@@ -21,7 +21,7 @@ import ru.connect.messenger.features.user.dto.UserAdminResponse;
 import ru.connect.messenger.features.user.dto.UserIsBannedUpdateRequest;
 import ru.connect.messenger.features.user.dto.UserStatResponse;
 import ru.connect.messenger.features.user.service.UserBanService;
-import ru.connect.messenger.orchestrator.UserDeletionOrchestrator;
+import ru.connect.messenger.features.user.service.UserDeletionOrchestrator;
 import ru.connect.messenger.features.user.service.UserProviderServiceImpl;
 
 @RestController

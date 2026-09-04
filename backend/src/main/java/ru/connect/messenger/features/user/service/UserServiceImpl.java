@@ -39,6 +39,8 @@ public class UserServiceImpl implements UserService {
     public User create(UserCreateRequest requestData, Role role) {
         var user = mapper.toEntity(requestData);
         user.setRole(role);
+        user.setIsDeleted(false);
+        user.setIsBanned(false);
         return userRepository.save(user);
     }
 

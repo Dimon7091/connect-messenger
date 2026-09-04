@@ -1,4 +1,4 @@
-package ru.connect.messenger.orchestrator;
+package ru.connect.messenger.features.auth;
 
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -8,10 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import ru.connect.messenger.core.JwtTokenProvider;
 import ru.connect.messenger.core.SecurityUser;
-import ru.connect.messenger.features.auth.AuthRequest;
-import ru.connect.messenger.features.auth.AuthResponse;
 import ru.connect.messenger.features.invite.InviteService;
-import ru.connect.messenger.features.invite.InviteServiceImpl;
 import ru.connect.messenger.features.user.api.UserProviderService;
 import ru.connect.messenger.features.user.api.UserService;
 import ru.connect.messenger.features.user.domain.Role;

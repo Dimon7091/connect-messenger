@@ -3,6 +3,7 @@ package ru.connect.messenger.features.notification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -30,6 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
     }
 
+    @Async
     public void sendPushToUsers(
             List<String> userIds,
             String title, String message,
