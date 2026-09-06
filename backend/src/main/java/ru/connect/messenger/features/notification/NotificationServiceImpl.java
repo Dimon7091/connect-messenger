@@ -49,7 +49,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         try {
             String response = restClient.post()
-                    .uri("/notifications?c=push")
+                    .uri("/notifications")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(payload)
                     .retrieve()
