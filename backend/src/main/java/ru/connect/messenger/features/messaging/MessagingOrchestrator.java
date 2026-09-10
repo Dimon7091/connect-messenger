@@ -106,8 +106,9 @@ public class MessagingOrchestrator {
             newMessageResponse.setChat(chatResponse);
             newMessageResponse.setStatus(MessageStatus.SENT);
             newMessageResponse.setAttachments(payload.getAttachments());
-            // Устанавливаем статус чата если он удален у пользователя
+            // Устанавливаем статус чата если он удален у пользователей
             chatParticipantService.setIsDeleted(chat.getId(), receiverId, false);
+            chatParticipantService.setIsDeleted(chat.getId(), senderId, false);
 
             // Отправляем сообщение получателю
             messagingTemplate.convertAndSendToUser(
