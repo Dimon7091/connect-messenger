@@ -10,5 +10,15 @@ public record OneSignalRequest(
         @JsonProperty("target_channel") String targetChannel,
         @JsonProperty("headings") Map<String, String> headings,
         @JsonProperty("contents") Map<String, String> contents,
+        @JsonProperty("chrome_web_image") String chromeWebImage,
+        @JsonProperty("url") String url,
+        @JsonProperty("web_buttons") List<WebButton> webButtons,
         @JsonProperty("data") Map<String, String> data
-) {}
+) {
+    // Вложенный record для кнопки
+    public record WebButton(
+            @JsonProperty("id") String id,
+            @JsonProperty("text") String text,
+            @JsonProperty("url") String url
+    ) {}
+}

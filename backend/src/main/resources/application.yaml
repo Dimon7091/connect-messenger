@@ -39,6 +39,8 @@ onesignal:
   base-url: ${ONESIGNAL_BASE_URL}
   app-id: ${ONESIGNAL_APP_ID}
   api-key: ${ONESIGNAL_API_KEY}
+  connect-timeout-ms: 5000
+  read-timeout-ms: 15000
 
 server:
   port: 8080
