@@ -264,7 +264,7 @@ export const useUserStore = defineStore('user', () => {
       const updatedUser = {
         ...user.value,
         profile: {
-          ...(user.value.profile || {}),
+          ...user.value.profile,
           avatarUrl,
         },
       }

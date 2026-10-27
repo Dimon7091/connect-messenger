@@ -1,6 +1,22 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
 allowBuilds:
   '@firebase/util': false
+  argon2: false
+  esbuild: false
   protobufjs: false
+
+catalog:
+  prettier: 3.9.10
+  typescript: ~6.0.0
+# Откройте pnpm-workspace.yaml и расширьте блок overrides:
+overrides:
+  flatted: '>=3.4.0'
+  picomatch: '>=2.3.2'
+  '@grpc/grpc-js': '>=1.13.6'
+  # Добавляем новые патчи:
+  source-map-js: '>=1.2.2'
+  esbuild: '>=0.25.0'
+  '@humanfs/node': '>=0.16.8'
+  serialize-javascript: '>=7.1.3'
