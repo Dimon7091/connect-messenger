@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/main.ts",
-    "build": "tsc",
+    "build": "tsc && mkdir -p ./dist/drizzle && cp -r ../../packages/database/drizzle/. ./dist/drizzle",
     "start": "node dist/main.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
