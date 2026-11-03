@@ -92,45 +92,45 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient'
+import { computed } from 'vue';
+import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient';
 
 const props = defineProps<{
-  displayName: string
-  firstName?: string
-  lastName?: string
-  avatarThumbUrl?: string | null
-  userId?: string | number
-  statusText?: string
-  isDeleted: boolean
-}>()
+  displayName: string;
+  firstName?: string;
+  lastName?: string;
+  avatarThumbUrl?: string | null;
+  userId?: string | number;
+  statusText?: string;
+  isDeleted: boolean;
+}>();
 
 defineEmits<{
-  (e: 'back'): void
-  (e: 'click-avatar'): void
-  (e: 'menu'): void
-}>()
+  (e: 'back'): void;
+  (e: 'click-avatar'): void;
+  (e: 'menu'): void;
+}>();
 
 // Градиент для аватара (если нет avatarUrl)
 const avatarGradientClass = computed(() => {
-  if (props.avatarThumbUrl) return ''
-  if (props.userId) return getAvatarGradient(props.userId)
+  if (props.avatarThumbUrl) return '';
+  if (props.userId) return getAvatarGradient(props.userId);
   // fallback, если userId не передан (например, для групповых чатов)
-  return 'bg-gradient-to-br from-orange-500 to-orange-700'
-})
+  return 'bg-gradient-to-br from-orange-500 to-orange-700';
+});
 
 // Инициалы: используем firstName/lastName, иначе из displayName через утилиту
 const avatarInitials = computed(() => {
   if (props.firstName && props.lastName) {
-    return (props.firstName.charAt(0) + props.lastName.charAt(0)).toUpperCase()
+    return (props.firstName.charAt(0) + props.lastName.charAt(0)).toUpperCase();
   }
   if (props.firstName) {
-    return props.firstName.charAt(0).toUpperCase()
+    return props.firstName.charAt(0).toUpperCase();
   }
   if (props.lastName) {
-    return props.lastName.charAt(0).toUpperCase()
+    return props.lastName.charAt(0).toUpperCase();
   }
   // Если нет firstName/lastName, получаем инициалы из displayName через утилиту
-  return getInitialsFromName(props.displayName)
-})
+  return getInitialsFromName(props.displayName);
+});
 </script>

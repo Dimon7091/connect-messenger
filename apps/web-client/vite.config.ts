@@ -1,15 +1,15 @@
-import { fileURLToPath, URL } from 'node:url'
+import { fileURLToPath, URL } from 'node:url';
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import vueDevTools from 'vite-plugin-vue-devtools'
-import tailwindcss from '@tailwindcss/vite'
-import { VitePWA, type ManifestOptions } from 'vite-plugin-pwa'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import vueDevTools from 'vite-plugin-vue-devtools';
+import tailwindcss from '@tailwindcss/vite';
+import { VitePWA, type ManifestOptions } from 'vite-plugin-pwa';
 
-const TARGET_HOST = '127.0.0.1'
+const TARGET_HOST = '127.0.0.1';
 
 interface CustomManifestOptions extends Partial<ManifestOptions> {
-  gcm_sender_id?: string
+  gcm_sender_id?: string;
 }
 
 export default defineConfig({
@@ -70,7 +70,7 @@ export default defineConfig({
         target: `ws://${TARGET_HOST}:8080`,
         ws: true,
         changeOrigin: true,
-        rewrite: (path) => path,
+        rewrite: path => path,
       },
     },
     watch: {
@@ -88,4 +88,4 @@ export default defineConfig({
   optimizeDeps: {
     include: ['sockjs-client'],
   },
-})
+});

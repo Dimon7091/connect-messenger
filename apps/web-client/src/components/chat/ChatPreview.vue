@@ -116,30 +116,30 @@
 </template>
 
 <script setup lang="ts">
-import { watch, computed } from 'vue'
-import type { Chat } from '@/types/index'
-import type { User } from '@messenger/shared'
-import { useUserStore } from '@/stores/userStore'
-import { useWebSocketStore } from '@/stores/webSocketStore'
-import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient'
+import { watch, computed } from 'vue';
+import type { Chat } from '@/types/index';
+import type { User } from '@messenger/shared';
+import { useUserStore } from '@/stores/userStore';
+import { useWebSocketStore } from '@/stores/webSocketStore';
+import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient';
 
-const userStore = useUserStore()
-const wsStore = useWebSocketStore()
+const userStore = useUserStore();
+const wsStore = useWebSocketStore();
 
 const props = defineProps<{
-  chat: Chat
-  companion?: User | null
-  lastMessage?: string | null
-  unreadCount?: number
-  lastMessageTime?: Date | string
-}>()
+  chat: Chat;
+  companion?: User | null;
+  lastMessage?: string | null;
+  unreadCount?: number;
+  lastMessageTime?: Date | string;
+}>();
 
 // --- Аватар и градиент ---
-const avatarThumbUrl = computed(() => props.companion?.profile?.avatarThumbUrl || null)
-const userId = computed(() => props.companion?.id)
+const avatarThumbUrl = computed(() => props.companion?.profile?.avatarThumbUrl || null);
+const userId = computed(() => props.companion?.id);
 
 const avatarGradientClass = computed(() => {
-  if (avatarThumbUrl.value) return ''
+  if (avatarThumbUrl.value) return '';
   if (props.chat.type === 'GROUP') {
     // Для групповых чатов используем простой градиент на основе id чата
     const gradients = [
@@ -158,128 +158,132 @@ const avatarGradientClass = computed(() => {
       'bg-gradient-to-br from-fuchsia-500 to-fuchsia-700',
       'bg-gradient-to-br from-emerald-500 to-emerald-700',
       'bg-gradient-to-br from-sky-500 to-sky-700',
-    ]
-    const id = typeof props.chat.id === 'string' ? parseInt(props.chat.id) || 0 : props.chat.id
-    return gradients[id % gradients.length]
+    ];
+    const id = typeof props.chat.id === 'string' ? parseInt(props.chat.id) || 0 : props.chat.id;
+    return gradients[id % gradients.length];
   }
   // Для личных чатов – стабильный градиент на основе userId
   if (userId.value) {
-    return getAvatarGradient(userId.value)
+    return getAvatarGradient(userId.value);
   }
-  return 'bg-gradient-to-br from-gray-500 to-gray-700'
-})
+  return 'bg-gradient-to-br from-gray-500 to-gray-700';
+});
 
 // --- Отображаемое имя ---
 const displayName = computed(() => {
   if (props.chat.type === 'GROUP') {
-    return props.chat.name || 'Групповой чат'
+    return props.chat.name || 'Групповой чат';
   }
   if (props.companion) {
-    const firstName = props.companion.profile?.firstName
-    const lastName = props.companion.profile?.lastName
-    if (firstName && lastName) return `${firstName} ${lastName}`
-    if (firstName) return firstName
-    return props.companion.userName
+    const firstName = props.companion.profile?.firstName;
+    const lastName = props.companion.profile?.lastName;
+    if (firstName && lastName) return `${firstName} ${lastName}`;
+    if (firstName) return firstName;
+    return props.companion.userName;
   }
-  return 'Пользователь'
-})
+  return 'Пользователь';
+});
 
 // --- Инициалы для аватара ---
 const avatarInitials = computed(() => {
   if (props.chat.type === 'GROUP') {
-    const name = props.chat.name || 'Групповой чат'
-    return getInitialsFromName(name) // можно оставить только первую букву для группы, но утилита сама решит
+    const name = props.chat.name || 'Групповой чат';
+    return getInitialsFromName(name); // можно оставить только первую букву для группы, но утилита сама решит
   }
   if (props.companion) {
-    const fullName = displayName.value // displayName уже содержит имя и фамилию или userName
-    return getInitialsFromName(fullName)
+    const fullName = displayName.value; // displayName уже содержит имя и фамилию или userName
+    return getInitialsFromName(fullName);
   }
-  return '?'
-})
+  return '?';
+});
 
 // --- Проверка на удаленного пользователя ---
-const isDeleted = computed(() => props.companion?.isDeleted ?? false)
+const isDeleted = computed(() => props.companion?.isDeleted ?? false);
 
 // --- Последнее сообщение, счётчик и время ---
 const lastMessageText = computed(() => {
-  if (props.lastMessage) return props.lastMessage
-  if (props.chat.lastMessage) return props.chat.lastMessage
-  return null
-})
+  if (props.lastMessage) return props.lastMessage;
+  if (props.chat.lastMessage) return props.chat.lastMessage;
+  return null;
+});
 
 const isCompanionInBlacklist = computed(() => {
-  const blackList = userStore.user?.blackListIds || []
-  return blackList.includes(props.companion?.id as string)
-})
+  const blackList = userStore.user?.blackListIds || [];
+  return blackList.includes(props.companion?.id as string);
+});
 
 const unreadCount = computed(() => {
-  if (props.unreadCount !== undefined) return props.unreadCount
-  return props.chat.unreadCount || 0
-})
+  if (props.unreadCount !== undefined) return props.unreadCount;
+  return props.chat.unreadCount || 0;
+});
 
 const formattedTime = computed(() => {
-  const time = props.lastMessageTime
-  if (!time) return ''
-  const date = new Date(time)
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  const diffDays = Math.floor((today.getTime() - messageDate.getTime()) / (1000 * 60 * 60 * 24))
+  const time = props.lastMessageTime;
+  if (!time) return '';
+  const date = new Date(time);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((today.getTime() - messageDate.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays === 0) {
-    return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   } else if (diffDays === 1) {
-    return 'Вчера'
+    return 'Вчера';
   } else {
     if (date.getFullYear() === now.getFullYear()) {
-      return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+      return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
     } else {
-      return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
     }
   }
-})
+});
 
 // --- Статусы ---
 const isOnline = computed(() => {
-  if (props.chat.type !== 'DIRECT' || !props.companion) return false
-  const status = userStore.getUserStatus(props.companion.id.toString())
-  return status === 'ONLINE'
-})
+  if (props.chat.type !== 'DIRECT' || !props.companion) return false;
+  const status = userStore.getUserStatus(props.companion.id.toString());
+  return status === 'ONLINE';
+});
 
 const isCompanionTyping = computed(() => {
-  if (props.chat.type !== 'DIRECT' || !props.companion) return false
-  return wsStore.isUserTyping(props.chat.id, props.companion.id.toString())
-})
+  if (props.chat.type !== 'DIRECT' || !props.companion) return false;
+  return wsStore.isUserTyping(props.chat.id, props.companion.id.toString());
+});
 
 // --- Эмиты ---
 const emit = defineEmits<{
-  click: [chat: Chat]
-  menu: [chat: Chat]
-}>()
+  click: [chat: Chat];
+  menu: [chat: Chat];
+}>();
 
-const handleMenuClick = () => emit('menu', props.chat)
-const handleClick = () => emit('click', props.chat)
+const handleMenuClick = () => emit('menu', props.chat);
+const handleClick = () => emit('click', props.chat);
 
 // --- Отладка ---
 watch(
   () => props.companion,
-  (newVal) => {
+  newVal => {
     console.log(
       'ChatPreview companion:',
       newVal?.profile?.firstName || newVal?.userName,
       'chat:',
-      props.chat.id,
-    )
+      props.chat.id
+    );
   },
-  { immediate: true },
-)
+  { immediate: true }
+);
 
 watch(
   () => props.chat,
-  (newVal) => {
-    console.log('ChatPreview chat:', newVal.id, newVal.type, newVal.participants)
+  newVal => {
+    console.log('ChatPreview chat:', newVal.id, newVal.type, newVal.participants);
   },
-  { immediate: true },
-)
+  { immediate: true }
+);
 </script>
 
 <style scoped>

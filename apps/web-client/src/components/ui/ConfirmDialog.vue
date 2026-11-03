@@ -74,15 +74,15 @@
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<{
-    modelValue: boolean
-    title: string
-    description: string
-    confirmText?: string
-    cancelText?: string
-    confirmButtonClass?: string | Record<string, boolean>
-    loading?: boolean
-    loadingText?: string
-    showCancel?: boolean
+    modelValue: boolean;
+    title: string;
+    description: string;
+    confirmText?: string;
+    cancelText?: string;
+    confirmButtonClass?: string | Record<string, boolean>;
+    loading?: boolean;
+    loadingText?: string;
+    showCancel?: boolean;
   }>(),
   {
     confirmText: 'Подтвердить',
@@ -91,21 +91,21 @@ const props = withDefaults(
     loading: false,
     loadingText: 'Загрузка...',
     showCancel: true,
-  },
-)
+  }
+);
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  confirm: []
-}>()
+  'update:modelValue': [value: boolean];
+  confirm: [];
+}>();
 
 const close = () => {
   if (!props.loading) {
-    emit('update:modelValue', false)
+    emit('update:modelValue', false);
   }
-}
+};
 
 const confirm = () => {
-  emit('confirm')
-}
+  emit('confirm');
+};
 </script>

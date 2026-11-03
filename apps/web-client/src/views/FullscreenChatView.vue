@@ -163,212 +163,212 @@
 <style scoped></style>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useChatStore } from '@/stores/chatStore'
-import { useUserStore } from '@/stores/userStore'
-import { useWebSocketStore } from '@/stores/webSocketStore'
-import { useChatMessages } from '@/composables/useChatMessages'
-import SelectionActionBar from '@/components/chat/SelectionActionBar.vue'
-import ChatHeader from '@/components/chat/ChatHeader.vue'
-import ChatMessageList from '@/components/chat/ChatMessageList.vue'
-import ChatInput from '@/components/chat/ChatInput.vue'
-import { chatService } from '@/services/http/ChatService'
-import type { Chat, Message, Attachment } from '@/types/index'
-import type { User } from '@messenger/shared-schema'
-import { useMessageStore } from '@/stores/messageStore'
-import UserProfileModal from '@/components/modals/UserProfileModal.vue'
-import ChatContextMenu from '@/components/chat/ChatContextMenu.vue'
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useChatStore } from '@/stores/chatStore';
+import { useUserStore } from '@/stores/userStore';
+import { useWebSocketStore } from '@/stores/webSocketStore';
+import { useChatMessages } from '@/composables/useChatMessages';
+import SelectionActionBar from '@/components/chat/SelectionActionBar.vue';
+import ChatHeader from '@/components/chat/ChatHeader.vue';
+import ChatMessageList from '@/components/chat/ChatMessageList.vue';
+import ChatInput from '@/components/chat/ChatInput.vue';
+import { chatService } from '@/services/http/ChatService';
+import type { Chat, Message, Attachment } from '@/types/index';
+import type { User } from '@messenger/shared-schema';
+import { useMessageStore } from '@/stores/messageStore';
+import UserProfileModal from '@/components/modals/UserProfileModal.vue';
+import ChatContextMenu from '@/components/chat/ChatContextMenu.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 // ==================== Роутер и сторы ====================
-const router = useRouter()
-const route = useRoute()
-const chatStore = useChatStore()
-const userStore = useUserStore()
-const wsStore = useWebSocketStore()
-const messageStore = useMessageStore()
+const router = useRouter();
+const route = useRoute();
+const chatStore = useChatStore();
+const userStore = useUserStore();
+const wsStore = useWebSocketStore();
+const messageStore = useMessageStore();
 
 // ==================== Базовые состояния ====================
-const currentChat = ref<Chat | null>(null)
-const sending = ref(false)
-const selectionMode = ref(false)
-const selectedCount = ref(0)
-const messageListRef = ref<InstanceType<typeof ChatMessageList>>()
-const chatInputRef = ref<InstanceType<typeof ChatInput>>()
+const currentChat = ref<Chat | null>(null);
+const sending = ref(false);
+const selectionMode = ref(false);
+const selectedCount = ref(0);
+const messageListRef = ref<InstanceType<typeof ChatMessageList>>();
+const chatInputRef = ref<InstanceType<typeof ChatInput>>();
 
 // Текущий пользователь (id в виде строки)
-const currentUserId = computed(() => userStore.user?.id?.toString() || '')
+const currentUserId = computed(() => userStore.user?.id?.toString() || '');
 
 // ==================== companionId ====================
 // Заполняется в loadChatFromUrl. Реактивно догружает companionUser через watch ниже.
-const companionId = ref<string>('')
+const companionId = ref<string>('');
 
 const resolveCompanionId = (): string => {
   // 1. Query
-  const fromQuery = route.query.companionId
-  if (typeof fromQuery === 'string' && fromQuery) return fromQuery
+  const fromQuery = route.query.companionId;
+  if (typeof fromQuery === 'string' && fromQuery) return fromQuery;
 
-  const chat = currentChat.value as any
-  const me = currentUserId.value
-  if (!chat || !me) return ''
+  const chat = currentChat.value as any;
+  const me = currentUserId.value;
+  if (!chat || !me) return '';
 
   // 2. Явное поле
   if (chat.companionId != null && chat.companionId !== '') {
-    return String(chat.companionId)
+    return String(chat.companionId);
   }
 
   // 3. Participants (с поддержкой разных имён полей и форматов)
   const list: any[] | undefined =
-    chat.participants ?? chat.users ?? chat.members ?? chat.participantIds ?? chat.userIds
+    chat.participants ?? chat.users ?? chat.members ?? chat.participantIds ?? chat.userIds;
 
   if (Array.isArray(list)) {
     for (const p of list) {
       const pid =
-        p == null ? null : typeof p === 'object' ? (p.id ?? p.userId ?? p.user?.id ?? null) : p
-      if (pid == null) continue
-      if (String(pid) !== String(me)) return String(pid)
+        p == null ? null : typeof p === 'object' ? (p.id ?? p.userId ?? p.user?.id ?? null) : p;
+      if (pid == null) continue;
+      if (String(pid) !== String(me)) return String(pid);
     }
   }
 
-  return ''
-}
+  return '';
+};
 
 // ==================== Единый объект собеседника ====================
-const companionUser = ref<User | null>(null)
-const isLoadingCompanion = ref(false)
+const companionUser = ref<User | null>(null);
+const isLoadingCompanion = ref(false);
 
 // Токен против гонок при быстром переключении чатов
-let companionLoadToken = 0
+let companionLoadToken = 0;
 
 const loadCompanionUser = async (id: string): Promise<void> => {
-  const token = ++companionLoadToken
+  const token = ++companionLoadToken;
 
   if (!id) {
-    companionUser.value = null
-    return
+    companionUser.value = null;
+    return;
   }
 
   // 1. Кэш
-  const cached = userStore.getUserFromCache(id)
+  const cached = userStore.getUserFromCache(id);
   if (cached) {
-    companionUser.value = cached
-    return
+    companionUser.value = cached;
+    return;
   }
 
   // 2. API
-  isLoadingCompanion.value = true
+  isLoadingCompanion.value = true;
   try {
-    const user = await userStore.getUserById(id)
-    if (token === companionLoadToken) companionUser.value = user
+    const user = await userStore.getUserById(id);
+    if (token === companionLoadToken) companionUser.value = user;
   } catch (e) {
     if (token === companionLoadToken) {
-      console.error('[ChatView] Не удалось загрузить пользователя:', e)
-      companionUser.value = null
+      console.error('[ChatView] Не удалось загрузить пользователя:', e);
+      companionUser.value = null;
     }
   } finally {
-    if (token === companionLoadToken) isLoadingCompanion.value = false
+    if (token === companionLoadToken) isLoadingCompanion.value = false;
   }
-}
+};
 
 // Реактивная догрузка companionUser при смене companionId
-watch(companionId, (id) => {
-  loadCompanionUser(id)
-})
+watch(companionId, id => {
+  loadCompanionUser(id);
+});
 
 // ==================== Статус, lastSeen и печатание собеседника ====================
 const companionStatus = computed(() => {
-  if (!companionId.value) return 'OFFLINE'
-  return userStore.getUserStatus(companionId.value) || 'OFFLINE'
-})
+  if (!companionId.value) return 'OFFLINE';
+  return userStore.getUserStatus(companionId.value) || 'OFFLINE';
+});
 
 const companionLastSeen = computed(() => {
-  if (!companionId.value) return null
-  return userStore.getUserLastSeen(companionId.value)
-})
+  if (!companionId.value) return null;
+  return userStore.getUserLastSeen(companionId.value);
+});
 
 const isCompanionTyping = computed(() => {
-  if (!currentChat.value || !companionId.value) return false
-  return wsStore.isUserTyping(currentChat.value.id, companionId.value)
-})
+  if (!currentChat.value || !companionId.value) return false;
+  return wsStore.isUserTyping(currentChat.value.id, companionId.value);
+});
 
 const displayName = computed(() => {
-  const u = companionUser.value
-  if (!u) return 'Пользователь'
-  const firstName = u.profile?.firstName
-  const lastName = u.profile?.lastName
-  if (firstName && lastName) return `${firstName} ${lastName}`
-  if (firstName) return firstName
-  return u.userName || 'Пользователь'
-})
+  const u = companionUser.value;
+  if (!u) return 'Пользователь';
+  const firstName = u.profile?.firstName;
+  const lastName = u.profile?.lastName;
+  if (firstName && lastName) return `${firstName} ${lastName}`;
+  if (firstName) return firstName;
+  return u.userName || 'Пользователь';
+});
 
 // ==================== Реактивное текущее время для автообновления lastSeen ====================
-const currentTime = ref(Date.now())
-let timeUpdateInterval: ReturnType<typeof setInterval> | null = null
+const currentTime = ref(Date.now());
+let timeUpdateInterval: ReturnType<typeof setInterval> | null = null;
 
 const formatLastSeen = (lastSeen: string | number): string => {
-  if (!lastSeen) return ''
-  let timestamp: number
+  if (!lastSeen) return '';
+  let timestamp: number;
   if (typeof lastSeen === 'number') {
-    timestamp = lastSeen * 1000
+    timestamp = lastSeen * 1000;
   } else {
-    timestamp = Date.parse(lastSeen)
-    if (isNaN(timestamp)) return ''
+    timestamp = Date.parse(lastSeen);
+    if (isNaN(timestamp)) return '';
   }
-  const date = new Date(timestamp)
-  if (isNaN(date.getTime())) return ''
-  const now = currentTime.value
-  const diffMs = now - timestamp
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-  if (diffMins < 1) return 'был(а) только что'
-  if (diffMins < 60) return `был(а) ${diffMins} мин. назад`
-  if (diffHours < 24) return `был(а) ${diffHours} ч. назад`
-  if (diffDays === 1) return 'был(а) вчера'
-  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
-}
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return '';
+  const now = currentTime.value;
+  const diffMs = now - timestamp;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) return 'был(а) только что';
+  if (diffMins < 60) return `был(а) ${diffMins} мин. назад`;
+  if (diffHours < 24) return `был(а) ${diffHours} ч. назад`;
+  if (diffDays === 1) return 'был(а) вчера';
+  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+};
 
 const formattedLastSeen = computed(() => {
-  if (!companionLastSeen.value) return null
-  return formatLastSeen(companionLastSeen.value)
-})
+  if (!companionLastSeen.value) return null;
+  return formatLastSeen(companionLastSeen.value);
+});
 
 const statusDisplayText = computed(() => {
-  if (isCompanionTyping.value) return 'печатает'
-  if (companionStatus.value === 'ONLINE') return 'онлайн'
-  if (formattedLastSeen.value) return formattedLastSeen.value
-  return 'не в сети'
-})
+  if (isCompanionTyping.value) return 'печатает';
+  if (companionStatus.value === 'ONLINE') return 'онлайн';
+  if (formattedLastSeen.value) return formattedLastSeen.value;
+  return 'не в сети';
+});
 
 // ==================== Состояния ====================
-const isCurrentUserDeleted = computed(() => userStore.user?.isDeleted || false)
+const isCurrentUserDeleted = computed(() => userStore.user?.isDeleted || false);
 
-const isCompanionDeleted = computed(() => companionUser.value?.isDeleted || false)
+const isCompanionDeleted = computed(() => companionUser.value?.isDeleted || false);
 
 const isUserInBlacklist = computed(() => {
-  const blackList = userStore.user?.blackListIds || []
-  return !!companionId.value && blackList.includes(companionId.value)
-})
+  const blackList = userStore.user?.blackListIds || [];
+  return !!companionId.value && blackList.includes(companionId.value);
+});
 
 const isInputDisabled = computed(() => {
-  if (isCurrentUserDeleted.value) return true
-  if (isCompanionDeleted.value) return true
-  if (isUserInBlacklist.value) return true
-  return false
-})
+  if (isCurrentUserDeleted.value) return true;
+  if (isCompanionDeleted.value) return true;
+  if (isUserInBlacklist.value) return true;
+  return false;
+});
 
-const unblocking = ref(false)
-const showConfirmBlockUser = ref(false)
-const showProfileModal = ref(false)
+const unblocking = ref(false);
+const showConfirmBlockUser = ref(false);
+const showProfileModal = ref(false);
 
 const openUserProfile = () => {
-  if (!companionId.value) return
-  showProfileModal.value = true
-}
+  if (!companionId.value) return;
+  showProfileModal.value = true;
+};
 
 // ==================== Сообщения ====================
-const chatIdGetter = () => currentChat.value?.id
+const chatIdGetter = () => currentChat.value?.id;
 
 const {
   messages,
@@ -382,93 +382,92 @@ const {
   isUserAtBottom,
 } = useChatMessages(
   chatIdGetter,
-  computed(() => messageListRef.value?.container),
-)
+  computed(() => messageListRef.value?.container)
+);
 
 const unreadMessagesCount = computed(() => {
-  return messages.value.filter(
-    (msg) => msg.senderId !== currentUserId.value && msg.status !== 'READ',
-  ).length
-})
+  return messages.value.filter(msg => msg.senderId !== currentUserId.value && msg.status !== 'READ')
+    .length;
+});
 
 // ==================== Выделение сообщений ====================
 const onSelectionChange = (selectedIds: Set<string>) => {
-  selectionMode.value = selectedIds.size > 0
-  selectedCount.value = selectedIds.size
-}
+  selectionMode.value = selectedIds.size > 0;
+  selectedCount.value = selectedIds.size;
+};
 
 const resetSelection = () => {
-  messageListRef.value?.resetSelection()
-}
+  messageListRef.value?.resetSelection();
+};
 
 const deleteSelectedMessages = () => {
-  messageListRef.value?.deleteSelected()
-}
+  messageListRef.value?.deleteSelected();
+};
 
 const handleDeleteMessages = async (ids: string[]) => {
-  if (!currentChat.value || ids.length === 0) return
+  if (!currentChat.value || ids.length === 0) return;
   try {
-    const success = await messageStore.deleteMessagesOnServer?.(currentChat.value.id, ids)
+    const success = await messageStore.deleteMessagesOnServer?.(currentChat.value.id, ids);
     if (success) {
-      messageStore.deleteMessagesLocally(currentChat.value.id, ids)
-      resetSelection()
+      messageStore.deleteMessagesLocally(currentChat.value.id, ids);
+      resetSelection();
     }
   } catch (error) {
-    console.error('Ошибка удаления сообщений:', error)
+    console.error('Ошибка удаления сообщений:', error);
   }
-}
+};
 
 // ==================== Ответ на выбранное сообщение ====================
 const replyToSelectedMessage = () => {
-  if (!messageListRef.value) return
-  const selectedIds = messageListRef.value.selectedIds
-  if (selectedIds.size !== 1) return
-  const selectedMessageId = Array.from(selectedIds)[0]
-  const message = messages.value.find((m) => m.id === selectedMessageId)
+  if (!messageListRef.value) return;
+  const selectedIds = messageListRef.value.selectedIds;
+  if (selectedIds.size !== 1) return;
+  const selectedMessageId = Array.from(selectedIds)[0];
+  const message = messages.value.find(m => m.id === selectedMessageId);
   if (message) {
-    messageStore.setReplyingToMessage(message)
-    resetSelection()
+    messageStore.setReplyingToMessage(message);
+    resetSelection();
     nextTick(() => {
-      chatInputRef.value?.focus()
-    })
+      chatInputRef.value?.focus();
+    });
   }
-}
+};
 
 // ==================== Отправка сообщений ====================
 const sendMessage = async (text: string, replyToId?: string, attachments?: Attachment[]) => {
-  if (!currentUserId.value || !companionId.value) return
-  sending.value = true
+  if (!currentUserId.value || !companionId.value) return;
+  sending.value = true;
   try {
-    let chat = currentChat.value
-    let isFirst = false
+    let chat = currentChat.value;
+    let isFirst = false;
     if (!chat) {
-      isFirst = true
-      const newChat = await chatStore.createOrGetChat(companionId.value)
-      chatStore.addChat(newChat)
-      currentChat.value = newChat
-      chat = newChat
-      await router.replace({ path: `/chats/${chat.id}`, query: route.query })
-      wsStore.subscribeToChat(chat.id)
+      isFirst = true;
+      const newChat = await chatStore.createOrGetChat(companionId.value);
+      chatStore.addChat(newChat);
+      currentChat.value = newChat;
+      chat = newChat;
+      await router.replace({ path: `/chats/${chat.id}`, query: route.query });
+      wsStore.subscribeToChat(chat.id);
     }
 
-    let replyContext = undefined
-    const replyingMsg = messageStore.replyingToMessage
+    let replyContext = undefined;
+    const replyingMsg = messageStore.replyingToMessage;
     if (replyToId && replyingMsg && replyingMsg.id === replyToId) {
-      let senderName = 'Пользователь'
+      let senderName = 'Пользователь';
       if (replyingMsg.senderId === currentUserId.value) {
-        const currentUser = userStore.user
+        const currentUser = userStore.user;
         if (currentUser?.profile.firstName && currentUser?.profile.lastName) {
-          senderName = `${currentUser.profile.firstName} ${currentUser.profile.lastName}`
+          senderName = `${currentUser.profile.firstName} ${currentUser.profile.lastName}`;
         } else {
-          senderName = currentUser?.profile.firstName || currentUser?.userName || 'Вы'
+          senderName = currentUser?.profile.firstName || currentUser?.userName || 'Вы';
         }
       } else {
-        const user = userStore.getUserFromCache(replyingMsg.senderId)
+        const user = userStore.getUserFromCache(replyingMsg.senderId);
         if (user) {
           if (user.profile.firstName && user.profile.lastName) {
-            senderName = `${user.profile.firstName} ${user.profile.lastName}`
+            senderName = `${user.profile.firstName} ${user.profile.lastName}`;
           } else {
-            senderName = user.profile.firstName || user.userName || 'Пользователь'
+            senderName = user.profile.firstName || user.userName || 'Пользователь';
           }
         }
       }
@@ -477,10 +476,10 @@ const sendMessage = async (text: string, replyToId?: string, attachments?: Attac
         textSnippet:
           replyingMsg.text.length > 50 ? replyingMsg.text.substring(0, 50) + '…' : replyingMsg.text,
         originalMessageId: replyingMsg.id,
-      }
+      };
     }
 
-    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const tempMessage: Message = {
       id: tempId,
       chatId: chat.id,
@@ -494,48 +493,48 @@ const sendMessage = async (text: string, replyToId?: string, attachments?: Attac
       createdAt: new Date().toISOString(),
       status: 'SENT',
       deletedAt: null,
-    }
+    };
 
-    messageStore.addMessage(chat.id, tempMessage)
-    wsStore.sendMessage(chat.id, companionId.value, tempMessage, isFirst, replyToId)
+    messageStore.addMessage(chat.id, tempMessage);
+    wsStore.sendMessage(chat.id, companionId.value, tempMessage, isFirst, replyToId);
 
-    if (replyToId) messageStore.clearReplyingToMessage()
+    if (replyToId) messageStore.clearReplyingToMessage();
 
-    scrollToBottom()
+    scrollToBottom();
   } catch (error) {
-    console.error('Ошибка отправки:', error)
-    alert('Не удалось отправить сообщение')
+    console.error('Ошибка отправки:', error);
+    alert('Не удалось отправить сообщение');
   } finally {
-    sending.value = false
+    sending.value = false;
   }
-}
+};
 
 const onTyping = (isTyping: boolean) => {
-  if (currentChat.value) wsStore.sendTyping(currentChat.value.id, isTyping)
-}
+  if (currentChat.value) wsStore.sendTyping(currentChat.value.id, isTyping);
+};
 
 // ==================== Разблокировка ====================
 const openConfirmBlockUser = () => {
-  showConfirmBlockUser.value = true
-}
+  showConfirmBlockUser.value = true;
+};
 
-const isBlocking = ref(false)
+const isBlocking = ref(false);
 
 const unblockUser = async () => {
-  if (!companionId.value) return
-  unblocking.value = true
-  isBlocking.value = true
+  if (!companionId.value) return;
+  unblocking.value = true;
+  isBlocking.value = true;
   try {
-    await userStore.removeFromBlackList(companionId.value)
-    showConfirmBlockUser.value = false
+    await userStore.removeFromBlackList(companionId.value);
+    showConfirmBlockUser.value = false;
   } catch (error) {
-    console.error('Ошибка разблокировки:', error)
-    alert('Не удалось разблокировать пользователя. Попробуйте позже.')
+    console.error('Ошибка разблокировки:', error);
+    alert('Не удалось разблокировать пользователя. Попробуйте позже.');
   } finally {
-    unblocking.value = false
-    isBlocking.value = false
+    unblocking.value = false;
+    isBlocking.value = false;
   }
-}
+};
 
 // ==================== Главная функция загрузки ====================
 /**
@@ -551,208 +550,211 @@ const loadChatFromUrl = async (): Promise<boolean> => {
   // 1. Себя — до всего остального, иначе participants не разобрать.
   if (!userStore.user?.id) {
     try {
-      await userStore.initAuth()
+      await userStore.initAuth();
     } catch (e) {
-      console.error('[ChatView] initAuth failed:', e)
+      console.error('[ChatView] initAuth failed:', e);
     }
   }
 
-  const chatId = route.params.chatId as string
-  const isNew = !chatId || chatId === 'new'
+  const chatId = route.params.chatId as string;
+  const isNew = !chatId || chatId === 'new';
 
   // 2. Для нового чата — companionId может прийти из query.
   //    Пробуем найти существующий диалог по участникам.
   if (isNew) {
     const queryCompanionId =
-      typeof route.query.companionId === 'string' ? route.query.companionId : ''
+      typeof route.query.companionId === 'string' ? route.query.companionId : '';
 
     if (queryCompanionId && currentUserId.value) {
       try {
-        const exist = await chatService.getChatByParticipants(currentUserId.value, queryCompanionId)
+        const exist = await chatService.getChatByParticipants(
+          currentUserId.value,
+          queryCompanionId
+        );
         if (exist) {
-          await router.replace({ path: `/chats/${exist.id}`, query: route.query })
-          currentChat.value = exist
-          chatStore.addChat(exist)
-          await wsStore.waitForConnection()
-          wsStore.subscribeToChat(exist.id)
-          await loadHistory()
+          await router.replace({ path: `/chats/${exist.id}`, query: route.query });
+          currentChat.value = exist;
+          chatStore.addChat(exist);
+          await wsStore.waitForConnection();
+          wsStore.subscribeToChat(exist.id);
+          await loadHistory();
         }
       } catch (e) {
-        console.error('[ChatView] getChatByParticipants failed:', e)
+        console.error('[ChatView] getChatByParticipants failed:', e);
       }
     }
   } else {
     // 3. Существующий чат — грузим из стора, иначе с бэка.
-    let chat = chatStore.getChatById(chatId)
+    let chat = chatStore.getChatById(chatId);
     if (!chat) {
       try {
-        chat = await chatService.getDirectChat(chatId)
-        if (chat) chatStore.addChat(chat)
+        chat = await chatService.getDirectChat(chatId);
+        if (chat) chatStore.addChat(chat);
       } catch (e) {
-        console.error('[ChatView] getDirectChat failed:', e)
+        console.error('[ChatView] getDirectChat failed:', e);
       }
     }
     if (chat) {
-      currentChat.value = chat
-      await wsStore.waitForConnection()
-      wsStore.subscribeToChat(chat.id)
-      await loadHistory()
+      currentChat.value = chat;
+      await wsStore.waitForConnection();
+      wsStore.subscribeToChat(chat.id);
+      await loadHistory();
     }
   }
 
   // 4. Резолвим companionId (query → participants)
-  companionId.value = resolveCompanionId()
+  companionId.value = resolveCompanionId();
   if (!companionId.value) {
     console.warn(
-      '[ChatView] companionId не определён — не удалось загрузить чат или отсутствует query',
-    )
-    return false
+      '[ChatView] companionId не определён — не удалось загрузить чат или отсутствует query'
+    );
+    return false;
   }
 
   // 5. Грузим собеседника (кэш → API) и дожидаемся
-  await loadCompanionUser(companionId.value)
+  await loadCompanionUser(companionId.value);
 
   // 6. Подписка на статус собеседника
   if (wsStore.isConnected) {
-    wsStore.subscribeToUserStatus(companionId.value)
+    wsStore.subscribeToUserStatus(companionId.value);
   } else {
-    await wsStore.waitForConnection()
-    wsStore.subscribeToUserStatus(companionId.value)
+    await wsStore.waitForConnection();
+    wsStore.subscribeToUserStatus(companionId.value);
   }
 
   // 7. WS-обработчики и таймер lastSeen
-  unsubscribeWebSocket = setupWebSocketHandlers()
+  unsubscribeWebSocket = setupWebSocketHandlers();
 
-  if (timeUpdateInterval) clearInterval(timeUpdateInterval)
+  if (timeUpdateInterval) clearInterval(timeUpdateInterval);
   timeUpdateInterval = setInterval(() => {
-    currentTime.value = Date.now()
-  }, 60000)
+    currentTime.value = Date.now();
+  }, 60000);
 
-  return true
-}
+  return true;
+};
 
 // ==================== Плавающая кнопка ====================
 const isLastUnreadFullyVisible = (): boolean => {
-  const container = messageListRef.value?.container
-  if (!container) return false
+  const container = messageListRef.value?.container;
+  if (!container) return false;
   const unreadMessages = messages.value.filter(
-    (msg) => msg.senderId !== currentUserId.value && msg.status !== 'READ',
-  )
-  if (unreadMessages.length === 0) return false
-  const lastUnread = unreadMessages[unreadMessages.length - 1]
-  const el = document.querySelector(`.chat-message[data-message-id="${lastUnread?.id}"]`)
-  if (!el) return false
-  const containerRect = container.getBoundingClientRect()
-  const elRect = el.getBoundingClientRect()
-  return elRect.top >= containerRect.top && elRect.bottom <= containerRect.bottom
-}
+    msg => msg.senderId !== currentUserId.value && msg.status !== 'READ'
+  );
+  if (unreadMessages.length === 0) return false;
+  const lastUnread = unreadMessages[unreadMessages.length - 1];
+  const el = document.querySelector(`.chat-message[data-message-id="${lastUnread?.id}"]`);
+  if (!el) return false;
+  const containerRect = container.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+  return elRect.top >= containerRect.top && elRect.bottom <= containerRect.bottom;
+};
 
-const showFloatingButton = ref(false)
+const showFloatingButton = ref(false);
 
 const updateFloatingButton = () => {
   if (isUserAtBottom.value) {
-    showFloatingButton.value = false
-    return
+    showFloatingButton.value = false;
+    return;
   }
   if (unreadMessagesCount.value > 0) {
-    showFloatingButton.value = !isLastUnreadFullyVisible()
+    showFloatingButton.value = !isLastUnreadFullyVisible();
   } else {
-    showFloatingButton.value = true
+    showFloatingButton.value = true;
   }
-}
+};
 
-let throttleTimer: ReturnType<typeof setTimeout> | null = null
+let throttleTimer: ReturnType<typeof setTimeout> | null = null;
 const throttledUpdate = () => {
-  if (throttleTimer) return
+  if (throttleTimer) return;
   throttleTimer = setTimeout(() => {
-    updateFloatingButton()
-    throttleTimer = null
-  }, 100)
-}
+    updateFloatingButton();
+    throttleTimer = null;
+  }, 100);
+};
 
 watch(
   () => messageListRef.value?.container,
-  (container) => {
-    if (!container) return
-    container.addEventListener('scroll', throttledUpdate)
-    return () => container.removeEventListener('scroll', throttledUpdate)
+  container => {
+    if (!container) return;
+    container.addEventListener('scroll', throttledUpdate);
+    return () => container.removeEventListener('scroll', throttledUpdate);
   },
-  { immediate: true },
-)
+  { immediate: true }
+);
 
 watch(
   [messages, unreadMessagesCount, () => messageListRef.value?.container],
   () => updateFloatingButton(),
-  { deep: true, immediate: true },
-)
+  { deep: true, immediate: true }
+);
 
-watch(isUserAtBottom, () => updateFloatingButton())
+watch(isUserAtBottom, () => updateFloatingButton());
 
 // ==================== Пометить все сообщения как прочитанные ====================
 const markAllUnreadAsRead = () => {
-  if (!currentChat.value) return
-  const chatId = currentChat.value.id
+  if (!currentChat.value) return;
+  const chatId = currentChat.value.id;
 
   const unreadMessages = messages.value.filter(
-    (msg) => msg.senderId !== currentUserId.value && msg.status !== 'READ',
-  )
+    msg => msg.senderId !== currentUserId.value && msg.status !== 'READ'
+  );
 
-  if (unreadMessages.length === 0) return
+  if (unreadMessages.length === 0) return;
 
-  messageStore.markAllAsRead(chatId, currentUserId.value)
-  wsStore.markAllAsRead(chatId)
-}
+  messageStore.markAllAsRead(chatId, currentUserId.value);
+  wsStore.markAllAsRead(chatId);
+};
 
 const onFloatingButtonClick = () => {
-  markAllUnreadAsRead()
-  scrollToBottom()
-}
+  markAllUnreadAsRead();
+  scrollToBottom();
+};
 
 // Меню
-const menuChat = ref<Chat | null>(null)
+const menuChat = ref<Chat | null>(null);
 
 const openMenu = () => {
-  menuChat.value = currentChat.value
-}
+  menuChat.value = currentChat.value;
+};
 
 const closeMenu = () => {
-  menuChat.value = null
-}
+  menuChat.value = null;
+};
 
 // ==================== WebSocket обработчики ====================
 const setupWebSocketHandlers = () => {
-  const handler = (message: Message) => {}
-  wsStore.onMessageNew(handler)
-  return () => wsStore.offMessageNew(handler)
-}
+  const handler = (message: Message) => {};
+  wsStore.onMessageNew(handler);
+  return () => wsStore.offMessageNew(handler);
+};
 
-let unsubscribeWebSocket: (() => void) | null = null
+let unsubscribeWebSocket: (() => void) | null = null;
 
 // ==================== Жизненный цикл ====================
 onMounted(async () => {
-  await loadChatFromUrl()
-})
+  await loadChatFromUrl();
+});
 
 onUnmounted(() => {
   if (timeUpdateInterval) {
-    clearInterval(timeUpdateInterval)
-    timeUpdateInterval = null
+    clearInterval(timeUpdateInterval);
+    timeUpdateInterval = null;
   }
   if (companionId.value) {
-    wsStore.unsubscribeFromUserStatus(companionId.value)
+    wsStore.unsubscribeFromUserStatus(companionId.value);
   }
-  if (unsubscribeWebSocket) unsubscribeWebSocket()
-  cleanupObserver()
-  if (currentChat.value) wsStore.unsubscribeFromChat(currentChat.value.id)
-})
+  if (unsubscribeWebSocket) unsubscribeWebSocket();
+  cleanupObserver();
+  if (currentChat.value) wsStore.unsubscribeFromChat(currentChat.value.id);
+});
 
 // ==================== Автоскролл при новых сообщениях ====================
 watch(
   messages,
   async (newMessages, oldMessages) => {
-    if (!currentChat.value || !newMessages.length) return
-    const newLast = newMessages[newMessages.length - 1]
-    const oldLast = oldMessages?.[oldMessages.length - 1]
+    if (!currentChat.value || !newMessages.length) return;
+    const newLast = newMessages[newMessages.length - 1];
+    const oldLast = oldMessages?.[oldMessages.length - 1];
     if (
       newMessages.length !== oldMessages?.length &&
       newLast &&
@@ -760,13 +762,13 @@ watch(
       newLast.senderId === companionId.value &&
       isUserAtBottom.value
     ) {
-      await nextTick()
-      scrollToBottom()
+      await nextTick();
+      scrollToBottom();
     }
   },
-  { deep: false },
-)
+  { deep: false }
+);
 
 // ==================== Навигация ====================
-const goBack = () => router.push('/')
+const goBack = () => router.push('/');
 </script>

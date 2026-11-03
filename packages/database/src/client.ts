@@ -1,23 +1,34 @@
-import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { drizzle as drizzlePglite, type PgliteDatabase } from 'drizzle-orm/pglite'
-import { PGlite } from '@electric-sql/pglite'
-import { Pool } from 'pg'
-import * as schema from './schema'
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle as drizzlePglite } from 'drizzle-orm/pglite';
+import postgres from 'postgres';
+import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
+import * as schema from './schema/index.js';
+import { PgDatabase } from 'drizzle-orm/pg-core';
 
-export type Db = NodePgDatabase<typeof schema> | PgliteDatabase<typeof schema>
+export type DbInstance = PgDatabase<any, any, any>;
 
-export type DbConfig =
-  | { driver: 'pglite'; dataDir?: string }
-  | { driver: 'postgres'; connectionString: string; max?: number }
+export interface DbOptions {
+  driver: 'pglite' | 'postgres';
+  dataDir?: string;
+  connectionString?: string;
+  maxPool?: number;
+}
+export async function createDb(options: DbOptions) {
+  if (options.driver === 'pglite') {
+    const client = new PGlite(options.dataDir ?? './.pgdata');
+    const db = drizzlePglite(client, { schema });
 
-export async function createDb(config: DbConfig): Promise<{ db: Db; close: () => Promise<void> }> {
-  if (config.driver === 'pglite') {
-    const client = await PGlite.create(config.dataDir ?? 'memory://')
-    const db = drizzlePglite(client, { schema })
-    return { db, close: () => client.close() }
+    return {
+      db,
+      close: () => client.close(),
+    };
   }
 
-  const pool = new Pool({ connectionString: config.connectionString, max: config.max })
-  const db = drizzlePg(pool, { schema })
-  return { db, close: () => pool.end() }
+  const client = postgres(options.connectionString!, { max: options.maxPool ?? 5 });
+  const db = drizzlePostgres(client, { schema });
+
+  return {
+    db,
+    close: () => client.end(),
+  };
 }

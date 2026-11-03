@@ -182,93 +182,93 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/userStore'
-import type { User } from '@messenger/shared-schema'
-import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient'
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
+import type { User } from '@messenger/shared-schema';
+import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient';
 
-const router = useRouter()
-const userStore = useUserStore()
+const router = useRouter();
+const userStore = useUserStore();
 
-const blockedUsers = ref<User[]>([])
-const loading = ref(false)
-const activeMenu = ref<string | null>(null)
-const unblocking = ref<Record<string, boolean>>({})
+const blockedUsers = ref<User[]>([]);
+const loading = ref(false);
+const activeMenu = ref<string | null>(null);
+const unblocking = ref<Record<string, boolean>>({});
 
 // ========== Функции отображения ==========
 function getDisplayName(user: User): string {
-  const firstName = user.profile?.firstName || ''
-  const lastName = user.profile?.lastName || ''
+  const firstName = user.profile?.firstName || '';
+  const lastName = user.profile?.lastName || '';
   if (firstName || lastName) {
-    return `${firstName} ${lastName}`.trim()
+    return `${firstName} ${lastName}`.trim();
   }
-  return user.userName
+  return user.userName;
 }
 
 function getInitials(user: User): string {
-  const name = getDisplayName(user)
-  return getInitialsFromName(name)
+  const name = getDisplayName(user);
+  return getInitialsFromName(name);
 }
 
 function getAvatarClass(user: User): string {
-  if (user.profile?.avatarThumbUrl) return ''
-  if (user.isDeleted) return 'bg-gradient-to-br from-gray-500 to-gray-700'
-  return getAvatarGradient(user.id)
+  if (user.profile?.avatarThumbUrl) return '';
+  if (user.isDeleted) return 'bg-gradient-to-br from-gray-500 to-gray-700';
+  return getAvatarGradient(user.id);
 }
 
 // ========== Управление меню ==========
 const toggleMenu = (userId: string) => {
-  activeMenu.value = activeMenu.value === userId ? null : userId
-}
+  activeMenu.value = activeMenu.value === userId ? null : userId;
+};
 
 const closeMenu = () => {
-  activeMenu.value = null
-}
+  activeMenu.value = null;
+};
 
 // ========== Загрузка пользователей ==========
 const loadBlockedUsers = async () => {
   // Проверяем, есть ли ID в чёрном списке
-  const blackListIds = userStore.user?.blackListIds
+  const blackListIds = userStore.user?.blackListIds;
   if (!blackListIds || blackListIds.length === 0) {
-    blockedUsers.value = []
-    loading.value = false
-    return
+    blockedUsers.value = [];
+    loading.value = false;
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
   try {
-    blockedUsers.value = await userStore.fetchBlacklistedUsers()
+    blockedUsers.value = await userStore.fetchBlacklistedUsers();
   } catch (error) {
-    console.error('Ошибка загрузки чёрного списка:', error)
-    blockedUsers.value = []
+    console.error('Ошибка загрузки чёрного списка:', error);
+    blockedUsers.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // ========== Удаление из чёрного списка ==========
 const removeFromBlacklist = async (userId: string) => {
-  unblocking.value[userId] = true
+  unblocking.value[userId] = true;
   try {
-    await userStore.removeFromBlackList(userId)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    await loadBlockedUsers()
-    closeMenu()
+    await userStore.removeFromBlackList(userId);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await loadBlockedUsers();
+    closeMenu();
   } catch (error) {
-    console.error('Ошибка удаления из черного списка:', error)
+    console.error('Ошибка удаления из черного списка:', error);
   } finally {
-    unblocking.value[userId] = false
+    unblocking.value[userId] = false;
   }
-}
+};
 
 onMounted(() => {
-  loadBlockedUsers()
-})
+  loadBlockedUsers();
+});
 
 const goBack = () => {
-  router.back()
-}
+  router.back();
+};
 </script>
 
 <style scoped>

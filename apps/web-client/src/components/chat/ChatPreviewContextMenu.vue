@@ -239,89 +239,89 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Chat } from '@/types/index'
-import { useChatStore } from '@/stores/chatStore'
-import { useMessageStore } from '@/stores/messageStore'
-import { useUserStore } from '@/stores/userStore'
+import { ref } from 'vue';
+import type { Chat } from '@/types/index';
+import { useChatStore } from '@/stores/chatStore';
+import { useMessageStore } from '@/stores/messageStore';
+import { useUserStore } from '@/stores/userStore';
 
 const props = defineProps<{
-  chat: Chat | null
-}>()
+  chat: Chat | null;
+}>();
 
 const emit = defineEmits<{
-  close: []
-}>()
+  close: [];
+}>();
 
-const chatStore = useChatStore()
-const messageStore = useMessageStore()
-const userStore = useUserStore()
+const chatStore = useChatStore();
+const messageStore = useMessageStore();
+const userStore = useUserStore();
 
 // Состояния для диалогов подтверждения
-const showConfirmDelete = ref(false)
-const showConfirmClearHistory = ref(false)
+const showConfirmDelete = ref(false);
+const showConfirmClearHistory = ref(false);
 
 const close = () => {
-  emit('close')
-}
+  emit('close');
+};
 
 // Открыть подтверждение удаления чата
 const openConfirmDelete = () => {
-  showConfirmDelete.value = true
-}
+  showConfirmDelete.value = true;
+};
 
 const closeConfirmDelete = () => {
-  showConfirmDelete.value = false
-}
+  showConfirmDelete.value = false;
+};
 
 // Открыть подтверждение очистки истории
 const openConfirmClearHistory = () => {
-  showConfirmClearHistory.value = true
-}
+  showConfirmClearHistory.value = true;
+};
 
 const closeConfirmClearHistory = () => {
-  showConfirmClearHistory.value = false
-}
+  showConfirmClearHistory.value = false;
+};
 
 // Реальное удаление чата
 const proceedDelete = async () => {
-  if (!props.chat) return
-  const userId = userStore.user?.id
-  if (!userId) return
+  if (!props.chat) return;
+  const userId = userStore.user?.id;
+  if (!userId) return;
   try {
-    await chatStore.deleteChat(props.chat.id, userId.toString())
-    messageStore.clearMessages(props.chat.id)
+    await chatStore.deleteChat(props.chat.id, userId.toString());
+    messageStore.clearMessages(props.chat.id);
   } catch (error) {
-    console.error('Ошибка удаления чата', error)
+    console.error('Ошибка удаления чата', error);
   }
-  closeConfirmDelete()
-  close()
-}
+  closeConfirmDelete();
+  close();
+};
 
 // Реальная очистка истории
 const proceedClearHistory = async () => {
-  if (!props.chat) return
+  if (!props.chat) return;
   try {
-    await chatStore.clearChatHistory(props.chat.id)
-    closeConfirmClearHistory()
-    close()
+    await chatStore.clearChatHistory(props.chat.id);
+    closeConfirmClearHistory();
+    close();
   } catch (error) {
-    console.error('Ошибка очистки истории:', error)
+    console.error('Ошибка очистки истории:', error);
     // можно показать тост или оставить диалог открытым
   }
-}
+};
 
 // Отключение уведомлений (без подтверждения)
 const handleMute = () => {
-  if (!props.chat) return
-  console.log('Отключить уведомления для чата', props.chat.id)
-  close()
-}
+  if (!props.chat) return;
+  console.log('Отключить уведомления для чата', props.chat.id);
+  close();
+};
 
 // Закрепление чата (без подтверждения)
 const handlePin = () => {
-  if (!props.chat) return
-  console.log('Закрепить чат', props.chat.id)
-  close()
-}
+  if (!props.chat) return;
+  console.log('Закрепить чат', props.chat.id);
+  close();
+};
 </script>

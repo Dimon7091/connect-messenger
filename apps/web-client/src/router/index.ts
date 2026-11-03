@@ -1,20 +1,20 @@
 // router/index.ts
-import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
-import LoginView from '../views/AuthView.vue'
-import HomeView from '../views/HomeView.vue'
-import { useUserStore } from '@/stores/userStore'
-import ChatsWindow from '@/views/home/ChatsWindow.vue'
-import ProfileWindow from '@/views/home/ProfileWindow.vue'
-import SettingsWindow from '@/views/home/SettingsWindow.vue'
-import FullscreenChatView from '@/views/FullscreenChatView.vue'
-import SearchView from '@/views/SearchView.vue'
-import BlackList from '@/views/BlackListView.vue'
-import { useWebSocketStore } from '@/stores/webSocketStore'
+import { createRouter, createWebHistory } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
+import LoginView from '../views/AuthView.vue';
+import HomeView from '../views/HomeView.vue';
+import { useUserStore } from '@/stores/userStore';
+import ChatsWindow from '@/views/home/ChatsWindow.vue';
+import ProfileWindow from '@/views/home/ProfileWindow.vue';
+import SettingsWindow from '@/views/home/SettingsWindow.vue';
+import FullscreenChatView from '@/views/FullscreenChatView.vue';
+import SearchView from '@/views/SearchView.vue';
+import BlackList from '@/views/BlackListView.vue';
+import { useWebSocketStore } from '@/stores/webSocketStore';
 
 declare module 'vue-router' {
   interface RouteMeta {
-    requiresAuth?: boolean
+    requiresAuth?: boolean;
   }
 }
 
@@ -68,45 +68,45 @@ const routes: RouteRecordRaw[] = [
     component: BlackList,
     meta: { requiresAuth: true, fullscreen: true },
   },
-]
+];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-})
+});
 
 /**
  * Навигационный гард
  */
-router.beforeEach(async (to) => {
-  const userStore = useUserStore()
+router.beforeEach(async to => {
+  const userStore = useUserStore();
 
   // 1. Сначала инициализируем авторизацию (восстанавливаем сессию),
   // если это еще не было сделано при загрузке страницы
   if (!userStore.isInitialized) {
-    await userStore.initAuth()
+    await userStore.initAuth();
   }
 
-  const isAuthenticated = !!userStore.user
+  const isAuthenticated = !!userStore.user;
 
   // 2. Если страница требует авторизации, а юзер не залогинен
   if (to.meta.requiresAuth && !isAuthenticated) {
-    return { name: 'login' }
+    return { name: 'login' };
   }
 
   // 3. Если юзер залогинен и пытается зайти на страницу логина
   if (to.name === 'login' && isAuthenticated) {
-    return { name: 'home' }
+    return { name: 'home' };
   }
 
   if (userStore.isAuthenticated && userStore.token) {
-    const wsStore = useWebSocketStore()
-    wsStore.init()
-    console.log(`WebSocket connection status`)
+    const wsStore = useWebSocketStore();
+    wsStore.init();
+    console.log(`WebSocket connection status`);
   }
 
   // В остальных случаях разрешаем переход
-  return true
-})
+  return true;
+});
 
-export default router
+export default router;

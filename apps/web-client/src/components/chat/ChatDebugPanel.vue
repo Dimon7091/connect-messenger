@@ -7,12 +7,12 @@
 </template>
 
 <script setup lang="ts">
-import { useWebSocketStore } from '@/stores/webSocketStore'
+import { useWebSocketStore } from '@/stores/webSocketStore';
 
 defineProps<{
-  isSubscribed: boolean
-  messagesCount: number
-}>()
+  isSubscribed: boolean;
+  messagesCount: number;
+}>();
 
-const wsStore = useWebSocketStore()
+const wsStore = useWebSocketStore();
 </script>

@@ -129,33 +129,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
 const props = defineProps<{
-  selectedCount: number
-  selectionMode: boolean
-}>()
+  selectedCount: number;
+  selectionMode: boolean;
+}>();
 
 const emit = defineEmits<{
-  (e: 'reset'): void
-  (e: 'reply'): void
-  (e: 'delete'): void
-}>()
+  (e: 'reset'): void;
+  (e: 'reply'): void;
+  (e: 'delete'): void;
+}>();
 
-const showConfirmDelete = ref(false)
+const showConfirmDelete = ref(false);
 
 const openConfirmDelete = () => {
   // ✅ Используем props.selectedCount
-  if (props.selectedCount === 0) return
-  showConfirmDelete.value = true
-}
+  if (props.selectedCount === 0) return;
+  showConfirmDelete.value = true;
+};
 
 const closeConfirmDelete = () => {
-  showConfirmDelete.value = false
-}
+  showConfirmDelete.value = false;
+};
 
 const confirmDelete = () => {
-  emit('delete')
-  closeConfirmDelete()
-}
+  emit('delete');
+  closeConfirmDelete();
+};
 </script>

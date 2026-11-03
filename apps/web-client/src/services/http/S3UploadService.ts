@@ -1,8 +1,8 @@
 // services/S3UploadService.ts
-import { httpClient } from './HttpClient'
-import type { FileInitRequest, FileInitResponse } from '@/types/index'
+import { httpClient } from './HttpClient';
+import type { FileInitRequest, FileInitResponse } from '@/types/index';
 
-export type UploadProgressCallback = (percent: number) => void
+export type UploadProgressCallback = (percent: number) => void;
 
 /**
  * Словарь популярных MIME-типов, сгруппированных по категориям.
@@ -79,7 +79,7 @@ const POPULAR_MIME_TYPES: Record<string, string> = {
   tar: 'application/x-tar',
   gz: 'application/gzip',
   json: 'application/json',
-}
+};
 
 /**
  * Надежное определение MIME-типа файла по его имени/расширению
@@ -87,25 +87,25 @@ const POPULAR_MIME_TYPES: Record<string, string> = {
 function getMimeType(file: File): string {
   // 1. Если браузер сам успешно определил тип, используем его
   if (file.type && file.type.trim() !== '') {
-    return file.type
+    return file.type;
   }
 
   // 2. Если тип пустой, достаем расширение из имени файла
-  const filename = file.name || ''
-  const dotIndex = filename.lastIndexOf('.')
+  const filename = file.name || '';
+  const dotIndex = filename.lastIndexOf('.');
 
   if (dotIndex > 0 && dotIndex < filename.length - 1) {
-    const extension = filename.slice(dotIndex + 1).toLowerCase()
+    const extension = filename.slice(dotIndex + 1).toLowerCase();
 
-    const matchedMime = POPULAR_MIME_TYPES[extension]
+    const matchedMime = POPULAR_MIME_TYPES[extension];
     // TypeScript видит проверку и гарантирует, что здесь строго string, а не string | undefined
     if (matchedMime) {
-      return matchedMime
+      return matchedMime;
     }
   }
 
   // 3. Дефолтный бинарный тип, если ничего не подошло
-  return 'application/octet-stream'
+  return 'application/octet-stream';
 }
 
 /**
@@ -120,10 +120,10 @@ class S3UploadService {
       fileName: file.name,
       mimeType: mimeType,
       fileSize: file.size.toString(),
-    }
+    };
 
-    const response = await httpClient.post<FileInitResponse>('/v1/media/upload-url', requestBody)
-    return response.data!
+    const response = await httpClient.post<FileInitResponse>('/v1/media/upload-url', requestBody);
+    return response.data!;
   }
 
   /**
@@ -133,34 +133,34 @@ class S3UploadService {
     uploadUrl: string,
     file: File,
     mimeType: string,
-    onProgress?: UploadProgressCallback,
+    onProgress?: UploadProgressCallback
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      xhr.open('PUT', uploadUrl)
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', uploadUrl);
 
       // Передаем строго вычисленный MIME-тип
-      xhr.setRequestHeader('Content-Type', mimeType)
+      xhr.setRequestHeader('Content-Type', mimeType);
 
-      xhr.upload.onprogress = (event) => {
+      xhr.upload.onprogress = event => {
         if (onProgress && event.lengthComputable) {
-          const percent = Math.round((event.loaded * 100) / event.total)
-          onProgress(percent)
+          const percent = Math.round((event.loaded * 100) / event.total);
+          onProgress(percent);
         }
-      }
+      };
 
       xhr.onload = () => {
         if (xhr.status === 200 || xhr.status === 201) {
-          resolve()
+          resolve();
         } else {
-          console.error('Upload failed:', xhr.status, xhr.responseText)
-          reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`))
+          console.error('Upload failed:', xhr.status, xhr.responseText);
+          reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`));
         }
-      }
+      };
 
-      xhr.onerror = () => reject(new Error('Network error during upload'))
-      xhr.send(file)
-    })
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.send(file);
+    });
   }
 
   /**
@@ -168,10 +168,10 @@ class S3UploadService {
    */
   async uploadFile(
     file: File,
-    onProgress?: UploadProgressCallback,
+    onProgress?: UploadProgressCallback
   ): Promise<{ fileKey: string; mimeType: string; fileName: string; size: string }> {
     // 1. Вычисляем MIME-тип один раз на клиенте
-    const clientMimeType = getMimeType(file)
+    const clientMimeType = getMimeType(file);
 
     // 2. Получаем подписанную ссылку
     const {
@@ -180,20 +180,20 @@ class S3UploadService {
       mimeType: responseMimeType,
       fileName,
       size,
-    } = await this.initUpload(file, clientMimeType)
+    } = await this.initUpload(file, clientMimeType);
 
     // 3. Загружаем в S3. Если бэкенд вернул пустой mimeType в FileInitResponse,
     // подстраховываемся и берем наш clientMimeType, чтобы избежать 'string | undefined'
-    const finalMimeType = responseMimeType ?? clientMimeType
+    const finalMimeType = responseMimeType ?? clientMimeType;
 
-    await this.uploadToS3(uploadUrl, file, finalMimeType, onProgress)
+    await this.uploadToS3(uploadUrl, file, finalMimeType, onProgress);
 
     return {
       fileKey,
       mimeType: finalMimeType,
       fileName: fileName ?? file.name,
       size: size ?? file.size.toString(),
-    }
+    };
   }
 
   /**
@@ -202,9 +202,9 @@ class S3UploadService {
   async getDownloadUrl(fileKey: string): Promise<string> {
     const response = await httpClient.post<{ downloadUrl: string }>('/v1/media/download-url', {
       fileKey,
-    })
-    return response.data!.downloadUrl
+    });
+    return response.data!.downloadUrl;
   }
 }
 
-export const s3UploadService = new S3UploadService()
+export const s3UploadService = new S3UploadService();

@@ -57,257 +57,257 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useChatStore } from '@/stores/chatStore'
-import { useUserStore } from '@/stores/userStore'
-import { useWebSocketStore } from '@/stores/webSocketStore'
-import type { Chat } from '@/types/index'
-import type { User } from '@messenger/shared-schema'
-import ChatPreview from '@/components/chat/ChatPreview.vue'
-import ChatContextMenu from '@/components/chat/ChatContextMenu.vue'
-import AddChatBottom from '@/components/AddChatButton.vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useChatStore } from '@/stores/chatStore';
+import { useUserStore } from '@/stores/userStore';
+import { useWebSocketStore } from '@/stores/webSocketStore';
+import type { Chat } from '@/types/index';
+import type { User } from '@messenger/shared-schema';
+import ChatPreview from '@/components/chat/ChatPreview.vue';
+import ChatContextMenu from '@/components/chat/ChatContextMenu.vue';
+import AddChatBottom from '@/components/AddChatButton.vue';
 
-const router = useRouter()
-const chatStore = useChatStore()
-const userStore = useUserStore()
-const wsStore = useWebSocketStore()
+const router = useRouter();
+const chatStore = useChatStore();
+const userStore = useUserStore();
+const wsStore = useWebSocketStore();
 
 // Множество подписанных пользователей (чтобы не подписываться повторно)
-const subscribedUsers = ref<Set<string>>(new Set())
+const subscribedUsers = ref<Set<string>>(new Set());
 // Множество подписанных чатов (для получения событий печатания)
-const subscribedChats = ref<Set<string>>(new Set())
+const subscribedChats = ref<Set<string>>(new Set());
 
 // Меню
-const menuChat = ref<Chat | null>(null)
+const menuChat = ref<Chat | null>(null);
 
 // Получаем список чатов
-const chats = computed(() => chatStore.sortedChats)
+const chats = computed(() => chatStore.sortedChats);
 
 // Получить компаньона из кэша userStore
 const getChatCompanion = (chat: Chat): User | null => {
-  if (chat.type === 'GROUP') return null
-  const currentUserId = userStore.user?.id
-  if (!currentUserId) return null
-  const companionId = chat.participants.find((id) => id.toString() !== currentUserId.toString())
-  if (!companionId) return null
-  return userStore.getUserFromCache(companionId.toString())
-}
+  if (chat.type === 'GROUP') return null;
+  const currentUserId = userStore.user?.id;
+  if (!currentUserId) return null;
+  const companionId = chat.participants.find(id => id.toString() !== currentUserId.toString());
+  if (!companionId) return null;
+  return userStore.getUserFromCache(companionId.toString());
+};
 
 // ID компаньона для выбранного чата (для передачи в меню)
 const companionIdForMenu = computed(() => {
-  if (!menuChat.value) return ''
-  const companion = getChatCompanion(menuChat.value)
-  return companion?.id || ''
-})
+  if (!menuChat.value) return '';
+  const companion = getChatCompanion(menuChat.value);
+  return companion?.id || '';
+});
 
 // Подписка на статусы пользователей
 const subscribeToUserStatuses = (userIds: string[]) => {
   for (const userId of userIds) {
     if (!subscribedUsers.value.has(userId)) {
-      wsStore.subscribeToUserStatus(userId)
-      subscribedUsers.value.add(userId)
-      console.log(`Подписались на статус пользователя ${userId}`)
+      wsStore.subscribeToUserStatus(userId);
+      subscribedUsers.value.add(userId);
+      console.log(`Подписались на статус пользователя ${userId}`);
     }
   }
-}
+};
 
 // Отписка от статусов
 const unsubscribeFromUserStatuses = (userIds: string[]) => {
   for (const userId of userIds) {
     if (subscribedUsers.value.has(userId)) {
-      wsStore.unsubscribeFromUserStatus(userId)
-      subscribedUsers.value.delete(userId)
-      console.log(`Отписались от статуса пользователя ${userId}`)
+      wsStore.unsubscribeFromUserStatus(userId);
+      subscribedUsers.value.delete(userId);
+      console.log(`Отписались от статуса пользователя ${userId}`);
     }
   }
-}
+};
 
 // Подписка на чаты (для получения событий печатания)
 const subscribeToChats = () => {
   for (const chat of chats.value) {
     if (!subscribedChats.value.has(chat.id)) {
-      wsStore.subscribeToChat(chat.id)
-      subscribedChats.value.add(chat.id)
-      console.log(`Подписались на чат ${chat.id}`)
+      wsStore.subscribeToChat(chat.id);
+      subscribedChats.value.add(chat.id);
+      console.log(`Подписались на чат ${chat.id}`);
     }
   }
-}
+};
 
 // Отписка от всех чатов
 const unsubscribeFromChats = () => {
   for (const chatId of subscribedChats.value) {
-    wsStore.unsubscribeFromChat(chatId)
+    wsStore.unsubscribeFromChat(chatId);
   }
-  subscribedChats.value.clear()
-  console.log('Отписались от всех чатов')
-}
+  subscribedChats.value.clear();
+  console.log('Отписались от всех чатов');
+};
 
 // Загрузить компаньонов и подписаться на статусы / чаты
 const loadCompanions = async () => {
-  const currentUserId = userStore.user?.id
-  if (!currentUserId) return
+  const currentUserId = userStore.user?.id;
+  if (!currentUserId) return;
 
-  const companionIds = new Set<string>()
+  const companionIds = new Set<string>();
   for (const chat of chats.value) {
     if (chat.type === 'DIRECT') {
-      const companionId = chat.participants.find((id) => id.toString() !== currentUserId.toString())
+      const companionId = chat.participants.find(id => id.toString() !== currentUserId.toString());
       if (companionId) {
-        companionIds.add(companionId.toString())
+        companionIds.add(companionId.toString());
       }
     }
   }
 
-  if (companionIds.size === 0) return
+  if (companionIds.size === 0) return;
 
   // Загружаем данные компаньонов в кэш (если их там ещё нет)
-  await Promise.all(Array.from(companionIds).map((id) => userStore.getUserById(id)))
+  await Promise.all(Array.from(companionIds).map(id => userStore.getUserById(id)));
 
   if (wsStore.isConnected) {
-    subscribeToUserStatuses(Array.from(companionIds))
-    subscribeToChats()
+    subscribeToUserStatuses(Array.from(companionIds));
+    subscribeToChats();
   } else {
-    console.log('WebSocket не подключён, подписки будут установлены позже')
+    console.log('WebSocket не подключён, подписки будут установлены позже');
   }
-}
+};
 
 // Обновить подписки при изменении списка чатов
 const updateSubscriptions = () => {
-  const currentUserId = userStore.user?.id
-  if (!currentUserId) return
+  const currentUserId = userStore.user?.id;
+  if (!currentUserId) return;
 
-  const currentCompanionIds = new Set<string>()
+  const currentCompanionIds = new Set<string>();
   for (const chat of chats.value) {
     if (chat.type === 'DIRECT') {
-      const companionId = chat.participants.find((id) => id.toString() !== currentUserId.toString())
+      const companionId = chat.participants.find(id => id.toString() !== currentUserId.toString());
       if (companionId) {
-        currentCompanionIds.add(companionId.toString())
+        currentCompanionIds.add(companionId.toString());
       }
     }
   }
 
   // Управление подписками на статусы
   const toUnsubscribe = Array.from(subscribedUsers.value).filter(
-    (userId) => !currentCompanionIds.has(userId),
-  )
+    userId => !currentCompanionIds.has(userId)
+  );
   if (toUnsubscribe.length) {
-    unsubscribeFromUserStatuses(toUnsubscribe)
+    unsubscribeFromUserStatuses(toUnsubscribe);
   }
 
   const toSubscribe = Array.from(currentCompanionIds).filter(
-    (userId) => !subscribedUsers.value.has(userId),
-  )
+    userId => !subscribedUsers.value.has(userId)
+  );
   if (toSubscribe.length) {
-    Promise.all(toSubscribe.map((id) => userStore.getUserById(id))).then(() => {
+    Promise.all(toSubscribe.map(id => userStore.getUserById(id))).then(() => {
       if (wsStore.isConnected) {
-        subscribeToUserStatuses(toSubscribe)
+        subscribeToUserStatuses(toSubscribe);
       }
-    })
+    });
   }
 
   // Управление подписками на чаты (для печатания)
-  const currentChatIds = new Set(chats.value.map((chat) => chat.id))
-  const toUnsubChats = Array.from(subscribedChats.value).filter((id) => !currentChatIds.has(id))
+  const currentChatIds = new Set(chats.value.map(chat => chat.id));
+  const toUnsubChats = Array.from(subscribedChats.value).filter(id => !currentChatIds.has(id));
   if (toUnsubChats.length) {
     for (const chatId of toUnsubChats) {
-      wsStore.unsubscribeFromChat(chatId)
-      subscribedChats.value.delete(chatId)
+      wsStore.unsubscribeFromChat(chatId);
+      subscribedChats.value.delete(chatId);
     }
   }
-  const toSubChats = Array.from(currentChatIds).filter((id) => !subscribedChats.value.has(id))
+  const toSubChats = Array.from(currentChatIds).filter(id => !subscribedChats.value.has(id));
   if (toSubChats.length && wsStore.isConnected) {
     for (const chatId of toSubChats) {
-      wsStore.subscribeToChat(chatId)
-      subscribedChats.value.add(chatId)
+      wsStore.subscribeToChat(chatId);
+      subscribedChats.value.add(chatId);
     }
   }
-}
+};
 
 // Открыть чат
 const openChat = (chat: Chat) => {
   if (chat.type === 'GROUP') {
     router.push({
       path: `/chats/${chat.id}`,
-    })
-    return
+    });
+    return;
   }
 
-  const currentUserId = userStore.user?.id
-  if (!currentUserId) return
+  const currentUserId = userStore.user?.id;
+  if (!currentUserId) return;
 
-  const companionId = chat.participants.find((id) => id.toString() !== currentUserId.toString())
-  if (!companionId) return
+  const companionId = chat.participants.find(id => id.toString() !== currentUserId.toString());
+  if (!companionId) return;
 
-  const companion = userStore.getUserFromCache(companionId.toString())
+  const companion = userStore.getUserFromCache(companionId.toString());
   if (!companion) {
-    console.error('Компаньон не найден для чата:', chat.id)
-    return
+    console.error('Компаньон не найден для чата:', chat.id);
+    return;
   }
 
   router.push({
     path: `/chats/${chat.id}`,
-  })
-}
+  });
+};
 
 const openMenu = (chat: Chat) => {
-  menuChat.value = chat
-}
+  menuChat.value = chat;
+};
 const closeMenu = () => {
-  menuChat.value = null
-}
+  menuChat.value = null;
+};
 
 // Следим за изменением чатов
 watch(
   chats,
   () => {
     if (!chatStore.loading) {
-      updateSubscriptions()
+      updateSubscriptions();
     }
   },
-  { deep: true },
-)
+  { deep: true }
+);
 
 // Обработчик подключения WebSocket (для восстановления подписок)
-let unsubscribeConnection: (() => void) | null = null
+let unsubscribeConnection: (() => void) | null = null;
 
 onMounted(async () => {
-  console.log('ChatList mounted')
-  const currentUserId = userStore.user?.id
+  console.log('ChatList mounted');
+  const currentUserId = userStore.user?.id;
   if (!currentUserId) {
-    console.warn('Пользователь не авторизован')
-    return
+    console.warn('Пользователь не авторизован');
+    return;
   }
 
-  await chatStore.fetchChats()
-  console.log('Чаты загружены, количество:', chats.value.length)
+  await chatStore.fetchChats();
+  console.log('Чаты загружены, количество:', chats.value.length);
 
   if (!wsStore.isConnected) {
-    console.log('Ожидание WebSocket соединения...')
-    await wsStore.waitForConnection(5000)
+    console.log('Ожидание WebSocket соединения...');
+    await wsStore.waitForConnection(5000);
   }
 
   if (wsStore.isConnected) {
-    await loadCompanions()
+    await loadCompanions();
   } else {
-    console.warn('WebSocket не подключился, статусы не будут отображаться')
+    console.warn('WebSocket не подключился, статусы не будут отображаться');
   }
 
-  unsubscribeConnection = wsStore.onConnectionChange(async (connected) => {
+  unsubscribeConnection = wsStore.onConnectionChange(async connected => {
     if (connected && subscribedUsers.value.size === 0 && chats.value.length) {
-      console.log('WebSocket переподключён, подписываемся на статусы и чаты')
-      await loadCompanions()
+      console.log('WebSocket переподключён, подписываемся на статусы и чаты');
+      await loadCompanions();
     } else if (connected && subscribedUsers.value.size > 0) {
       // Восстанавливаем подписки на чаты при переподключении, если они были
       for (const chatId of subscribedChats.value) {
-        wsStore.subscribeToChat(chatId)
+        wsStore.subscribeToChat(chatId);
       }
     }
-  })
-})
+  });
+});
 
 onUnmounted(() => {
-  if (unsubscribeConnection) unsubscribeConnection()
-  unsubscribeFromUserStatuses(Array.from(subscribedUsers.value))
-  unsubscribeFromChats()
-})
+  if (unsubscribeConnection) unsubscribeConnection();
+  unsubscribeFromUserStatuses(Array.from(subscribedUsers.value));
+  unsubscribeFromChats();
+});
 </script>

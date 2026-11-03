@@ -41,19 +41,19 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-  visible: boolean
-  imageUrl: string
-  alt?: string
-}>()
+  visible: boolean;
+  imageUrl: string;
+  alt?: string;
+}>();
 
 const emit = defineEmits<{
-  (e: 'close'): void
-  (e: 'error'): void
-}>()
+  (e: 'close'): void;
+  (e: 'error'): void;
+}>();
 
 const onImageError = () => {
-  emit('error')
-}
+  emit('error');
+};
 </script>
 
 <style scoped>

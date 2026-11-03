@@ -88,73 +88,73 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useSettingsStore } from '@/stores/settings'
-import { useUserStore } from '@/stores/userStore'
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useSettingsStore } from '@/stores/settings';
+import { useUserStore } from '@/stores/userStore';
 
-const router = useRouter()
-const userStore = useUserStore()
-const settingsStore = useSettingsStore()
+const router = useRouter();
+const userStore = useUserStore();
+const settingsStore = useSettingsStore();
 
 const activeThemeName = computed(() => {
   switch (settingsStore.themeMode) {
     case 'light':
-      return 'Светлая тема'
+      return 'Светлая тема';
     case 'dark':
-      return 'Тёмная тема'
+      return 'Тёмная тема';
     case 'auto':
-      return 'Системная тема'
+      return 'Системная тема';
     default:
-      return 'Тема'
+      return 'Тема';
   }
-})
+});
 
 const sliderLeft = computed(() => {
   switch (settingsStore.themeMode) {
     case 'light':
-      return '1.2%'
+      return '1.2%';
     case 'auto':
-      return '33.333333%'
+      return '33.333333%';
     case 'dark':
-      return '65.666667%'
+      return '65.666667%';
     default:
-      return '0%'
+      return '0%';
   }
-})
+});
 
 const getButtonClass = (mode: string) => {
-  const isActive = settingsStore.themeMode === mode
+  const isActive = settingsStore.themeMode === mode;
   return [
     isActive
       ? 'text-gray-900 dark:text-white'
       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
-  ]
-}
+  ];
+};
 
 // --- Добавляем прогресс для ползунка ---
 const progress = computed(() => {
   const min = 12,
-    max = 20
-  const val = settingsStore.fontSize
-  return ((val - min) / (max - min)) * 100
-})
+    max = 20;
+  const val = settingsStore.fontSize;
+  return ((val - min) / (max - min)) * 100;
+});
 
 const rangeStyle = computed(() => ({
   background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${progress.value}%, #e5e7eb ${progress.value}%, #e5e7eb 100%)`,
-}))
+}));
 
 const updateFontSize = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  settingsStore.setFontSize(parseInt(target.value, 10))
-}
+  const target = event.target as HTMLInputElement;
+  settingsStore.setFontSize(parseInt(target.value, 10));
+};
 
 const blackListIds = computed(() => {
-  const blackListArray = userStore.user?.blackListIds
-  return blackListArray?.length
-})
+  const blackListArray = userStore.user?.blackListIds;
+  return blackListArray?.length;
+});
 
-const goToBlackList = () => router.push('/blacklist')
+const goToBlackList = () => router.push('/blacklist');
 </script>
 
 <style scoped>

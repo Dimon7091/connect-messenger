@@ -26,31 +26,31 @@ const GRADIENT_PALETTE = [
   'from-orange-400 to-orange-600',
   'from-cyan-400 to-cyan-600',
   'from-indigo-400 to-indigo-600',
-]
+];
 
 export function getAvatarGradient(userId: string | number): string {
-  const str = String(userId)
-  let hash = 0
+  const str = String(userId);
+  let hash = 0;
   for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i)
-    hash |= 0
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
   }
-  const index = Math.abs(hash) % GRADIENT_PALETTE.length
-  return `bg-gradient-to-br ${GRADIENT_PALETTE[index]}`
+  const index = Math.abs(hash) % GRADIENT_PALETTE.length;
+  return `bg-gradient-to-br ${GRADIENT_PALETTE[index]}`;
 }
 
 export function getInitialsFromName(name: string): string {
-  if (!name) return '?'
+  if (!name) return '?';
 
-  const parts = name.trim().split(/\s+/).filter(Boolean)
+  const parts = name.trim().split(/\s+/).filter(Boolean);
 
   if (parts.length >= 2) {
-    const first = parts[0]?.[0]
-    const last = parts[parts.length - 1]?.[0]
+    const first = parts[0]?.[0];
+    const last = parts[parts.length - 1]?.[0];
     if (first && last) {
-      return (first + last).toUpperCase()
+      return (first + last).toUpperCase();
     }
   }
 
-  return parts[0]?.[0]?.toUpperCase() || '?'
+  return parts[0]?.[0]?.toUpperCase() || '?';
 }

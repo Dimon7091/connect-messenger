@@ -61,132 +61,132 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { Message } from '@/types/index'
-import ChatMessage from './ChatMessage.vue'
-import chatBg from '@/assets/images/img2.akspic.ru-minimalizm-atmosfera-mir-priroda-lazurnyj-1080x1920.jpg'
+import { ref, computed } from 'vue';
+import type { Message } from '@/types/index';
+import ChatMessage from './ChatMessage.vue';
+import chatBg from '@/assets/images/img2.akspic.ru-minimalizm-atmosfera-mir-priroda-lazurnyj-1080x1920.jpg';
 
 const props = defineProps<{
-  messages: Message[]
-  currentUserId: string
-  isLoadingHistory?: boolean
-  isLoadingMore?: boolean
-}>()
+  messages: Message[];
+  currentUserId: string;
+  isLoadingHistory?: boolean;
+  isLoadingMore?: boolean;
+}>();
 
 const emit = defineEmits<{
-  (e: 'loadMore'): void
-  (e: 'scroll', event: Event): void
-  (e: 'selectionChange', selectedIds: Set<string>): void
-  (e: 'deleteMessages', ids: string[]): void
-}>()
+  (e: 'loadMore'): void;
+  (e: 'scroll', event: Event): void;
+  (e: 'selectionChange', selectedIds: Set<string>): void;
+  (e: 'deleteMessages', ids: string[]): void;
+}>();
 
-const container = ref<HTMLElement>()
-const selectionMode = ref(false)
-const selectedIds = ref(new Set<string>())
+const container = ref<HTMLElement>();
+const selectionMode = ref(false);
+const selectedIds = ref(new Set<string>());
 
 // Универсальный парсер даты сообщения
 const parseMessageDate = (dateValue: unknown): Date | null => {
-  if (!dateValue) return null
-  if (dateValue instanceof Date) return dateValue
+  if (!dateValue) return null;
+  if (dateValue instanceof Date) return dateValue;
   if (typeof dateValue === 'number') {
     // Если timestamp в секундах (меньше 10^10) – умножаем на 1000
-    const timestamp = dateValue < 10000000000 ? dateValue * 1000 : dateValue
-    const d = new Date(timestamp)
-    return isNaN(d.getTime()) ? null : d
+    const timestamp = dateValue < 10000000000 ? dateValue * 1000 : dateValue;
+    const d = new Date(timestamp);
+    return isNaN(d.getTime()) ? null : d;
   }
   if (typeof dateValue === 'string') {
-    const d = new Date(dateValue)
-    return isNaN(d.getTime()) ? null : d
+    const d = new Date(dateValue);
+    return isNaN(d.getTime()) ? null : d;
   }
-  return null
-}
+  return null;
+};
 
 // Форматирование заголовка даты (как в Telegram)
 const formatDateLabel = (date: Date): string => {
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
 
-  const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
   if (messageDate.getTime() === today.getTime()) {
-    return 'Сегодня'
+    return 'Сегодня';
   } else if (messageDate.getTime() === yesterday.getTime()) {
-    return 'Вчера'
+    return 'Вчера';
   } else {
     // Проверяем разницу в днях больше года (365 дней)
-    const msPerDay = 1000 * 60 * 60 * 24
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / msPerDay)
-    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' }
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / msPerDay);
+    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
     if (diffDays > 365) {
-      options.year = 'numeric'
+      options.year = 'numeric';
     }
-    return date.toLocaleDateString('ru-RU', options)
+    return date.toLocaleDateString('ru-RU', options);
   }
-}
+};
 
 // Группировка сообщений по датам
 const groupedMessages = computed(() => {
-  const groups: { dateKey: string; dateLabel: string; messages: Message[] }[] = []
+  const groups: { dateKey: string; dateLabel: string; messages: Message[] }[] = [];
   for (const message of props.messages) {
-    const messageDate = parseMessageDate(message.createdAt)
-    if (!messageDate) continue // пропускаем некорректные даты
-    const dateKey = messageDate.toDateString()
-    const dateLabel = formatDateLabel(messageDate)
-    const lastGroup = groups[groups.length - 1]
+    const messageDate = parseMessageDate(message.createdAt);
+    if (!messageDate) continue; // пропускаем некорректные даты
+    const dateKey = messageDate.toDateString();
+    const dateLabel = formatDateLabel(messageDate);
+    const lastGroup = groups[groups.length - 1];
     if (lastGroup && lastGroup.dateKey === dateKey) {
-      lastGroup.messages.push(message)
+      lastGroup.messages.push(message);
     } else {
-      groups.push({ dateKey, dateLabel, messages: [message] })
+      groups.push({ dateKey, dateLabel, messages: [message] });
     }
   }
-  return groups
-})
+  return groups;
+});
 
 // Остальная логика (выделение, удаление, скролл) без изменений
 const enableSelectionMode = (messageId: string) => {
   if (!selectionMode.value) {
-    selectionMode.value = true
-    selectedIds.value.clear()
-    selectedIds.value.add(messageId)
-    emit('selectionChange', selectedIds.value)
+    selectionMode.value = true;
+    selectedIds.value.clear();
+    selectedIds.value.add(messageId);
+    emit('selectionChange', selectedIds.value);
   }
-}
+};
 
 const toggleSelection = (messageId: string) => {
   if (selectionMode.value) {
     if (selectedIds.value.has(messageId)) {
-      selectedIds.value.delete(messageId)
+      selectedIds.value.delete(messageId);
     } else {
-      selectedIds.value.add(messageId)
+      selectedIds.value.add(messageId);
     }
-    emit('selectionChange', selectedIds.value)
+    emit('selectionChange', selectedIds.value);
     if (selectedIds.value.size === 0) {
-      selectionMode.value = false
+      selectionMode.value = false;
     }
   }
-}
+};
 
 const resetSelection = () => {
-  selectionMode.value = false
-  selectedIds.value.clear()
-  emit('selectionChange', selectedIds.value)
-}
+  selectionMode.value = false;
+  selectedIds.value.clear();
+  emit('selectionChange', selectedIds.value);
+};
 
 const deleteSelected = () => {
-  if (selectedIds.value.size === 0) return
-  emit('deleteMessages', Array.from(selectedIds.value))
-  resetSelection()
-}
+  if (selectedIds.value.size === 0) return;
+  emit('deleteMessages', Array.from(selectedIds.value));
+  resetSelection();
+};
 
 const handleScroll = (event: Event) => {
-  emit('scroll', event)
-  const target = event.target as HTMLElement
-  if (target.scrollTop === 0 && !props.isLoadingMore) emit('loadMore')
-}
+  emit('scroll', event);
+  const target = event.target as HTMLElement;
+  if (target.scrollTop === 0 && !props.isLoadingMore) emit('loadMore');
+};
 
-defineExpose({ container, resetSelection, deleteSelected, selectionMode, selectedIds })
+defineExpose({ container, resetSelection, deleteSelected, selectionMode, selectedIds });
 </script>
 
 <style scoped>

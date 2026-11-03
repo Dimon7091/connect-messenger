@@ -134,170 +134,170 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from 'vue'
-import { useGalleryStore } from '@/stores/galleryStore'
+import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from 'vue';
+import { useGalleryStore } from '@/stores/galleryStore';
 
-const galleryStore = useGalleryStore()
+const galleryStore = useGalleryStore();
 
-const isTouchDevice = ref(false)
-const dragOffset = ref(0)
-const isDragging = ref(false)
-const startX = ref(0)
-const currentX = ref(0)
+const isTouchDevice = ref(false);
+const dragOffset = ref(0);
+const isDragging = ref(false);
+const startX = ref(0);
+const currentX = ref(0);
 
-const currentIndex = computed(() => galleryStore.currentIndex)
+const currentIndex = computed(() => galleryStore.currentIndex);
 
 // Соседнее изображение (следующее или предыдущее) – показывается под текущим
 const adjacentImage = computed(() => {
-  const delta = currentX.value - startX.value
-  if (Math.abs(delta) < 10) return null
+  const delta = currentX.value - startX.value;
+  if (Math.abs(delta) < 10) return null;
   if (delta < 0 && currentIndex.value < galleryStore.images.length - 1) {
-    return galleryStore.images[currentIndex.value + 1]
+    return galleryStore.images[currentIndex.value + 1];
   } else if (delta > 0 && currentIndex.value > 0) {
-    return galleryStore.images[currentIndex.value - 1]
+    return galleryStore.images[currentIndex.value - 1];
   }
-  return null
-})
+  return null;
+});
 
 const checkTouch = () => {
-  isTouchDevice.value = window.matchMedia('(pointer: coarse)').matches
-}
+  isTouchDevice.value = window.matchMedia('(pointer: coarse)').matches;
+};
 
 onMounted(() => {
-  checkTouch()
-  window.addEventListener('resize', checkTouch)
-})
+  checkTouch();
+  window.addEventListener('resize', checkTouch);
+});
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', checkTouch)
-})
+  window.removeEventListener('resize', checkTouch);
+});
 
-const close = () => galleryStore.closeGallery()
-const prev = () => galleryStore.prev()
-const next = () => galleryStore.next()
+const close = () => galleryStore.closeGallery();
+const prev = () => galleryStore.prev();
+const next = () => galleryStore.next();
 
 // ===== Скачивание текущего изображения =====
 const downloadCurrentImage = async () => {
-  const currentImage = galleryStore.images[currentIndex.value]
-  if (!currentImage) return
+  const currentImage = galleryStore.images[currentIndex.value];
+  if (!currentImage) return;
 
-  const url = currentImage.url
-  const fileName = currentImage.fileName || 'image.jpg'
+  const url = currentImage.url;
+  const fileName = currentImage.fileName || 'image.jpg';
 
   try {
     // Если URL имеет префикс blob:, можно использовать его напрямую
     if (url.startsWith('blob:')) {
-      const link = document.createElement('a')
-      link.href = url
-      link.download = fileName
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      return
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
     }
 
     // Иначе скачиваем через fetch
-    const response = await fetch(url)
-    if (!response.ok) throw new Error('Network response was not ok')
-    const blob = await response.blob()
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const blob = await response.blob();
 
-    const link = document.createElement('a')
-    const objectUrl = URL.createObjectURL(blob)
-    link.href = objectUrl
-    link.download = fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(objectUrl)
+    const link = document.createElement('a');
+    const objectUrl = URL.createObjectURL(blob);
+    link.href = objectUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(objectUrl);
   } catch (error) {
-    console.error('Ошибка скачивания:', error)
+    console.error('Ошибка скачивания:', error);
     // Альтернативный вариант: открыть в новой вкладке
-    window.open(url, '_blank')
+    window.open(url, '_blank');
   }
-}
+};
 
 // ===== Drag логика =====
 const startDrag = (clientX: number) => {
-  if (galleryStore.images.length <= 1) return
-  isDragging.value = true
-  startX.value = clientX
-  currentX.value = clientX
-  dragOffset.value = 0
-}
+  if (galleryStore.images.length <= 1) return;
+  isDragging.value = true;
+  startX.value = clientX;
+  currentX.value = clientX;
+  dragOffset.value = 0;
+};
 
 const moveDrag = (clientX: number) => {
-  if (!isDragging.value) return
-  const delta = clientX - startX.value
-  const maxOffset = window.innerWidth * 0.4
-  let offset = Math.max(-maxOffset, Math.min(maxOffset, delta))
+  if (!isDragging.value) return;
+  const delta = clientX - startX.value;
+  const maxOffset = window.innerWidth * 0.4;
+  let offset = Math.max(-maxOffset, Math.min(maxOffset, delta));
   if (currentIndex.value === 0 && delta > 0) {
-    offset = delta * 0.2
+    offset = delta * 0.2;
   } else if (currentIndex.value === galleryStore.images.length - 1 && delta < 0) {
-    offset = delta * 0.2
+    offset = delta * 0.2;
   }
-  dragOffset.value = offset
-  currentX.value = clientX
-}
+  dragOffset.value = offset;
+  currentX.value = clientX;
+};
 
 const endDrag = async () => {
-  if (!isDragging.value) return
+  if (!isDragging.value) return;
 
-  const delta = currentX.value - startX.value
-  const threshold = 80
+  const delta = currentX.value - startX.value;
+  const threshold = 80;
 
   if (Math.abs(delta) > threshold) {
-    isDragging.value = true
+    isDragging.value = true;
 
     if (delta < 0 && currentIndex.value < galleryStore.images.length - 1) {
-      next()
+      next();
     } else if (delta > 0 && currentIndex.value > 0) {
-      prev()
+      prev();
     }
 
-    dragOffset.value = 0
+    dragOffset.value = 0;
 
-    await nextTick()
+    await nextTick();
     requestAnimationFrame(() => {
-      isDragging.value = false
-    })
+      isDragging.value = false;
+    });
   } else {
-    dragOffset.value = 0
-    isDragging.value = false
+    dragOffset.value = 0;
+    isDragging.value = false;
   }
-}
+};
 
 watch(currentIndex, () => {
-  dragOffset.value = 0
-})
+  dragOffset.value = 0;
+});
 
 // Touch
 const handleTouchStart = (e: TouchEvent) => {
-  const touch = e.touches[0]
-  if (touch) startDrag(touch.clientX)
-}
+  const touch = e.touches[0];
+  if (touch) startDrag(touch.clientX);
+};
 const handleTouchMove = (e: TouchEvent) => {
-  const touch = e.touches[0]
-  if (touch) moveDrag(touch.clientX)
-}
-const handleTouchEnd = () => endDrag()
+  const touch = e.touches[0];
+  if (touch) moveDrag(touch.clientX);
+};
+const handleTouchEnd = () => endDrag();
 
 // Mouse
-let isMouseDown = false
+let isMouseDown = false;
 const handleMouseDown = (e: MouseEvent) => {
-  if (isTouchDevice.value) return
-  const target = e.target as HTMLElement
-  if (target.closest('button')) return
-  isMouseDown = true
-  startDrag(e.clientX)
-}
+  if (isTouchDevice.value) return;
+  const target = e.target as HTMLElement;
+  if (target.closest('button')) return;
+  isMouseDown = true;
+  startDrag(e.clientX);
+};
 const handleMouseMove = (e: MouseEvent) => {
-  if (!isMouseDown) return
-  moveDrag(e.clientX)
-}
+  if (!isMouseDown) return;
+  moveDrag(e.clientX);
+};
 const handleMouseUp = () => {
   if (isMouseDown) {
-    isMouseDown = false
-    endDrag()
+    isMouseDown = false;
+    endDrag();
   }
-}
+};
 </script>

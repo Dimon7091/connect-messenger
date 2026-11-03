@@ -43,49 +43,49 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import LoginForm from '@/components/auth/LoginForm.vue'
-import RegisterForm from '@/components/auth/RegisterForm.vue'
+import { ref, watch, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import LoginForm from '@/components/auth/LoginForm.vue';
+import RegisterForm from '@/components/auth/RegisterForm.vue';
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const activeTab = ref<'login' | 'register'>('login')
+const activeTab = ref<'login' | 'register'>('login');
 
 // Синхронизация вкладки с query-параметром ?open=register
 const syncTabFromQuery = () => {
-  const openParam = route.query.open
+  const openParam = route.query.open;
   if (openParam === 'register') {
-    activeTab.value = 'register'
+    activeTab.value = 'register';
   } else {
-    activeTab.value = 'login'
+    activeTab.value = 'login';
   }
-}
+};
 
 // При монтировании
-onMounted(syncTabFromQuery)
+onMounted(syncTabFromQuery);
 
 // При изменении query-параметра
 watch(
   () => route.query.open,
   () => {
-    syncTabFromQuery()
-  },
-)
+    syncTabFromQuery();
+  }
+);
 
 // Установка вкладки с обновлением URL
 const setActiveTab = (tab: 'login' | 'register') => {
-  activeTab.value = tab
+  activeTab.value = tab;
   // Если вкладка "register" – добавляем параметр, иначе убираем
-  const newQuery = { ...route.query }
+  const newQuery = { ...route.query };
   if (tab === 'register') {
-    newQuery.open = 'register'
+    newQuery.open = 'register';
   } else {
-    delete newQuery.open
+    delete newQuery.open;
   }
-  router.push({ query: newQuery })
-}
+  router.push({ query: newQuery });
+};
 </script>
 
 <style scoped>

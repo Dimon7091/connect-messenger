@@ -128,124 +128,124 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { Chat } from '@/types/index'
-import { useChatStore } from '@/stores/chatStore'
-import { useMessageStore } from '@/stores/messageStore'
-import { useUserStore } from '@/stores/userStore'
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import { ref, computed } from 'vue';
+import type { Chat } from '@/types/index';
+import { useChatStore } from '@/stores/chatStore';
+import { useMessageStore } from '@/stores/messageStore';
+import { useUserStore } from '@/stores/userStore';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
 const props = defineProps<{
-  chat: Chat | null
-  companionId: string
-}>()
+  chat: Chat | null;
+  companionId: string;
+}>();
 
 const emit = defineEmits<{
-  close: []
-}>()
+  close: [];
+}>();
 
-const chatStore = useChatStore()
-const messageStore = useMessageStore()
-const userStore = useUserStore()
+const chatStore = useChatStore();
+const messageStore = useMessageStore();
+const userStore = useUserStore();
 
 // Состояния для диалогов подтверждения
-const showConfirmDelete = ref(false)
-const showConfirmClearHistory = ref(false)
-const showConfirmBlockUser = ref(false)
+const showConfirmDelete = ref(false);
+const showConfirmClearHistory = ref(false);
+const showConfirmBlockUser = ref(false);
 
 // Состояния загрузки для каждого действия
-const isDeleting = ref(false)
-const isClearing = ref(false)
-const isBlocking = ref(false)
+const isDeleting = ref(false);
+const isClearing = ref(false);
+const isBlocking = ref(false);
 
 // Вычисляемое свойство – заблокирован ли пользователь
 const isBlocked = computed(() => {
-  const blackList = userStore.user?.blackListIds || []
-  return blackList.some((id) => String(id) === String(props.companionId))
-})
+  const blackList = userStore.user?.blackListIds || [];
+  return blackList.some(id => String(id) === String(props.companionId));
+});
 
-let closing = false
+let closing = false;
 const close = () => {
-  if (closing) return
-  closing = true
-  emit('close')
+  if (closing) return;
+  closing = true;
+  emit('close');
   setTimeout(() => {
-    closing = false
-  }, 100)
-}
+    closing = false;
+  }, 100);
+};
 
 // Открытие диалогов
 const openConfirmDelete = () => {
-  showConfirmDelete.value = true
-}
+  showConfirmDelete.value = true;
+};
 const openConfirmClearHistory = () => {
-  showConfirmClearHistory.value = true
-}
+  showConfirmClearHistory.value = true;
+};
 const openConfirmBlockUser = () => {
-  showConfirmBlockUser.value = true
-}
+  showConfirmBlockUser.value = true;
+};
 
 // Действия
 const proceedDelete = async () => {
-  if (!props.chat) return
-  const userId = userStore.user?.id
-  if (!userId) return
-  isDeleting.value = true
+  if (!props.chat) return;
+  const userId = userStore.user?.id;
+  if (!userId) return;
+  isDeleting.value = true;
   try {
-    await chatStore.deleteChat(props.chat.id, userId.toString())
-    messageStore.clearMessages(props.chat.id)
-    showConfirmDelete.value = false
-    close()
+    await chatStore.deleteChat(props.chat.id, userId.toString());
+    messageStore.clearMessages(props.chat.id);
+    showConfirmDelete.value = false;
+    close();
   } catch (error) {
-    console.error('Ошибка удаления чата', error)
+    console.error('Ошибка удаления чата', error);
     // диалог остаётся открытым при ошибке
   } finally {
-    isDeleting.value = false
+    isDeleting.value = false;
   }
-}
+};
 
 const proceedClearHistory = async () => {
-  if (!props.chat) return
-  isClearing.value = true
+  if (!props.chat) return;
+  isClearing.value = true;
   try {
-    await chatStore.clearChatHistory(props.chat.id)
-    showConfirmClearHistory.value = false
-    close()
+    await chatStore.clearChatHistory(props.chat.id);
+    showConfirmClearHistory.value = false;
+    close();
   } catch (error) {
-    console.error('Ошибка очистки истории:', error)
+    console.error('Ошибка очистки истории:', error);
   } finally {
-    isClearing.value = false
+    isClearing.value = false;
   }
-}
+};
 
 const proceedBlockUser = async () => {
-  if (!props.chat) return
-  isBlocking.value = true
+  if (!props.chat) return;
+  isBlocking.value = true;
   try {
     if (isBlocked.value) {
-      await userStore.removeFromBlackList(props.companionId)
+      await userStore.removeFromBlackList(props.companionId);
     } else {
-      await userStore.addToBlackList(props.companionId)
+      await userStore.addToBlackList(props.companionId);
     }
-    showConfirmBlockUser.value = false
-    close()
+    showConfirmBlockUser.value = false;
+    close();
   } catch (error) {
-    console.error('Ошибка операции с чёрным списком:', error)
-    alert('Не удалось выполнить операцию. Попробуйте позже.')
+    console.error('Ошибка операции с чёрным списком:', error);
+    alert('Не удалось выполнить операцию. Попробуйте позже.');
   } finally {
-    isBlocking.value = false
+    isBlocking.value = false;
   }
-}
+};
 
 const handleMute = () => {
-  if (!props.chat) return
-  console.log('Отключить уведомления для чата', props.chat.id)
-  close()
-}
+  if (!props.chat) return;
+  console.log('Отключить уведомления для чата', props.chat.id);
+  close();
+};
 
 const handlePin = () => {
-  if (!props.chat) return
-  console.log('Закрепить чат', props.chat.id)
-  close()
-}
+  if (!props.chat) return;
+  console.log('Закрепить чат', props.chat.id);
+  close();
+};
 </script>

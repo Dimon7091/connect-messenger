@@ -73,63 +73,63 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useUserStore } from '@/stores/userStore'
+import { reactive, ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
 
-const router = useRouter()
-const route = useRoute()
-const userStore = useUserStore()
+const router = useRouter();
+const route = useRoute();
+const userStore = useUserStore();
 
-const form = reactive({ username: '', password: '' })
-const errors = reactive({ username: '', password: '' })
-const isLoading = ref(false)
-const submitError = ref('')
+const form = reactive({ username: '', password: '' });
+const errors = reactive({ username: '', password: '' });
+const isLoading = ref(false);
+const submitError = ref('');
 
 onMounted(() => {
-  const errorParam = route.query.error
+  const errorParam = route.query.error;
   if (errorParam && typeof errorParam === 'string') {
-    submitError.value = decodeURIComponent(errorParam)
-    router.replace({ query: {} })
+    submitError.value = decodeURIComponent(errorParam);
+    router.replace({ query: {} });
   }
-})
+});
 
 const validate = () => {
-  let isValid = true
-  errors.username = ''
-  errors.password = ''
+  let isValid = true;
+  errors.username = '';
+  errors.password = '';
 
   if (!form.username) {
-    errors.username = 'Имя пользователя обязательно'
-    isValid = false
+    errors.username = 'Имя пользователя обязательно';
+    isValid = false;
   } else if (form.username.length < 3) {
-    errors.username = 'Имя пользователя должно быть не менее 3 символов'
-    isValid = false
+    errors.username = 'Имя пользователя должно быть не менее 3 символов';
+    isValid = false;
   }
 
   if (!form.password) {
-    errors.password = 'Пароль обязателен'
-    isValid = false
+    errors.password = 'Пароль обязателен';
+    isValid = false;
   } else if (form.password.length < 4) {
-    errors.password = 'Пароль должен быть не менее 4 символов'
-    isValid = false
+    errors.password = 'Пароль должен быть не менее 4 символов';
+    isValid = false;
   }
 
-  return isValid
-}
+  return isValid;
+};
 
 const handleLogin = async () => {
-  submitError.value = ''
-  if (!validate()) return
+  submitError.value = '';
+  if (!validate()) return;
 
-  isLoading.value = true
+  isLoading.value = true;
   try {
-    await userStore.login(form.username, form.password)
-    router.push('/')
+    await userStore.login(form.username, form.password);
+    router.push('/');
   } catch (error: any) {
-    submitError.value = error.message || 'Ошибка входа'
+    submitError.value = error.message || 'Ошибка входа';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>

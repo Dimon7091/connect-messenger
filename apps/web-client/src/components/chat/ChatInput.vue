@@ -203,256 +203,256 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, computed, onBeforeUnmount, onMounted } from 'vue'
-import { useMessageStore } from '@/stores/messageStore'
-import { useUserStore } from '@/stores/userStore'
-import { s3UploadService } from '@/services/http/S3UploadService'
-import type { Attachment } from '@/types'
+import { ref, nextTick, computed, onBeforeUnmount, onMounted } from 'vue';
+import { useMessageStore } from '@/stores/messageStore';
+import { useUserStore } from '@/stores/userStore';
+import { s3UploadService } from '@/services/http/S3UploadService';
+import type { Attachment } from '@/types';
 
 const { disabled = false, placeholder = 'Введите сообщение...' } = defineProps<{
-  disabled?: boolean
-  placeholder?: string
-}>()
+  disabled?: boolean;
+  placeholder?: string;
+}>();
 // ===== Types =====
 interface SelectedFile {
-  file: File
-  preview: string | null // object URL для изображений
+  file: File;
+  preview: string | null; // object URL для изображений
 }
 
 // ===== Stores =====
-const messageStore = useMessageStore()
-const userStore = useUserStore()
+const messageStore = useMessageStore();
+const userStore = useUserStore();
 
 // ===== Состояния =====
-const replyingToMessage = computed(() => messageStore.replyingToMessage)
-const messageText = ref('')
-const textareaRef = ref<HTMLTextAreaElement>()
-const imageInput = ref<HTMLInputElement | null>(null)
-const fileInput = ref<HTMLInputElement | null>(null)
+const replyingToMessage = computed(() => messageStore.replyingToMessage);
+const messageText = ref('');
+const textareaRef = ref<HTMLTextAreaElement>();
+const imageInput = ref<HTMLInputElement | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 
-const selectedFiles = ref<SelectedFile[]>([])
-const isUploading = ref(false)
-const uploadProgress = ref(0)
-const showAttachmentMenu = ref(false)
-let typingTimeout: ReturnType<typeof setTimeout> | null = null
+const selectedFiles = ref<SelectedFile[]>([]);
+const isUploading = ref(false);
+const uploadProgress = ref(0);
+const showAttachmentMenu = ref(false);
+let typingTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // ===== Пропсы и эмиты =====
 const emit = defineEmits<{
-  (e: 'send', text: string, replyToId?: string, attachments?: Attachment[]): void
-  (e: 'typing', isTyping: boolean): void
-}>()
+  (e: 'send', text: string, replyToId?: string, attachments?: Attachment[]): void;
+  (e: 'typing', isTyping: boolean): void;
+}>();
 
 // ===== Вспомогательные геттеры =====
 const replySenderName = computed(() => {
-  const msg = replyingToMessage.value
-  if (!msg) return 'пользователя'
-  if (msg.replyContext?.senderName) return msg.replyContext.senderName
-  const user = userStore.getUserFromCache(msg.senderId)
+  const msg = replyingToMessage.value;
+  if (!msg) return 'пользователя';
+  if (msg.replyContext?.senderName) return msg.replyContext.senderName;
+  const user = userStore.getUserFromCache(msg.senderId);
   if (user) {
     if (user.profile.firstName && user.profile.lastName)
-      return `${user.profile.firstName} ${user.profile.lastName}`
-    return user.profile.firstName || user.userName || 'пользователь'
+      return `${user.profile.firstName} ${user.profile.lastName}`;
+    return user.profile.firstName || user.userName || 'пользователь';
   }
-  return 'пользователь'
-})
+  return 'пользователь';
+});
 
 const replySnippet = computed(() => {
-  const msg = replyingToMessage.value
-  if (!msg) return ''
-  let raw = msg.replyContext?.textSnippet || msg.text || ''
-  const maxLen = 50
-  if (raw.length > maxLen) raw = raw.substring(0, maxLen).trim() + '…'
-  return raw
-})
+  const msg = replyingToMessage.value;
+  if (!msg) return '';
+  let raw = msg.replyContext?.textSnippet || msg.text || '';
+  const maxLen = 50;
+  if (raw.length > maxLen) raw = raw.substring(0, maxLen).trim() + '…';
+  return raw;
+});
 
 // ===== Форматирование размера =====
 const formatFileSize = (bytes: number) => {
-  if (bytes < 1024) return `${bytes} Б`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КБ`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`
-}
+  if (bytes < 1024) return `${bytes} Б`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КБ`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
+};
 
 // ===== Управление меню =====
 const toggleAttachmentMenu = () => {
-  if (isUploading.value) return
-  showAttachmentMenu.value = !showAttachmentMenu.value
-}
+  if (isUploading.value) return;
+  showAttachmentMenu.value = !showAttachmentMenu.value;
+};
 
 const closeMenu = () => {
-  showAttachmentMenu.value = false
-}
+  showAttachmentMenu.value = false;
+};
 
 // ===== Выбор типа вложения =====
 const selectImage = () => {
-  closeMenu()
-  imageInput.value?.click()
-}
+  closeMenu();
+  imageInput.value?.click();
+};
 
 const selectFile = () => {
-  closeMenu()
-  fileInput.value?.click()
-}
+  closeMenu();
+  fileInput.value?.click();
+};
 
 // ===== Общая функция добавления файлов =====
 const addFiles = (files: FileList) => {
-  const newFiles: SelectedFile[] = []
+  const newFiles: SelectedFile[] = [];
   for (const file of Array.from(files)) {
     if (file.size > 50 * 1024 * 1024) {
-      alert(`Файл "${file.name}" превышает 50 МБ`)
-      continue
+      alert(`Файл "${file.name}" превышает 50 МБ`);
+      continue;
     }
-    let preview: string | null = null
+    let preview: string | null = null;
     if (file.type.startsWith('image/')) {
-      preview = URL.createObjectURL(file)
+      preview = URL.createObjectURL(file);
     }
-    newFiles.push({ file, preview })
+    newFiles.push({ file, preview });
   }
-  selectedFiles.value = [...selectedFiles.value, ...newFiles]
-}
+  selectedFiles.value = [...selectedFiles.value, ...newFiles];
+};
 
 // ===== Обработчики выбора =====
 const handleImageSelected = (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const files = input.files
-  if (!files || files.length === 0) return
-  addFiles(files)
-  input.value = ''
-}
+  const input = event.target as HTMLInputElement;
+  const files = input.files;
+  if (!files || files.length === 0) return;
+  addFiles(files);
+  input.value = '';
+};
 
 const handleFileSelected = (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const files = input.files
-  if (!files || files.length === 0) return
-  addFiles(files)
-  input.value = ''
-}
+  const input = event.target as HTMLInputElement;
+  const files = input.files;
+  if (!files || files.length === 0) return;
+  addFiles(files);
+  input.value = '';
+};
 
 const removeFile = (index: number) => {
-  const removed = selectedFiles.value[index]
-  if (removed?.preview) URL.revokeObjectURL(removed.preview)
-  selectedFiles.value.splice(index, 1)
-}
+  const removed = selectedFiles.value[index];
+  if (removed?.preview) URL.revokeObjectURL(removed.preview);
+  selectedFiles.value.splice(index, 1);
+};
 
 // ===== Отправка сообщения =====
 const handleSend = async () => {
-  const text = messageText.value.trim()
-  const hasFiles = selectedFiles.value.length > 0
+  const text = messageText.value.trim();
+  const hasFiles = selectedFiles.value.length > 0;
 
-  if (!text && !hasFiles) return
-  if (isUploading.value) return
+  if (!text && !hasFiles) return;
+  if (isUploading.value) return;
 
-  const replyToId = replyingToMessage.value?.id || undefined
-  let attachments: Attachment[] = []
+  const replyToId = replyingToMessage.value?.id || undefined;
+  let attachments: Attachment[] = [];
 
   if (hasFiles) {
-    isUploading.value = true
-    uploadProgress.value = 0
-    const total = selectedFiles.value.length
-    let completed = 0
+    isUploading.value = true;
+    uploadProgress.value = 0;
+    const total = selectedFiles.value.length;
+    let completed = 0;
 
     try {
-      const uploadPromises = selectedFiles.value.map(async (item) => {
-        const result = await s3UploadService.uploadFile(item.file)
-        completed++
-        uploadProgress.value = Math.round((completed / total) * 100)
+      const uploadPromises = selectedFiles.value.map(async item => {
+        const result = await s3UploadService.uploadFile(item.file);
+        completed++;
+        uploadProgress.value = Math.round((completed / total) * 100);
         return {
           fileKey: result.fileKey,
           mimeType: result.mimeType,
           fileName: result.fileName,
           size: parseInt(result.size, 10),
-        }
-      })
-      attachments = await Promise.all(uploadPromises)
+        };
+      });
+      attachments = await Promise.all(uploadPromises);
     } catch (error) {
-      console.error('Ошибка загрузки файлов:', error)
-      alert('Не удалось загрузить один или несколько файлов')
-      isUploading.value = false
-      uploadProgress.value = 0
-      return
+      console.error('Ошибка загрузки файлов:', error);
+      alert('Не удалось загрузить один или несколько файлов');
+      isUploading.value = false;
+      uploadProgress.value = 0;
+      return;
     } finally {
-      isUploading.value = false
-      uploadProgress.value = 0
+      isUploading.value = false;
+      uploadProgress.value = 0;
     }
   }
 
-  emit('send', text, replyToId, attachments)
+  emit('send', text, replyToId, attachments);
 
-  messageText.value = ''
-  selectedFiles.value.forEach((item) => {
-    if (item.preview) URL.revokeObjectURL(item.preview)
-  })
-  selectedFiles.value = []
-  cancelReply()
+  messageText.value = '';
+  selectedFiles.value.forEach(item => {
+    if (item.preview) URL.revokeObjectURL(item.preview);
+  });
+  selectedFiles.value = [];
+  cancelReply();
 
   nextTick(() => {
     if (textareaRef.value) {
-      textareaRef.value.style.height = 'auto'
+      textareaRef.value.style.height = 'auto';
     }
-  })
-}
+  });
+};
 
 // ===== Вспомогательные методы =====
 const cancelReply = () => {
-  messageStore.setReplyingToMessage(null)
-}
+  messageStore.setReplyingToMessage(null);
+};
 
 const onInput = () => {
-  autoResize()
-  onTyping()
-}
+  autoResize();
+  onTyping();
+};
 
 const onKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault()
-    handleSend()
+    e.preventDefault();
+    handleSend();
   }
-}
+};
 
 const autoResize = () => {
-  if (!textareaRef.value) return
-  const textarea = textareaRef.value
-  textarea.style.height = 'auto'
-  const newHeight = Math.min(textarea.scrollHeight, 200)
-  textarea.style.height = `${newHeight}px`
-}
+  if (!textareaRef.value) return;
+  const textarea = textareaRef.value;
+  textarea.style.height = 'auto';
+  const newHeight = Math.min(textarea.scrollHeight, 200);
+  textarea.style.height = `${newHeight}px`;
+};
 
 const onTyping = () => {
-  emit('typing', true)
-  if (typingTimeout) clearTimeout(typingTimeout)
+  emit('typing', true);
+  if (typingTimeout) clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => {
-    emit('typing', false)
-  }, 1000)
-}
+    emit('typing', false);
+  }, 1000);
+};
 
 // ===== Закрытие меню при клике вне =====
 const handleClickOutside = (e: MouseEvent) => {
   if (showAttachmentMenu.value) {
-    const menuEl = document.querySelector('.chat-input .absolute.bottom-full')
-    const btnEl = document.querySelector('.chat-input .w-10.h-10')
+    const menuEl = document.querySelector('.chat-input .absolute.bottom-full');
+    const btnEl = document.querySelector('.chat-input .w-10.h-10');
     if (
       menuEl &&
       !menuEl.contains(e.target as Node) &&
       btnEl &&
       !btnEl.contains(e.target as Node)
     ) {
-      closeMenu()
+      closeMenu();
     }
   }
-}
+};
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
+  document.addEventListener('click', handleClickOutside);
+});
 
 onBeforeUnmount(() => {
-  if (typingTimeout) clearTimeout(typingTimeout)
-  selectedFiles.value.forEach((item) => {
-    if (item.preview) URL.revokeObjectURL(item.preview)
-  })
-  document.removeEventListener('click', handleClickOutside)
-})
+  if (typingTimeout) clearTimeout(typingTimeout);
+  selectedFiles.value.forEach(item => {
+    if (item.preview) URL.revokeObjectURL(item.preview);
+  });
+  document.removeEventListener('click', handleClickOutside);
+});
 
-defineExpose({ focus: () => textareaRef.value?.focus() })
+defineExpose({ focus: () => textareaRef.value?.focus() });
 </script>
 
 <style scoped>

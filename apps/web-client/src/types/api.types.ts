@@ -1,50 +1,50 @@
-import type { User } from '@messenger/shared-schema'
+import type { User } from '@messenger/shared-schema';
 
 export interface ApiResponse<T = unknown> {
-  success: boolean
-  data?: T
-  error?: string
-  message?: string
-  status: number
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+  status: number;
 }
 
 export interface LoginRequest {
-  username: string
-  password: string
+  username: string;
+  password: string;
 }
 
 export interface LoginResponse {
-  user: User
-  token: string
+  user: User;
+  token: string;
 }
 
 export interface RegisterRequest {
-  userName: string
-  password: string
-  firstName?: string
-  lastName?: string
-  invitationToken: string
+  userName: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  invitationToken: string;
 }
 
 export interface UpdateUserNameRequest {
-  username: string
+  username: string;
 }
 
 export interface UpdateUserProfileRequest {
-  firstName?: string
-  lastName?: string | null
+  firstName?: string;
+  lastName?: string | null;
 }
 
 export interface FileInitRequest {
-  fileName: string
-  mimeType: string
-  fileSize: string
+  fileName: string;
+  mimeType: string;
+  fileSize: string;
 }
 
 export interface FileInitResponse {
-  uploadUrl: string
-  fileKey: string
-  mimeType: string
-  fileName: string
-  size: string
+  uploadUrl: string;
+  fileKey: string;
+  mimeType: string;
+  fileName: string;
+  size: string;
 }

@@ -1,6 +1,6 @@
 // types/websocket.ts
-import type { Attachment } from './attachment.types'
-import type { Chat } from './chat.types'
+import type { Attachment } from './attachment.types';
+import type { Chat } from './chat.types';
 
 export type WSEventType =
   | 'connection'
@@ -18,101 +18,101 @@ export type WSEventType =
   | 'typing_stop'
   | 'chat_store'
   | 'error'
-  | 'pong'
+  | 'pong';
 
 export interface MessageNewPayload {
-  id: string
-  chatId: string
-  chat?: Chat
-  senderId: string
-  receiverId: string
-  text: string
-  timestamp: string // По умолчанию NOW()
-  createdAt: string
-  status: 'SENT' | 'DELIVERED' | 'READ' | 'FAILED'
-  deletedAt?: Date | null
-  attachments?: Attachment[]
-  replyToId?: string | null
-  readBy?: string | null
+  id: string;
+  chatId: string;
+  chat?: Chat;
+  senderId: string;
+  receiverId: string;
+  text: string;
+  timestamp: string; // По умолчанию NOW()
+  createdAt: string;
+  status: 'SENT' | 'DELIVERED' | 'READ' | 'FAILED';
+  deletedAt?: Date | null;
+  attachments?: Attachment[];
+  replyToId?: string | null;
+  readBy?: string | null;
 
   replyContext?: {
-    senderName: string
-    textSnippet: string
-    originalMessageId: string
-  }
+    senderName: string;
+    textSnippet: string;
+    originalMessageId: string;
+  };
 }
 
 export interface SentMessagePayloand {
-  chatId: string
-  messageId: string // временный ID от клиента
-  senderId: string
-  receiverId: string
-  serverMessageId: string // UUID из БД
-  text: string
-  status: 'SENT' | 'FAILED'
-  timestamp: string
-  attachments?: Attachment[]
-  replyToId?: string | null
+  chatId: string;
+  messageId: string; // временный ID от клиента
+  senderId: string;
+  receiverId: string;
+  serverMessageId: string; // UUID из БД
+  text: string;
+  status: 'SENT' | 'FAILED';
+  timestamp: string;
+  attachments?: Attachment[];
+  replyToId?: string | null;
 }
 
 export interface MessageDeliveredPayload {
-  messageId: string
-  chatId: string
-  userId: string
+  messageId: string;
+  chatId: string;
+  userId: string;
 }
 
 export interface MessageReadPayload {
-  messageId: string
-  chatId: string
-  userId: string
+  messageId: string;
+  chatId: string;
+  userId: string;
 }
 
 export interface AllMessagesReadPayload {
-  chatId: string
+  chatId: string;
 }
 
 export interface MessageDeletedPayload {
-  chatId: string
-  messageId: string
+  chatId: string;
+  messageId: string;
 }
 
 export interface MessageDeletedResponse {
-  chatId: string
-  deletedMessagesIds: string[]
-  chatUpdatedAt: string
-  unreadCount: number
-  lastMessage: string | null
+  chatId: string;
+  deletedMessagesIds: string[];
+  chatUpdatedAt: string;
+  unreadCount: number;
+  lastMessage: string | null;
 }
 
 export interface ChatHistoryClearedResponse {
-  chatId: string
-  unreadCount: number
-  lastMessage: string | null
-  updatedAt: string
+  chatId: string;
+  unreadCount: number;
+  lastMessage: string | null;
+  updatedAt: string;
 }
 
-export type UserStatusType = 'ONLINE' | 'OFFLINE' | 'AWAY'
+export type UserStatusType = 'ONLINE' | 'OFFLINE' | 'AWAY';
 
 export interface UserStatusPayload {
-  userId: string
-  status: UserStatusType
-  lastSeen?: string // ISO datetime, опционально
+  userId: string;
+  status: UserStatusType;
+  lastSeen?: string; // ISO datetime, опционально
 }
 
 export interface UserStatusRequest {
-  targetUserId: string
+  targetUserId: string;
 }
 
 export interface TypingPayload {
-  chatId: string
-  userId: string
+  chatId: string;
+  userId: string;
 }
 
 export interface ErrorPayload {
-  message: string
-  body?: string
+  message: string;
+  body?: string;
 }
 
 export interface ConnectionPayload {
-  status: 'connected' | 'disconnected' | 'failed'
+  status: 'connected' | 'disconnected' | 'failed';
 }

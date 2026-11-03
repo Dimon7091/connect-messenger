@@ -138,14 +138,14 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, computed } from 'vue'
-import { useUserStore } from '@/stores/userStore'
-import type { RegisterRequest } from '@/types/index'
-import { useRoute, useRouter } from 'vue-router'
+import { reactive, ref, onMounted, computed } from 'vue';
+import { useUserStore } from '@/stores/userStore';
+import type { RegisterRequest } from '@/types/index';
+import { useRoute, useRouter } from 'vue-router';
 
-const route = useRoute()
-const router = useRouter()
-const userStore = useUserStore()
+const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
 
 const form = reactive<RegisterRequest & { confirmPassword: string }>({
   userName: '',
@@ -154,64 +154,64 @@ const form = reactive<RegisterRequest & { confirmPassword: string }>({
   firstName: '',
   lastName: '',
   invitationToken: '',
-})
+});
 
 // Получаем токен из URL (query-параметр ?invitationToken=...)
 const invitationTokenFromUrl = computed(() => {
-  const token = route.query.invitationToken
-  return typeof token === 'string' ? token : null
-})
+  const token = route.query.invitationToken;
+  return typeof token === 'string' ? token : null;
+});
 
 // При монтировании заполняем поле токена, если он есть в URL
 onMounted(() => {
   if (invitationTokenFromUrl.value) {
-    form.invitationToken = invitationTokenFromUrl.value
+    form.invitationToken = invitationTokenFromUrl.value;
   }
-})
+});
 
 const errors = reactive({
   username: '',
   password: '',
   confirmPassword: '',
-})
-const isLoading = ref(false)
-const submitErrors = ref<string[]>([])
+});
+const isLoading = ref(false);
+const submitErrors = ref<string[]>([]);
 
 const validate = () => {
-  let isValid = true
-  errors.username = ''
-  errors.password = ''
-  errors.confirmPassword = ''
+  let isValid = true;
+  errors.username = '';
+  errors.password = '';
+  errors.confirmPassword = '';
 
   if (!form.userName) {
-    errors.username = 'Имя пользователя обязательно'
-    isValid = false
+    errors.username = 'Имя пользователя обязательно';
+    isValid = false;
   } else if (form.userName.length < 3) {
-    errors.username = 'Имя пользователя должно быть не менее 3 символов'
-    isValid = false
+    errors.username = 'Имя пользователя должно быть не менее 3 символов';
+    isValid = false;
   }
 
   if (!form.password) {
-    errors.password = 'Пароль обязателен'
-    isValid = false
+    errors.password = 'Пароль обязателен';
+    isValid = false;
   } else if (form.password.length < 8) {
-    errors.password = 'Пароль должен быть не менее 8 символов'
-    isValid = false
+    errors.password = 'Пароль должен быть не менее 8 символов';
+    isValid = false;
   }
 
   if (form.password !== form.confirmPassword) {
-    errors.confirmPassword = 'Пароли не совпадают'
-    isValid = false
+    errors.confirmPassword = 'Пароли не совпадают';
+    isValid = false;
   }
 
-  return isValid
-}
+  return isValid;
+};
 
 const handleRegister = async () => {
-  if (!validate()) return
+  if (!validate()) return;
 
-  isLoading.value = true
-  submitErrors.value = []
+  isLoading.value = true;
+  submitErrors.value = [];
   try {
     await userStore.register({
       userName: form.userName,
@@ -219,29 +219,29 @@ const handleRegister = async () => {
       firstName: form.firstName,
       lastName: form.lastName,
       invitationToken: form.invitationToken,
-    })
+    });
 
-    router.push({ name: 'home' })
+    router.push({ name: 'home' });
   } catch (error: any) {
-    const serverErrors = error?.data?.errors
+    const serverErrors = error?.data?.errors;
 
     if (serverErrors && typeof serverErrors === 'object') {
-      const errorMessages: string[] = []
-      if (serverErrors.userName) errorMessages.push(serverErrors.userName)
-      if (serverErrors.password) errorMessages.push(serverErrors.password)
-      if (serverErrors.firstName) errorMessages.push(serverErrors.firstName)
-      if (serverErrors.lastName) errorMessages.push(serverErrors.lastName)
-      if (serverErrors.invitationToken) errorMessages.push(serverErrors.invitationToken)
+      const errorMessages: string[] = [];
+      if (serverErrors.userName) errorMessages.push(serverErrors.userName);
+      if (serverErrors.password) errorMessages.push(serverErrors.password);
+      if (serverErrors.firstName) errorMessages.push(serverErrors.firstName);
+      if (serverErrors.lastName) errorMessages.push(serverErrors.lastName);
+      if (serverErrors.invitationToken) errorMessages.push(serverErrors.invitationToken);
       if (errorMessages.length > 0) {
-        submitErrors.value = errorMessages
+        submitErrors.value = errorMessages;
       } else {
-        submitErrors.value = ['Ошибка регистрации']
+        submitErrors.value = ['Ошибка регистрации'];
       }
     } else {
-      submitErrors.value = [error?.data?.error || error?.data?.message || 'Ошибка регистрации']
+      submitErrors.value = [error?.data?.error || error?.data?.message || 'Ошибка регистрации'];
     }
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>

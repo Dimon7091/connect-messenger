@@ -10,26 +10,26 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
-import { useWebSocketStore } from '@/stores/webSocketStore'
-import { useUserStore } from '@/stores/userStore'
-import { useSettingsStore } from '@/stores/settings'
-import GalleryModal from '@/components/GalleryModal.vue'
+import { onMounted, onUnmounted } from 'vue';
+import { useWebSocketStore } from '@/stores/webSocketStore';
+import { useUserStore } from '@/stores/userStore';
+import { useSettingsStore } from '@/stores/settings';
+import GalleryModal from '@/components/GalleryModal.vue';
 
-const wsStore = useWebSocketStore()
-const userStore = useUserStore()
+const wsStore = useWebSocketStore();
+const userStore = useUserStore();
 
 onMounted(() => {
   // Инициализируем WebSocket после авторизации
   if (userStore.isAuthenticated && userStore.token) {
-    wsStore.init()
-    console.log(`WebSocket connection status`)
+    wsStore.init();
+    console.log(`WebSocket connection status`);
   }
   // Инициализируем стор настроек
-  useSettingsStore()
-})
+  useSettingsStore();
+});
 
 onUnmounted(() => {
-  wsStore.disconnect()
-})
+  wsStore.disconnect();
+});
 </script>

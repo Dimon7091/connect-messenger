@@ -77,64 +77,64 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import UserPreview from '@/components/UserPreview.vue'
-import { userService } from '@/services/http/UserService'
-import type { User } from '@messenger/shared-schema'
-import { useUserStore } from '@/stores/userStore'
+import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import UserPreview from '@/components/UserPreview.vue';
+import { userService } from '@/services/http/UserService';
+import type { User } from '@messenger/shared-schema';
+import { useUserStore } from '@/stores/userStore';
 
-const router = useRouter()
-const searchQuery = ref('')
-const searchResults = ref<User[]>([])
-const loading = ref(false)
-const userStore = useUserStore()
+const router = useRouter();
+const searchQuery = ref('');
+const searchResults = ref<User[]>([]);
+const loading = ref(false);
+const userStore = useUserStore();
 
-let debounceTimer: ReturnType<typeof setTimeout>
+let debounceTimer: ReturnType<typeof setTimeout>;
 
 const openChat = (user: User) => {
-  userStore.updateUserInCache(user.id, user)
+  userStore.updateUserInCache(user.id, user);
   router.push({
     path: `/chats/new`,
     query: {
       companionId: user.id,
     },
-  })
-}
+  });
+};
 
-watch(searchQuery, (newValue) => {
+watch(searchQuery, newValue => {
   if (!newValue.trim()) {
-    searchResults.value = []
-    loading.value = false
-    clearTimeout(debounceTimer)
+    searchResults.value = [];
+    loading.value = false;
+    clearTimeout(debounceTimer);
   }
-})
+});
 
 const handleSearch = () => {
-  clearTimeout(debounceTimer)
+  clearTimeout(debounceTimer);
 
   if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    loading.value = false
-    return
+    searchResults.value = [];
+    loading.value = false;
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
 
   debounceTimer = setTimeout(async () => {
     try {
-      const results = await userService.searchUsers(searchQuery.value.trim())
-      searchResults.value = results
+      const results = await userService.searchUsers(searchQuery.value.trim());
+      searchResults.value = results;
     } catch (error) {
-      console.error('Ошибка поиска:', error)
-      searchResults.value = []
+      console.error('Ошибка поиска:', error);
+      searchResults.value = [];
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }, 500)
-}
+  }, 500);
+};
 
 const goBack = () => {
-  router.back()
-}
+  router.back();
+};
 </script>

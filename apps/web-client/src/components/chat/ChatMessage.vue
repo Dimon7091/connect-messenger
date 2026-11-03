@@ -499,309 +499,307 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onBeforeUnmount } from 'vue'
-import { useMediaStore } from '@/stores/mediaStore'
-import { useGalleryStore } from '@/stores/galleryStore'
-import type { Message, Attachment } from '@/types/index'
+import { ref, computed, watch, onBeforeUnmount } from 'vue';
+import { useMediaStore } from '@/stores/mediaStore';
+import { useGalleryStore } from '@/stores/galleryStore';
+import type { Message, Attachment } from '@/types/index';
 
 const props = defineProps<{
-  message: Message
-  currentUserId: string
-  isSelectionMode: boolean
-  isSelected: boolean
-}>()
+  message: Message;
+  currentUserId: string;
+  isSelectionMode: boolean;
+  isSelected: boolean;
+}>();
 
 const emit = defineEmits<{
-  (e: 'select', messageId: string): void
-  (e: 'longPress', messageId: string): void
-  (e: 'scrollToMessage', messageId: string): void
-}>()
+  (e: 'select', messageId: string): void;
+  (e: 'longPress', messageId: string): void;
+  (e: 'scrollToMessage', messageId: string): void;
+}>();
 
-const mediaStore = useMediaStore()
-const galleryStore = useGalleryStore()
+const mediaStore = useMediaStore();
+const galleryStore = useGalleryStore();
 
 // ===== Локальные состояния =====
-const attachmentLoading = ref<Record<string, boolean>>({})
-const attachmentError = ref<Record<string, boolean>>({})
+const attachmentLoading = ref<Record<string, boolean>>({});
+const attachmentError = ref<Record<string, boolean>>({});
 
 // ===== Модальное окно =====
-const fileModalShow = ref(false)
-const selectedFile = ref<Attachment | null>(null)
-const isDownloading = ref(false)
-const downloadError = ref<string | null>(null) // 👈 ошибка скачивания
+const fileModalShow = ref(false);
+const selectedFile = ref<Attachment | null>(null);
+const isDownloading = ref(false);
+const downloadError = ref<string | null>(null); // 👈 ошибка скачивания
 
 // ===== Форматирование размера =====
 const formatSize = (size?: string | number) => {
-  if (!size) return ''
-  const bytes = typeof size === 'string' ? parseInt(size, 10) : size
-  if (bytes < 1024) return `${bytes} Б`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КБ`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`
-}
+  if (!size) return '';
+  const bytes = typeof size === 'string' ? parseInt(size, 10) : size;
+  if (bytes < 1024) return `${bytes} Б`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КБ`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
+};
 
 // ===== Загрузка URL =====
 const loadUrl = async (fileKey: string) => {
-  if (mediaStore.urlCache[fileKey]?.url) return
-  if (attachmentLoading.value[fileKey]) return
+  if (mediaStore.urlCache[fileKey]?.url) return;
+  if (attachmentLoading.value[fileKey]) return;
 
-  attachmentLoading.value[fileKey] = true
-  attachmentError.value[fileKey] = false
+  attachmentLoading.value[fileKey] = true;
+  attachmentError.value[fileKey] = false;
 
   try {
-    await mediaStore.getDownloadUrl(fileKey)
-    const url = mediaStore.urlCache[fileKey]?.url
+    await mediaStore.getDownloadUrl(fileKey);
+    const url = mediaStore.urlCache[fileKey]?.url;
     if (url) {
-      const resp = await fetch(url, { method: 'HEAD' })
+      const resp = await fetch(url, { method: 'HEAD' });
       if (!resp.ok) {
-        const { [fileKey]: _, ...rest } = mediaStore.urlCache
-        mediaStore.urlCache = rest
-        throw new Error(`HTTP ${resp.status}`)
+        const { [fileKey]: _, ...rest } = mediaStore.urlCache;
+        mediaStore.urlCache = rest;
+        throw new Error(`HTTP ${resp.status}`);
       }
     }
   } catch (error) {
-    console.error(`Failed to load URL for ${fileKey}:`, error)
-    attachmentError.value[fileKey] = true
+    console.error(`Failed to load URL for ${fileKey}:`, error);
+    attachmentError.value[fileKey] = true;
   } finally {
-    attachmentLoading.value[fileKey] = false
+    attachmentLoading.value[fileKey] = false;
   }
-}
+};
 
 // ===== Обработчики ошибок =====
 const handleImageError = (fileKey: string) => {
-  attachmentError.value[fileKey] = true
-  const { [fileKey]: _, ...rest } = mediaStore.urlCache
-  mediaStore.urlCache = rest
-}
+  attachmentError.value[fileKey] = true;
+  const { [fileKey]: _, ...rest } = mediaStore.urlCache;
+  mediaStore.urlCache = rest;
+};
 
 const retryLoad = (fileKey: string) => {
-  attachmentError.value[fileKey] = false
-  loadUrl(fileKey)
-}
+  attachmentError.value[fileKey] = false;
+  loadUrl(fileKey);
+};
 
 // ===== Функции для файлового модального окна =====
 const openFileOptions = (attachment: Attachment) => {
-  if (!mediaStore.urlCache[attachment.fileKey]?.url) return
-  selectedFile.value = attachment
-  fileModalShow.value = true
-  downloadError.value = null // сбрасываем ошибку при открытии
-}
+  if (!mediaStore.urlCache[attachment.fileKey]?.url) return;
+  selectedFile.value = attachment;
+  fileModalShow.value = true;
+  downloadError.value = null; // сбрасываем ошибку при открытии
+};
 
 const closeFileModal = () => {
-  fileModalShow.value = false
-  selectedFile.value = null
-  isDownloading.value = false
-  downloadError.value = null
-}
+  fileModalShow.value = false;
+  selectedFile.value = null;
+  isDownloading.value = false;
+  downloadError.value = null;
+};
 
 const openFile = () => {
-  if (!selectedFile.value) return
-  const url = mediaStore.urlCache[selectedFile.value.fileKey]?.url
+  if (!selectedFile.value) return;
+  const url = mediaStore.urlCache[selectedFile.value.fileKey]?.url;
   if (url) {
-    window.open(url, '_blank')
+    window.open(url, '_blank');
   }
-  closeFileModal()
-}
+  closeFileModal();
+};
 
 // ===== Улучшенная функция скачивания =====
 const downloadFile = async () => {
-  if (!selectedFile.value) return
-  const fileKey = selectedFile.value.fileKey
+  if (!selectedFile.value) return;
+  const fileKey = selectedFile.value.fileKey;
 
   // 1. Если URL нет в кэше — пытаемся загрузить
-  let url = mediaStore.urlCache[fileKey]?.url
+  let url = mediaStore.urlCache[fileKey]?.url;
   if (!url) {
-    downloadError.value = 'Ссылка устарела, обновляем...'
-    await loadUrl(fileKey)
-    url = mediaStore.urlCache[fileKey]?.url
+    downloadError.value = 'Ссылка устарела, обновляем...';
+    await loadUrl(fileKey);
+    url = mediaStore.urlCache[fileKey]?.url;
     if (!url) {
-      downloadError.value = 'Не удалось получить ссылку на файл. Попробуйте позже.'
-      return
+      downloadError.value = 'Не удалось получить ссылку на файл. Попробуйте позже.';
+      return;
     }
   }
 
-  isDownloading.value = true
-  downloadError.value = null
+  isDownloading.value = true;
+  downloadError.value = null;
 
   try {
     // 2. Пробуем скачать файл через fetch
-    const response = await fetch(url, { mode: 'cors' })
+    const response = await fetch(url, { mode: 'cors' });
     if (!response.ok) {
       // Если ошибка 403 или 401 — возможно, ссылка истекла
       if (response.status === 403 || response.status === 401) {
-        downloadError.value = 'Ссылка истекла, обновляем...'
+        downloadError.value = 'Ссылка истекла, обновляем...';
         // Принудительно сбрасываем кэш и загружаем заново
-        const { [fileKey]: _, ...rest } = mediaStore.urlCache
-        mediaStore.urlCache = rest
-        await loadUrl(fileKey)
-        const newUrl = mediaStore.urlCache[fileKey]?.url
+        const { [fileKey]: _, ...rest } = mediaStore.urlCache;
+        mediaStore.urlCache = rest;
+        await loadUrl(fileKey);
+        const newUrl = mediaStore.urlCache[fileKey]?.url;
         if (!newUrl) {
-          downloadError.value = 'Не удалось обновить ссылку. Попробуйте позже.'
-          return
+          downloadError.value = 'Не удалось обновить ссылку. Попробуйте позже.';
+          return;
         }
         // Повторяем запрос с новой ссылкой
-        const retryResponse = await fetch(newUrl, { mode: 'cors' })
+        const retryResponse = await fetch(newUrl, { mode: 'cors' });
         if (!retryResponse.ok) {
-          throw new Error(`HTTP ${retryResponse.status}`)
+          throw new Error(`HTTP ${retryResponse.status}`);
         }
-        const blob = await retryResponse.blob()
-        const blobUrl = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = blobUrl
-        link.download = selectedFile.value.fileName || 'file'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(blobUrl)
-        closeFileModal()
-        return
+        const blob = await retryResponse.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = selectedFile.value.fileName || 'file';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        closeFileModal();
+        return;
       } else {
-        throw new Error(`HTTP ${response.status}`)
+        throw new Error(`HTTP ${response.status}`);
       }
     }
 
     // 3. Успешный ответ
-    const blob = await response.blob()
-    const blobUrl = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = blobUrl
-    link.download = selectedFile.value.fileName || 'file'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(blobUrl)
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = selectedFile.value.fileName || 'file';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
 
     // 4. Закрываем модалку после успешного скачивания
-    closeFileModal()
+    closeFileModal();
   } catch (error: any) {
-    console.error('Download failed:', error)
-    downloadError.value = `Ошибка: ${error.message || 'Неизвестная ошибка'}. Попробуйте открыть файл в новой вкладке.`
+    console.error('Download failed:', error);
+    downloadError.value = `Ошибка: ${error.message || 'Неизвестная ошибка'}. Попробуйте открыть файл в новой вкладке.`;
   } finally {
-    isDownloading.value = false
+    isDownloading.value = false;
   }
-}
+};
 
 // ===== ГАЛЕРЕЯ =====
 const imageAttachments = computed(() =>
-  (props.message.attachments || []).filter((att: Attachment) => att.mimeType?.startsWith('image/')),
-)
+  (props.message.attachments || []).filter((att: Attachment) => att.mimeType?.startsWith('image/'))
+);
 const otherAttachments = computed(() =>
-  (props.message.attachments || []).filter(
-    (att: Attachment) => !att.mimeType?.startsWith('image/'),
-  ),
-)
+  (props.message.attachments || []).filter((att: Attachment) => !att.mimeType?.startsWith('image/'))
+);
 
 const openImage = (fileKey: string) => {
-  if (!imageAttachments.value.length) return
-  const index = imageAttachments.value.findIndex((att: Attachment) => att.fileKey === fileKey)
-  if (index === -1) return
+  if (!imageAttachments.value.length) return;
+  const index = imageAttachments.value.findIndex((att: Attachment) => att.fileKey === fileKey);
+  if (index === -1) return;
   const images = imageAttachments.value.map((att: Attachment) => ({
     url: mediaStore.urlCache[att.fileKey]?.url || '',
     fileKey: att.fileKey,
     fileName: att.fileName || 'Изображение',
-  }))
-  galleryStore.openGallery(images, index)
-}
+  }));
+  galleryStore.openGallery(images, index);
+};
 
 // ===== Прокрутка к оригинальному сообщению =====
 const scrollToOriginalMessage = () => {
-  const originalId = props.message.replyContext?.originalMessageId
-  if (originalId) emit('scrollToMessage', originalId)
-}
+  const originalId = props.message.replyContext?.originalMessageId;
+  if (originalId) emit('scrollToMessage', originalId);
+};
 
 // ===== Следим за attachments =====
 watch(
   () => props.message.attachments,
-  (newAttachments) => {
+  newAttachments => {
     if (newAttachments?.length) {
       newAttachments.forEach((att: Attachment) => {
-        if (att.fileKey) loadUrl(att.fileKey)
-      })
+        if (att.fileKey) loadUrl(att.fileKey);
+      });
     }
   },
-  { immediate: true, deep: true },
-)
+  { immediate: true, deep: true }
+);
 
 // ===== Форматирование времени =====
 const formattedTime = computed(() => {
-  const value = props.message.createdAt
-  if (!value) return ''
+  const value = props.message.createdAt;
+  if (!value) return '';
 
-  let date: Date | null = null
+  let date: Date | null = null;
 
   if (typeof value === 'string') {
-    const d = new Date(value)
-    if (!isNaN(d.getTime())) date = d
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) date = d;
   } else if (typeof value === 'number') {
-    const ms = value < 1e12 ? value * 1000 : value
-    const d = new Date(ms)
-    if (!isNaN(d.getTime())) date = d
+    const ms = value < 1e12 ? value * 1000 : value;
+    const d = new Date(ms);
+    if (!isNaN(d.getTime())) date = d;
   } else if (value && typeof value === 'object' && 'getTime' in value) {
     // Для объектов, похожих на Date (включая Date)
-    const d = value as Date
-    if (!isNaN(d.getTime())) date = d
+    const d = value as Date;
+    if (!isNaN(d.getTime())) date = d;
   }
 
-  if (!date) return ''
-  return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-})
+  if (!date) return '';
+  return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+});
 
 // ===== Обработчики касаний =====
-const touchStartPos = ref<{ x: number; y: number } | null>(null)
-let touchTimer: ReturnType<typeof setTimeout> | null = null
+const touchStartPos = ref<{ x: number; y: number } | null>(null);
+let touchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const onTouchStart = (event: TouchEvent) => {
-  if (props.isSelectionMode) return
-  const touch = event.touches[0]
-  if (!touch) return
-  touchStartPos.value = { x: touch.clientX, y: touch.clientY }
+  if (props.isSelectionMode) return;
+  const touch = event.touches[0];
+  if (!touch) return;
+  touchStartPos.value = { x: touch.clientX, y: touch.clientY };
   touchTimer = setTimeout(() => {
-    emit('longPress', props.message.id)
-    touchTimer = null
-  }, 500)
-}
+    emit('longPress', props.message.id);
+    touchTimer = null;
+  }, 500);
+};
 
 const onTouchMove = (event: TouchEvent) => {
-  if (!touchStartPos.value) return
-  const touch = event.touches[0]
-  if (!touch) return
-  const dx = touch.clientX - touchStartPos.value.x
-  const dy = touch.clientY - touchStartPos.value.y
-  const distance = Math.sqrt(dx * dx + dy * dy)
+  if (!touchStartPos.value) return;
+  const touch = event.touches[0];
+  if (!touch) return;
+  const dx = touch.clientX - touchStartPos.value.x;
+  const dy = touch.clientY - touchStartPos.value.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
   if (distance > 10) {
     if (touchTimer) {
-      clearTimeout(touchTimer)
-      touchTimer = null
+      clearTimeout(touchTimer);
+      touchTimer = null;
     }
-    touchStartPos.value = null
+    touchStartPos.value = null;
   }
-}
+};
 
 const onTouchEnd = () => {
   if (touchTimer) {
-    clearTimeout(touchTimer)
-    touchTimer = null
+    clearTimeout(touchTimer);
+    touchTimer = null;
   }
-  touchStartPos.value = null
-}
+  touchStartPos.value = null;
+};
 
 const onLongPress = (event: MouseEvent) => {
-  event.preventDefault()
-  if (props.isSelectionMode) return
-  emit('longPress', props.message.id)
-}
+  event.preventDefault();
+  if (props.isSelectionMode) return;
+  emit('longPress', props.message.id);
+};
 
 const onClick = () => {
   if (props.isSelectionMode) {
-    emit('select', props.message.id)
+    emit('select', props.message.id);
   }
-}
+};
 
 onBeforeUnmount(() => {
   if (touchTimer) {
-    clearTimeout(touchTimer)
-    touchTimer = null
+    clearTimeout(touchTimer);
+    touchTimer = null;
   }
-})
+});
 </script>
 
 <style scoped>

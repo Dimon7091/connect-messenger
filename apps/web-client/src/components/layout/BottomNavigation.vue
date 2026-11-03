@@ -86,16 +86,16 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
-import { useChatStore } from '@/stores/chatStore'
+import { useRouter, useRoute } from 'vue-router';
+import { useChatStore } from '@/stores/chatStore';
 
-const router = useRouter()
-const route = useRoute()
-const chatStore = useChatStore()
+const router = useRouter();
+const route = useRoute();
+const chatStore = useChatStore();
 
-const goToChats = () => router.push('/chats')
-const goToSettings = () => router.push('/settings')
-const goToProfile = () => router.push('/profile')
+const goToChats = () => router.push('/chats');
+const goToSettings = () => router.push('/settings');
+const goToProfile = () => router.push('/profile');
 
-const isActive = (path: string) => route.path === path
+const isActive = (path: string) => route.path === path;
 </script>

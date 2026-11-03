@@ -1,4 +1,4 @@
-export * as schema from './schema'
-export { createDb } from './client'
-export type { DbConfig, Db } from './client'
-export type { User } from './schema'
+export * as schema from './schema/index.js';
+export { createDb } from './client.js';
+export type { DbOptions, DbInstance } from './client.js';
+export type { User } from './schema/index.js';

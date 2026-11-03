@@ -38,48 +38,48 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { User } from '@messenger/shared'
-import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient'
+import { computed } from 'vue';
+import type { User } from '@messenger/shared';
+import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient';
 
 const props = defineProps<{
-  user: User
-}>()
+  user: User;
+}>();
 
 const emit = defineEmits<{
-  click: [user: User]
-}>()
+  click: [user: User];
+}>();
 
 // Отображаемое имя (приоритет: firstName + lastName, firstName, userName)
 const displayName = computed(() => {
-  const firstName = props.user.profile?.firstName
-  const lastName = props.user.profile?.lastName
-  if (firstName && lastName) return `${firstName} ${lastName}`
-  if (firstName) return firstName
-  return props.user.userName
-})
+  const firstName = props.user.profile?.firstName;
+  const lastName = props.user.profile?.lastName;
+  if (firstName && lastName) return `${firstName} ${lastName}`;
+  if (firstName) return firstName;
+  return props.user.userName;
+});
 
 // Ссылка на аватар (предпочтительно миниатюра, затем оригинал)
-const avatarUrl = computed(() => props.user.profile?.avatarThumbUrl || null)
+const avatarUrl = computed(() => props.user.profile?.avatarThumbUrl || null);
 
 // Градиент для аватара (если нет картинки)
 const avatarGradientClass = computed(() => {
-  if (avatarUrl.value) return ''
-  return getAvatarGradient(props.user.id)
-})
+  if (avatarUrl.value) return '';
+  return getAvatarGradient(props.user.id);
+});
 
 // Инициалы (через утилиту)
 const initials = computed(() => {
-  const firstName = props.user.profile?.firstName
-  const lastName = props.user.profile?.lastName
-  let name = ''
-  if (firstName && lastName) name = `${firstName} ${lastName}`
-  else if (firstName) name = firstName
-  else name = props.user.userName
-  return getInitialsFromName(name)
-})
+  const firstName = props.user.profile?.firstName;
+  const lastName = props.user.profile?.lastName;
+  let name = '';
+  if (firstName && lastName) name = `${firstName} ${lastName}`;
+  else if (firstName) name = firstName;
+  else name = props.user.userName;
+  return getInitialsFromName(name);
+});
 
 const handleClick = () => {
-  emit('click', props.user)
-}
+  emit('click', props.user);
+};
 </script>

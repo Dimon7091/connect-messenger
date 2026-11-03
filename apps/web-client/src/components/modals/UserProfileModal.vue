@@ -134,186 +134,186 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useUserStore } from '@/stores/userStore'
-import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient'
-import AvatarPreviewModal from '@/components/modals/AvatarPreviewModal.vue'
-import type { User } from '@messenger/shared'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { useUserStore } from '@/stores/userStore';
+import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient';
+import AvatarPreviewModal from '@/components/modals/AvatarPreviewModal.vue';
+import type { User } from '@messenger/shared';
 
 const props = defineProps<{
-  visible: boolean
-  userId: string
-}>()
+  visible: boolean;
+  userId: string;
+}>();
 
 const emit = defineEmits<{
-  (e: 'close'): void
-}>()
+  (e: 'close'): void;
+}>();
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 
-const user = ref<User | null>(null)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-const isAvatarLoading = ref(false)
+const user = ref<User | null>(null);
+const isLoading = ref(false);
+const error = ref<string | null>(null);
+const isAvatarLoading = ref(false);
 
-const currentTime = ref(Date.now())
-let timeUpdateInterval: ReturnType<typeof setInterval> | null = null
+const currentTime = ref(Date.now());
+let timeUpdateInterval: ReturnType<typeof setInterval> | null = null;
 
-const showAvatarPreview = ref(false)
-const avatarUrl = computed(() => user.value?.profile.avatarUrl || null)
+const showAvatarPreview = ref(false);
+const avatarUrl = computed(() => user.value?.profile.avatarUrl || null);
 const openAvatarPreview = () => {
   if (user.value?.profile.avatarUrl) {
-    showAvatarPreview.value = true
+    showAvatarPreview.value = true;
   }
-}
+};
 
 // Загрузка пользователя
 const loadUser = async () => {
-  if (!props.userId) return
-  isLoading.value = true
-  error.value = null
+  if (!props.userId) return;
+  isLoading.value = true;
+  error.value = null;
   try {
-    const data = await userStore.getUserById(props.userId)
-    user.value = data
+    const data = await userStore.getUserById(props.userId);
+    user.value = data;
     // Если есть аватар, начинаем загрузку
     if (data?.profile?.avatarUrl) {
-      isAvatarLoading.value = true
+      isAvatarLoading.value = true;
     } else {
-      isAvatarLoading.value = false
+      isAvatarLoading.value = false;
     }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Ошибка загрузки профиля'
+    error.value = err instanceof Error ? err.message : 'Ошибка загрузки профиля';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 // Сброс состояния при закрытии
 const resetState = () => {
-  isAvatarLoading.value = false
-  error.value = null
-}
+  isAvatarLoading.value = false;
+  error.value = null;
+};
 
 // Обработчики загрузки/ошибки аватара
 const onAvatarLoaded = () => {
-  isAvatarLoading.value = false
-}
+  isAvatarLoading.value = false;
+};
 
 const onAvatarError = () => {
-  isAvatarLoading.value = false
+  isAvatarLoading.value = false;
   // Если аватар не загрузился, очищаем URL, чтобы показывать инициалы
   if (user.value?.profile) {
-    user.value.profile.avatarUrl = null
+    user.value.profile.avatarUrl = null;
   }
-}
+};
 
 watch(
   () => props.visible,
-  (newVal) => {
+  newVal => {
     if (newVal && props.userId) {
-      loadUser()
+      loadUser();
     } else {
-      resetState()
+      resetState();
     }
   },
-  { immediate: true },
-)
+  { immediate: true }
+);
 
 // Следим за изменением avatarUrl (например, если пользователь обновил аватар)
 watch(
   () => user.value?.profile?.avatarUrl,
-  (newUrl) => {
+  newUrl => {
     if (newUrl) {
-      isAvatarLoading.value = true
+      isAvatarLoading.value = true;
     } else {
-      isAvatarLoading.value = false
+      isAvatarLoading.value = false;
     }
   },
-  { immediate: true },
-)
+  { immediate: true }
+);
 
 // Вычисляемые свойства
 const fullName = computed(() => {
-  if (!user.value) return ''
-  const { firstName, lastName } = user.value.profile || {}
-  return `${firstName ?? ''} ${lastName ?? ''}`.trim() || 'Без имени'
-})
+  if (!user.value) return '';
+  const { firstName, lastName } = user.value.profile || {};
+  return `${firstName ?? ''} ${lastName ?? ''}`.trim() || 'Без имени';
+});
 
 const avatarInitials = computed(() => {
-  if (!user.value) return ''
-  const name = fullName.value
-  return getInitialsFromName(name)
-})
+  if (!user.value) return '';
+  const name = fullName.value;
+  return getInitialsFromName(name);
+});
 
 const avatarGradientClass = computed(() => {
-  if (!user.value) return 'bg-gradient-to-br from-gray-500 to-gray-700'
-  if (user.value.profile?.avatarThumbUrl) return ''
-  return getAvatarGradient(user.value.id)
-})
+  if (!user.value) return 'bg-gradient-to-br from-gray-500 to-gray-700';
+  if (user.value.profile?.avatarThumbUrl) return '';
+  return getAvatarGradient(user.value.id);
+});
 
 const userStatus = computed(() => {
-  if (!user.value) return 'OFFLINE'
-  return userStore.getUserStatus(user.value.id) || 'OFFLINE'
-})
+  if (!user.value) return 'OFFLINE';
+  return userStore.getUserStatus(user.value.id) || 'OFFLINE';
+});
 
 const userLastSeen = computed(() => {
-  if (!user.value) return null
-  return userStore.getUserLastSeen(user.value.id)
-})
+  if (!user.value) return null;
+  return userStore.getUserLastSeen(user.value.id);
+});
 
 const formatLastSeen = (lastSeen: string | number): string => {
-  if (!lastSeen) return ''
-  let timestamp: number
+  if (!lastSeen) return '';
+  let timestamp: number;
   if (typeof lastSeen === 'number') {
-    timestamp = lastSeen * 1000
+    timestamp = lastSeen * 1000;
   } else {
-    timestamp = Date.parse(lastSeen)
-    if (isNaN(timestamp)) return ''
+    timestamp = Date.parse(lastSeen);
+    if (isNaN(timestamp)) return '';
   }
-  const date = new Date(timestamp)
-  if (isNaN(date.getTime())) return ''
-  const now = currentTime.value
-  const diffMs = now - timestamp
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-  if (diffMins < 1) return 'был(а) только что'
-  if (diffMins < 60) return `был(а) ${diffMins} мин. назад`
-  if (diffHours < 24) return `был(а) ${diffHours} ч. назад`
-  if (diffDays === 1) return 'был(а) вчера'
-  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
-}
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return '';
+  const now = currentTime.value;
+  const diffMs = now - timestamp;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) return 'был(а) только что';
+  if (diffMins < 60) return `был(а) ${diffMins} мин. назад`;
+  if (diffHours < 24) return `был(а) ${diffHours} ч. назад`;
+  if (diffDays === 1) return 'был(а) вчера';
+  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+};
 
 const formattedLastSeen = computed(() => {
-  if (!userLastSeen.value) return null
-  return formatLastSeen(userLastSeen.value)
-})
+  if (!userLastSeen.value) return null;
+  return formatLastSeen(userLastSeen.value);
+});
 
 const statusDisplayText = computed(() => {
-  if (userStatus.value === 'ONLINE') return 'Онлайн'
-  if (formattedLastSeen.value) return formattedLastSeen.value
-  return 'не в сети'
-})
+  if (userStatus.value === 'ONLINE') return 'Онлайн';
+  if (formattedLastSeen.value) return formattedLastSeen.value;
+  return 'не в сети';
+});
 
-const isDeleted = computed(() => user.value?.isDeleted === true)
+const isDeleted = computed(() => user.value?.isDeleted === true);
 
 const handleClose = () => {
-  emit('close')
-}
+  emit('close');
+};
 
 // Обновление времени каждую минуту
 onMounted(() => {
   timeUpdateInterval = setInterval(() => {
-    currentTime.value = Date.now()
-  }, 60000)
-})
+    currentTime.value = Date.now();
+  }, 60000);
+});
 
 onUnmounted(() => {
   if (timeUpdateInterval) {
-    clearInterval(timeUpdateInterval)
-    timeUpdateInterval = null
+    clearInterval(timeUpdateInterval);
+    timeUpdateInterval = null;
   }
-})
+});
 </script>
 
 <style scoped>

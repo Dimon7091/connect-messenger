@@ -331,254 +331,254 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useUserStore } from '@/stores/userStore'
-import { useRouter } from 'vue-router'
-import { compressImageIfNeeded } from '@/services/business/ImageCompressor'
-import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient'
-import AvatarPreviewModal from '@/components/modals/AvatarPreviewModal.vue'
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import { ref, computed } from 'vue';
+import { useUserStore } from '@/stores/userStore';
+import { useRouter } from 'vue-router';
+import { compressImageIfNeeded } from '@/services/business/ImageCompressor';
+import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient';
+import AvatarPreviewModal from '@/components/modals/AvatarPreviewModal.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 
-const userStore = useUserStore()
-const router = useRouter()
-const showToast = ref(false)
-const showLogoutConfirm = ref(false)
-const showDeleteConfirm = ref(false) // новое состояние
-const isUploading = ref(false)
-const fileInput = ref<HTMLInputElement | null>(null)
-const avatarKey = ref(0)
+const userStore = useUserStore();
+const router = useRouter();
+const showToast = ref(false);
+const showLogoutConfirm = ref(false);
+const showDeleteConfirm = ref(false); // новое состояние
+const isUploading = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
+const avatarKey = ref(0);
 
 // Состояния для инлайн-редактирования
-const editingName = ref(false)
-const editingUsername = ref(false)
-const editFirstName = ref('')
-const editLastName = ref('')
-const editUsername = ref('')
-const isSaving = ref(false)
-const usernameError = ref('')
+const editingName = ref(false);
+const editingUsername = ref(false);
+const editFirstName = ref('');
+const editLastName = ref('');
+const editUsername = ref('');
+const isSaving = ref(false);
+const usernameError = ref('');
 
 // ==================== Computed свойства ====================
 const isOnline = computed(() => {
-  const userId = userStore.user?.id
-  if (!userId) return false
-  const status = userStore.getUserStatus(userId)
-  return status === 'ONLINE'
-})
+  const userId = userStore.user?.id;
+  if (!userId) return false;
+  const status = userStore.getUserStatus(userId);
+  return status === 'ONLINE';
+});
 
-const avatarUrl = computed(() => userStore.user?.profile?.avatarUrl || null)
+const avatarUrl = computed(() => userStore.user?.profile?.avatarUrl || null);
 
 const avatarGradientClass = computed(() => {
-  if (avatarUrl.value) return ''
-  const userId = userStore.user?.id
-  if (userId) return getAvatarGradient(userId)
-  return 'bg-gradient-to-br from-gray-500 to-gray-700'
-})
+  if (avatarUrl.value) return '';
+  const userId = userStore.user?.id;
+  if (userId) return getAvatarGradient(userId);
+  return 'bg-gradient-to-br from-gray-500 to-gray-700';
+});
 
 const avatarInitials = computed(() => {
-  const user = userStore.user
-  if (!user) return '?'
-  const fullName = userStore.fullName || user.userName || ''
-  return getInitialsFromName(fullName)
-})
+  const user = userStore.user;
+  if (!user) return '?';
+  const fullName = userStore.fullName || user.userName || '';
+  return getInitialsFromName(fullName);
+});
 
 // ==================== Методы аватара ====================
 const triggerFileInput = () => {
-  fileInput.value?.click()
-}
+  fileInput.value?.click();
+};
 
 const handleFileSelect = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
 
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
   if (!allowedTypes.includes(file.type)) {
-    alert('Неподдерживаемый формат. Используйте JPEG, PNG или WEBP.')
-    input.value = ''
-    return
+    alert('Неподдерживаемый формат. Используйте JPEG, PNG или WEBP.');
+    input.value = '';
+    return;
   }
 
-  isUploading.value = true
+  isUploading.value = true;
   try {
-    const compressedFile = await compressImageIfNeeded(file, 2, 2400, 2400)
-    await userStore.uploadAvatar(compressedFile)
-    avatarKey.value++
+    const compressedFile = await compressImageIfNeeded(file, 2, 2400, 2400);
+    await userStore.uploadAvatar(compressedFile);
+    avatarKey.value++;
   } catch (error) {
-    console.error('Ошибка загрузки аватара:', error)
-    alert('Не удалось загрузить аватар. Попробуйте позже.')
+    console.error('Ошибка загрузки аватара:', error);
+    alert('Не удалось загрузить аватар. Попробуйте позже.');
   } finally {
-    isUploading.value = false
-    input.value = ''
+    isUploading.value = false;
+    input.value = '';
   }
-}
+};
 
 // ==================== Редактирование имени и фамилии ====================
 const startEditName = () => {
-  editFirstName.value = userStore.user?.profile?.firstName || ''
-  editLastName.value = userStore.user?.profile?.lastName || ''
-  editingName.value = true
-}
+  editFirstName.value = userStore.user?.profile?.firstName || '';
+  editLastName.value = userStore.user?.profile?.lastName || '';
+  editingName.value = true;
+};
 
 const cancelEditName = () => {
-  editingName.value = false
-  editFirstName.value = ''
-  editLastName.value = ''
-}
+  editingName.value = false;
+  editFirstName.value = '';
+  editLastName.value = '';
+};
 
 const saveName = async () => {
-  const firstName = editFirstName.value.trim()
+  const firstName = editFirstName.value.trim();
   if (!firstName) {
-    alert('Имя не может быть пустым')
-    return
+    alert('Имя не может быть пустым');
+    return;
   }
-  isSaving.value = true
+  isSaving.value = true;
   try {
-    const lastName = editLastName.value.trim()
+    const lastName = editLastName.value.trim();
     await userStore.updateProfile({
       firstName,
       lastName: lastName === '' ? null : lastName,
-    })
-    editingName.value = false
+    });
+    editingName.value = false;
   } catch (error) {
-    console.error('Ошибка сохранения имени:', error)
-    alert('Не удалось сохранить имя. Попробуйте позже.')
+    console.error('Ошибка сохранения имени:', error);
+    alert('Не удалось сохранить имя. Попробуйте позже.');
   } finally {
-    isSaving.value = false
+    isSaving.value = false;
   }
-}
+};
 
 // ==================== Редактирование username ====================
 const startEditUsername = () => {
-  editUsername.value = userStore.user?.userName || ''
-  usernameError.value = ''
-  editingUsername.value = true
-}
+  editUsername.value = userStore.user?.userName || '';
+  usernameError.value = '';
+  editingUsername.value = true;
+};
 
 const cancelEditUsername = () => {
-  editingUsername.value = false
-  editUsername.value = ''
-  usernameError.value = ''
-}
+  editingUsername.value = false;
+  editUsername.value = '';
+  usernameError.value = '';
+};
 
 const saveUsername = async () => {
-  const newUsername = editUsername.value.trim()
+  const newUsername = editUsername.value.trim();
   if (!newUsername) {
-    usernameError.value = 'Имя пользователя не может быть пустым'
-    return
+    usernameError.value = 'Имя пользователя не может быть пустым';
+    return;
   }
   if (!/^[a-zA-Z0-9_]{3,20}$/.test(newUsername)) {
-    usernameError.value = 'Только латиница, цифры и _, 3–20 символов'
-    return
+    usernameError.value = 'Только латиница, цифры и _, 3–20 символов';
+    return;
   }
-  isSaving.value = true
-  usernameError.value = ''
+  isSaving.value = true;
+  usernameError.value = '';
   try {
-    await userStore.updateUserName(newUsername)
-    editingUsername.value = false
+    await userStore.updateUserName(newUsername);
+    editingUsername.value = false;
   } catch (error: any) {
     if (error.response?.status === 409) {
-      usernameError.value = 'Имя пользователя уже занято'
+      usernameError.value = 'Имя пользователя уже занято';
     } else {
-      usernameError.value = 'Ошибка сервера. Попробуйте позже.'
+      usernameError.value = 'Ошибка сервера. Попробуйте позже.';
     }
-    console.error(error)
+    console.error(error);
   } finally {
-    isSaving.value = false
+    isSaving.value = false;
   }
-}
+};
 
 // ==================== Другие методы ====================
 const copyUsername = async () => {
-  const username = userStore.user?.userName
-  if (!username) return
+  const username = userStore.user?.userName;
+  if (!username) return;
 
   try {
     // 1. Пытаемся использовать современный Clipboard API (десктоп, новые браузеры)
-    await navigator.clipboard.writeText(username)
-    showToast.value = true
-    setTimeout(() => (showToast.value = false), 2000)
+    await navigator.clipboard.writeText(username);
+    showToast.value = true;
+    setTimeout(() => (showToast.value = false), 2000);
   } catch (err) {
     // 2. Fallback для мобильных устройств и старых браузеров (через execCommand)
-    const textArea = document.createElement('textarea')
-    textArea.value = username
+    const textArea = document.createElement('textarea');
+    textArea.value = username;
     // Скрываем элемент
-    textArea.style.position = 'fixed'
-    textArea.style.top = '-9999px'
-    textArea.style.left = '-9999px'
-    textArea.style.width = '1px'
-    textArea.style.height = '1px'
-    document.body.appendChild(textArea)
-    textArea.focus()
-    textArea.select()
+    textArea.style.position = 'fixed';
+    textArea.style.top = '-9999px';
+    textArea.style.left = '-9999px';
+    textArea.style.width = '1px';
+    textArea.style.height = '1px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
 
     try {
-      const successful = document.execCommand('copy')
-      document.body.removeChild(textArea)
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
       if (successful) {
-        showToast.value = true
-        setTimeout(() => (showToast.value = false), 2000)
+        showToast.value = true;
+        setTimeout(() => (showToast.value = false), 2000);
       } else {
         // Если execCommand не сработал (бывает на некоторых устройствах)
-        alert('Не удалось скопировать. Попробуйте вручную.')
+        alert('Не удалось скопировать. Попробуйте вручную.');
       }
     } catch (e) {
-      document.body.removeChild(textArea)
-      alert('Не удалось скопировать. Попробуйте вручную.')
+      document.body.removeChild(textArea);
+      alert('Не удалось скопировать. Попробуйте вручную.');
     }
   }
-}
+};
 
 const confirmLogout = () => {
-  showLogoutConfirm.value = true
-}
+  showLogoutConfirm.value = true;
+};
 
 const closeLogoutConfirm = () => {
-  showLogoutConfirm.value = false
-}
+  showLogoutConfirm.value = false;
+};
 
 const proceedLogout = () => {
-  userStore.logout()
-  router.push('/login')
-  closeLogoutConfirm()
-}
+  userStore.logout();
+  router.push('/login');
+  closeLogoutConfirm();
+};
 
 // ==================== Удаление аккаунта ====================
 const confirmDeleteAccount = () => {
-  showDeleteConfirm.value = true
-}
+  showDeleteConfirm.value = true;
+};
 
 const proceedDeleteAccount = async () => {
   try {
-    await userStore.deleteAccount() // предполагаем, что такой метод есть в userStore
-    userStore.clearSession() // очищаем сессию после удаления
-    router.push('/login')
+    await userStore.deleteAccount(); // предполагаем, что такой метод есть в userStore
+    userStore.clearSession(); // очищаем сессию после удаления
+    router.push('/login');
   } catch (error) {
-    console.error('Ошибка удаления аккаунта:', error)
-    alert('Не удалось удалить аккаунт. Попробуйте позже.')
+    console.error('Ошибка удаления аккаунта:', error);
+    alert('Не удалось удалить аккаунт. Попробуйте позже.');
   } finally {
-    showDeleteConfirm.value = false
+    showDeleteConfirm.value = false;
   }
-}
+};
 
 const goToLogin = () => {
-  router.push('/login')
-}
+  router.push('/login');
+};
 
 const formatDate = (dateString?: string) => {
-  if (!dateString) return '—'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
+  if (!dateString) return '—';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
 
-const isImageModalOpen = ref(false)
+const isImageModalOpen = ref(false);
 
 const openImageModal = () => {
   if (avatarUrl.value) {
-    isImageModalOpen.value = true
+    isImageModalOpen.value = true;
   }
-}
+};
 
 const closeImageModal = () => {
-  isImageModalOpen.value = false
-}
+  isImageModalOpen.value = false;
+};
 </script>
