@@ -8,18 +8,18 @@
       <div class="relative">
         <input
           id="username"
-          v-model="form.username"
+          v-model="form.userName"
           type="text"
           placeholder="ivan123"
           class="peer w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors dark:bg-gray-700 dark:text-white"
           :class="[
-            errors.username
+            errors.userName
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 dark:border-gray-600 focus:border-blue-500',
           ]"
         />
       </div>
-      <span v-if="errors.username" class="text-sm text-red-500 block">{{ errors.username }}</span>
+      <span v-if="errors.userName" class="text-sm text-red-500 block">{{ errors.userName }}</span>
     </div>
 
     <!-- Поле "Пароль" -->
@@ -76,13 +76,14 @@
 import { reactive, ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
+import type { AuthRequestDto } from '@messenger/shared-schema';
 
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
 
-const form = reactive({ username: '', password: '' });
-const errors = reactive({ username: '', password: '' });
+const form = reactive({ userName: '', password: '' });
+const errors = reactive({ userName: '', password: '' });
 const isLoading = ref(false);
 const submitError = ref('');
 
@@ -96,14 +97,14 @@ onMounted(() => {
 
 const validate = () => {
   let isValid = true;
-  errors.username = '';
+  errors.userName = '';
   errors.password = '';
 
-  if (!form.username) {
-    errors.username = 'Имя пользователя обязательно';
+  if (!form.userName) {
+    errors.userName = 'Имя пользователя обязательно';
     isValid = false;
-  } else if (form.username.length < 3) {
-    errors.username = 'Имя пользователя должно быть не менее 3 символов';
+  } else if (form.userName.length < 3) {
+    errors.userName = 'Имя пользователя должно быть не менее 3 символов';
     isValid = false;
   }
 
@@ -124,7 +125,11 @@ const handleLogin = async () => {
 
   isLoading.value = true;
   try {
-    await userStore.login(form.username, form.password);
+    const loginData:AuthRequestDto = {
+      userName: form.userName,
+      password: form.password
+    }
+    await userStore.login(loginData);
     router.push('/');
   } catch (error: any) {
     submitError.value = error.message || 'Ошибка входа';

@@ -1,6 +1,4 @@
-// services/http/HttpClient.ts
 import type { ApiResponse } from '@/types/index';
-import { useRouter } from 'vue-router';
 
 /**
  * Опции для HTTP запроса
@@ -11,7 +9,7 @@ interface RequestOptions extends RequestInit {
 }
 
 /**
- * Интерсептор - перехватчик запросов/ответов для централизованной обработки
+ * Интерцептор - перехватчик запросов/ответов для централизованной обработки
  * Позволяет модифицировать запрос до отправки или ответ до получения
  */
 interface Interceptor {
@@ -36,7 +34,7 @@ export class ApiError extends Error {
  * HTTP клиент для работы с REST API
  * Особенности:
  * - Автоматическое управление JWT токеном (localStorage)
- * - Поддержка интерсепторов (аналог axios interceptors)
+ * - Поддержка интерцепторов (аналог axios interceptors)
  * - Автоматическая обработка FormData для загрузки файлов
  * - Единая обработка ошибок
  * - Типизированные ответы через ApiResponse<T>
@@ -44,7 +42,7 @@ export class ApiError extends Error {
 class HttpClient {
   private baseURL: string; // Базовый URL API (из переменных окружения)
   private token: string | null = null; // JWT токен для авторизации
-  private interceptors: Interceptor[] = []; // Массив зарегистрированных интерсепторов
+  private interceptors: Interceptor[] = []; // Массив зарегистрированных интерцепторов
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
@@ -67,8 +65,8 @@ class HttpClient {
   }
 
   /**
-   * Добавляет новый интерсептор в конец цепочки
-   * Интерсепторы выполняются в порядке добавления
+   * Добавляет новый интерцептор в конец цепочки
+   * Интерцепторы выполняются в порядке добавления
    * @param interceptor - объект с методами request/response/error
    */
   addInterceptor(interceptor: Interceptor): void {
@@ -80,7 +78,7 @@ class HttpClient {
    * Обрабатывает:
    * - Формирование URL и заголовков
    * - Добавление токена авторизации
-   * - Применение интерсепторов
+   * - Применение интерцепторов
    * - Парсинг JSON ответов
    * - Обработку ошибок
    *
@@ -100,7 +98,11 @@ class HttpClient {
 
     // Важно: не добавляем Content-Type для FormData
     // Браузер сам установит правильный Content-Type с boundary для multipart/form-data
-    if (!(options.body instanceof FormData)) {
+    if (
+      options.body !== undefined &&
+      options.body !== null &&
+      !(options.body instanceof FormData)
+    ) {
       headers['Content-Type'] = 'application/json';
     }
 
@@ -112,12 +114,12 @@ class HttpClient {
     // === 2. Формируем финальную конфигурацию запроса ===
     let config: RequestOptions = { ...options, headers };
 
-    // Применяем все интерсепторы запроса (по очереди, модифицируя конфиг)
+    // Применяем все интерцепторы запроса (по очереди, модифицируя конфиг)
     this.interceptors.forEach(i => {
       if (i.request) config = i.request(config);
     });
 
-    // ХАК-ЗАЩИТА: Если после всех интерсепторов в body остался FormData,
+    // ХАК-ЗАЩИТА: Если после всех интерцепторов в body остался FormData,
     // принудительно удаляем Content-Type, чтобы браузер сделал всё сам
     if (config.body instanceof FormData && config.headers) {
       delete (config.headers as Record<string, string>)['Content-Type'];
@@ -155,8 +157,8 @@ class HttpClient {
         throw new ApiError(errorMessage, response.status, rawData);
       }
 
-      // === 5. Применяем интерсепторы ответа ===
-      // Применяем интерсепторы к сырым данным
+      // === 5. Применяем интерцепторы ответа ===
+      // Применяем интерцепторы к сырым данным
       let processedData: T = rawData;
       this.interceptors.forEach(i => {
         if (i.response) processedData = i.response(processedData);
@@ -172,7 +174,7 @@ class HttpClient {
 
       return apiResponse;
     } catch (error) {
-      // === 7. Обрабатываем ошибку через интерсепторы ===
+      // === 7. Обрабатываем ошибку через интерцепторы ===
       // Это полезно для глобального логирования ошибок или показа уведомлений
       this.interceptors.forEach(i => {
         if (i.error) i.error(error as Error);

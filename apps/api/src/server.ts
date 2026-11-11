@@ -1,4 +1,3 @@
-import Fastify, { fastify } from 'fastify';
 import closeWithGrace from 'close-with-grace';
 import { buildApp } from './app.js';
 

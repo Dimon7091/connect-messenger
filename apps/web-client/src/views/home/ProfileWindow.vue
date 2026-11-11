@@ -338,17 +338,24 @@ import { compressImageIfNeeded } from '@/services/business/ImageCompressor';
 import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient';
 import AvatarPreviewModal from '@/components/modals/AvatarPreviewModal.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import type { ApiError } from '@/services/http/HttpClient';
+
+// MARK: - Setup
 
 const userStore = useUserStore();
 const router = useRouter();
+
+// MARK: - UI State
+
 const showToast = ref(false);
 const showLogoutConfirm = ref(false);
-const showDeleteConfirm = ref(false); // новое состояние
+const showDeleteConfirm = ref(false);
 const isUploading = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 const avatarKey = ref(0);
 
-// Состояния для инлайн-редактирования
+// MARK: - Editing State
+
 const editingName = ref(false);
 const editingUsername = ref(false);
 const editFirstName = ref('');
@@ -357,12 +364,12 @@ const editUsername = ref('');
 const isSaving = ref(false);
 const usernameError = ref('');
 
-// ==================== Computed свойства ====================
+// MARK: - Computed
+
 const isOnline = computed(() => {
   const userId = userStore.user?.id;
   if (!userId) return false;
-  const status = userStore.getUserStatus(userId);
-  return status === 'ONLINE';
+  return userStore.getUserStatus(userId) === 'ONLINE';
 });
 
 const avatarUrl = computed(() => userStore.user?.profile?.avatarUrl || null);
@@ -381,7 +388,8 @@ const avatarInitials = computed(() => {
   return getInitialsFromName(fullName);
 });
 
-// ==================== Методы аватара ====================
+// MARK: - Avatar
+
 const triggerFileInput = () => {
   fileInput.value?.click();
 };
@@ -412,8 +420,20 @@ const handleFileSelect = async (event: Event) => {
   }
 };
 
-// ==================== Редактирование имени и фамилии ====================
+const isImageModalOpen = ref(false);
+
+const openImageModal = () => {
+  if (avatarUrl.value) isImageModalOpen.value = true;
+};
+
+const closeImageModal = () => {
+  isImageModalOpen.value = false;
+};
+
+// MARK: - Name Editing
+
 const startEditName = () => {
+  if (editingUsername.value) cancelEditUsername();
   editFirstName.value = userStore.user?.profile?.firstName || '';
   editLastName.value = userStore.user?.profile?.lastName || '';
   editingName.value = true;
@@ -434,9 +454,11 @@ const saveName = async () => {
   isSaving.value = true;
   try {
     const lastName = editLastName.value.trim();
-    await userStore.updateProfile({
-      firstName,
-      lastName: lastName === '' ? null : lastName,
+    await userStore.updateUser({
+      profile: {
+        firstName,
+        lastName: lastName === '' ? null : lastName,
+      },
     });
     editingName.value = false;
   } catch (error) {
@@ -447,7 +469,8 @@ const saveName = async () => {
   }
 };
 
-// ==================== Редактирование username ====================
+// MARK: - Username Editing
+
 const startEditUsername = () => {
   editUsername.value = userStore.user?.userName || '';
   usernameError.value = '';
@@ -473,35 +496,36 @@ const saveUsername = async () => {
   isSaving.value = true;
   usernameError.value = '';
   try {
-    await userStore.updateUserName(newUsername);
+    await userStore.updateUser({ userName: newUsername });
     editingUsername.value = false;
-  } catch (error: any) {
-    if (error.response?.status === 409) {
+  } catch (error) {
+    const apiError = error as ApiError;
+
+    if (apiError.status === 409 || apiError.data?.code === 'CONFLICT') {
       usernameError.value = 'Имя пользователя уже занято';
     } else {
-      usernameError.value = 'Ошибка сервера. Попробуйте позже.';
+      usernameError.value =
+        apiError.data?.message || apiError.data?.error || 'Ошибка сервера. Попробуйте позже.';
     }
     console.error(error);
   } finally {
-    isSaving.value = false;
+    isSaving.value = false; // ← вот это и потерялось
   }
 };
 
-// ==================== Другие методы ====================
+// MARK: - Copy Username
+
 const copyUsername = async () => {
   const username = userStore.user?.userName;
   if (!username) return;
 
   try {
-    // 1. Пытаемся использовать современный Clipboard API (десктоп, новые браузеры)
     await navigator.clipboard.writeText(username);
     showToast.value = true;
     setTimeout(() => (showToast.value = false), 2000);
-  } catch (err) {
-    // 2. Fallback для мобильных устройств и старых браузеров (через execCommand)
+  } catch {
     const textArea = document.createElement('textarea');
     textArea.value = username;
-    // Скрываем элемент
     textArea.style.position = 'fixed';
     textArea.style.top = '-9999px';
     textArea.style.left = '-9999px';
@@ -518,15 +542,16 @@ const copyUsername = async () => {
         showToast.value = true;
         setTimeout(() => (showToast.value = false), 2000);
       } else {
-        // Если execCommand не сработал (бывает на некоторых устройствах)
         alert('Не удалось скопировать. Попробуйте вручную.');
       }
-    } catch (e) {
+    } catch {
       document.body.removeChild(textArea);
       alert('Не удалось скопировать. Попробуйте вручную.');
     }
   }
 };
+
+// MARK: - Logout
 
 const confirmLogout = () => {
   showLogoutConfirm.value = true;
@@ -542,15 +567,16 @@ const proceedLogout = () => {
   closeLogoutConfirm();
 };
 
-// ==================== Удаление аккаунта ====================
+// MARK: - Delete Account
+
 const confirmDeleteAccount = () => {
   showDeleteConfirm.value = true;
 };
 
 const proceedDeleteAccount = async () => {
   try {
-    await userStore.deleteAccount(); // предполагаем, что такой метод есть в userStore
-    userStore.clearSession(); // очищаем сессию после удаления
+    await userStore.deleteAccount();
+    userStore.clearSession();
     router.push('/login');
   } catch (error) {
     console.error('Ошибка удаления аккаунта:', error);
@@ -560,6 +586,8 @@ const proceedDeleteAccount = async () => {
   }
 };
 
+// MARK: - Navigation & Formatting
+
 const goToLogin = () => {
   router.push('/login');
 };
@@ -568,17 +596,5 @@ const formatDate = (dateString?: string) => {
   if (!dateString) return '—';
   const date = new Date(dateString);
   return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
-
-const isImageModalOpen = ref(false);
-
-const openImageModal = () => {
-  if (avatarUrl.value) {
-    isImageModalOpen.value = true;
-  }
-};
-
-const closeImageModal = () => {
-  isImageModalOpen.value = false;
 };
 </script>

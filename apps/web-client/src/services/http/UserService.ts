@@ -1,6 +1,11 @@
 import { httpClient } from './HttpClient';
 import type { UpdateUserNameRequest, UpdateUserProfileRequest } from '@/types';
-import type { User, UserBlockedResponse, UsersGettingByIdsRequest } from '@messenger/shared-schema';
+import type {
+  UpdateUserDto,
+  User,
+  UserBlockedResponse,
+  UsersGettingByIdsRequest,
+} from '@messenger/shared-schema';
 
 class UserService {
   /** Получение профиля (теперь только сетевой запрос) */
@@ -9,16 +14,9 @@ class UserService {
     return response.data!;
   }
 
-  /** Обновление имя пользователя */
-  async updateUserName(userId: string, newUserName: string): Promise<User> {
-    const data: UpdateUserNameRequest = { username: newUserName };
-    const response = await httpClient.patch<User>(`/v1/users/me/update-username`, data);
-    return response.data!;
-  }
-
-  /** Обновление профиля */
-  async updateProfile(userId: string, data: UpdateUserProfileRequest): Promise<User> {
-    const response = await httpClient.post<User>(`/v1/users/me/profile/update`, data);
+  /** Обновление пользователя */
+  async update(updateDto: UpdateUserDto): Promise<User> {
+    const response = await httpClient.patch<User>(`/v1/users/me`, updateDto);
     return response.data!;
   }
 

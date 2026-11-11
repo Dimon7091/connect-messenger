@@ -10,7 +10,6 @@ allowBuilds:
 catalog:
   prettier: 3.9.10
   typescript: ~6.0.0
-# Откройте pnpm-workspace.yaml и расширьте блок overrides:
 overrides:
   flatted: '>=3.4.0'
   picomatch: '>=2.3.2'

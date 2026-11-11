@@ -4,8 +4,14 @@ import postgres from 'postgres';
 import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
 import * as schema from './schema/index.js';
 import { PgDatabase } from 'drizzle-orm/pg-core';
+import type { PgQueryResultHKT } from 'drizzle-orm/pg-core';
+import type { ExtractTablesWithRelations } from 'drizzle-orm';
 
-export type DbInstance = PgDatabase<any, any, any>;
+export type DbInstance = PgDatabase<
+  PgQueryResultHKT,
+  typeof schema,
+  ExtractTablesWithRelations<typeof schema>
+>;
 
 export interface DbOptions {
   driver: 'pglite' | 'postgres';

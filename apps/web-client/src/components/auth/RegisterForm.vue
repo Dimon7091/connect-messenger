@@ -96,8 +96,21 @@
         v-model="form.firstName"
         type="text"
         placeholder="Иван"
-        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors dark:bg-gray-700 dark:text-white"
+        aria-required="true"
+        :aria-invalid="!!errors.firstName"
+        aria-describedby="firstName-error"
+        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors dark:bg-gray-700 dark:text-white"
+        :class="[
+          errors.firstName
+            ? 'border-red-500 focus:ring-red-500'
+            : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500',
+        ]"
       />
+      <span
+        v-if="errors.firstName"
+        id="firstName-error"
+        class="text-sm text-red-500 block"
+      >{{ errors.firstName }}</span>
     </div>
 
     <!-- Фамилия (опционально) -->
@@ -113,8 +126,6 @@
         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors dark:bg-gray-700 dark:text-white"
       />
     </div>
-
-    <!-- Поле токена полностью скрыто. Никаких визуальных элементов, связанных с токеном, нет. -->
 
     <button
       type="submit"
@@ -156,13 +167,11 @@ const form = reactive<RegisterRequest & { confirmPassword: string }>({
   invitationToken: '',
 });
 
-// Получаем токен из URL (query-параметр ?invitationToken=...)
 const invitationTokenFromUrl = computed(() => {
   const token = route.query.invitationToken;
   return typeof token === 'string' ? token : null;
 });
 
-// При монтировании заполняем поле токена, если он есть в URL
 onMounted(() => {
   if (invitationTokenFromUrl.value) {
     form.invitationToken = invitationTokenFromUrl.value;
@@ -173,6 +182,7 @@ const errors = reactive({
   username: '',
   password: '',
   confirmPassword: '',
+  firstName: '',
 });
 const isLoading = ref(false);
 const submitErrors = ref<string[]>([]);
@@ -182,11 +192,13 @@ const validate = () => {
   errors.username = '';
   errors.password = '';
   errors.confirmPassword = '';
+  errors.firstName = '';
 
-  if (!form.userName) {
+  const trimmedUserName = form.userName?.trim() ?? '';
+  if (!trimmedUserName) {
     errors.username = 'Имя пользователя обязательно';
     isValid = false;
-  } else if (form.userName.length < 3) {
+  } else if (trimmedUserName.length < 3) {
     errors.username = 'Имя пользователя должно быть не менее 3 символов';
     isValid = false;
   }
@@ -204,6 +216,11 @@ const validate = () => {
     isValid = false;
   }
 
+  if (!form.firstName?.trim()) {
+    errors.firstName = 'Имя обязательно';
+    isValid = false;
+  }
+
   return isValid;
 };
 
@@ -212,12 +229,16 @@ const handleRegister = async () => {
 
   isLoading.value = true;
   submitErrors.value = [];
+
+  const trimmedFirstName = form.firstName?.trim() ?? '';
+  const trimmedLastName = form.lastName?.trim();
+
   try {
     await userStore.register({
-      userName: form.userName,
+      userName: form.userName.trim(),
       password: form.password,
-      firstName: form.firstName,
-      lastName: form.lastName,
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName || undefined,
       invitationToken: form.invitationToken,
     });
 

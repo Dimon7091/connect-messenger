@@ -1,24 +1,16 @@
 // services/http/AuthService.ts
 import { httpClient } from './HttpClient';
 import type { LoginResponse } from '@/types';
-import type { User } from '@messenger/shared-schema';
+import type { AuthRequestDto, AuthResponse, CreateUserDto, User } from '@messenger/shared-schema';
 
 class AuthService {
-  async login(username: string, password: string): Promise<LoginResponse> {
-    const response = await httpClient.post<LoginResponse>('/v1/auth/login', { username, password });
+  async login(request: AuthRequestDto): Promise<AuthResponse> {
+    const response = await httpClient.post<AuthResponse>('/v1/auth/login', request);
     return response.data!; // Возвращает { user: User, token: string }
   }
 
-  async register(data: {
-    userName: string;
-    password: string;
-    firstName?: string;
-    lastName?: string;
-  }) {
-    const response = await httpClient.post<{ user: User; token: string }>(
-      '/v1/auth/register',
-      data
-    );
+  async register(request: CreateUserDto): Promise<AuthResponse> {
+    const response = await httpClient.post<AuthResponse>('/v1/auth/register', request);
     return response.data!;
   }
 

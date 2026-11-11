@@ -4,11 +4,16 @@ import { ref, computed } from 'vue';
 import { httpClient } from '@/services/http/HttpClient';
 import { authService } from '@/services/http/AuthService';
 import { userService } from '@/services/http/UserService';
-import type { UpdateUserProfileRequest } from '@/types/index';
-import type { User, UserStatus, UsersGettingByIdsRequest } from '@messenger/shared-schema';
+import type {
+  AuthRequestDto,
+  UpdateUserDto,
+  User,
+  UserStatus,
+  UsersGettingByIdsRequest,
+} from '@messenger/shared-schema';
 import { wsClient } from '@/services/websocket/WebSocketClient';
 
-// ==================== Вспомогательная функция нормализации ====================
+// MARK: - Helpers
 function normalizeUser(user: User): User {
   if (!user) return user;
   return {
@@ -19,7 +24,8 @@ function normalizeUser(user: User): User {
 }
 
 export const useUserStore = defineStore('user', () => {
-  // ==================== Состояние ====================
+  // MARK: - State
+
   const user = ref<User | null>(null);
   const token = ref<string | null>(localStorage.getItem('token'));
   const isInitialized = ref(false);
@@ -29,10 +35,11 @@ export const useUserStore = defineStore('user', () => {
   const usersCache = ref<Map<string, User>>(new Map());
   const userStatuses = ref<Record<string, UserStatus>>({});
 
-  // ==================== Геттеры ====================
+  // MARK: - Getters
+
   const fullName = computed(() => {
     if (!user.value) return '';
-    if (user.value.profile.firstName || user.value.profile.lastName) {
+    if (user.value.profile?.firstName || user.value.profile?.lastName) {
       return `${user.value.profile.firstName || ''} ${user.value.profile.lastName || ''}`.trim();
     }
     return user.value.userName;
@@ -40,12 +47,12 @@ export const useUserStore = defineStore('user', () => {
 
   const isAuthenticated = computed(() => !!token.value && !!user.value);
 
-  // ==================== Действия ====================
+  // MARK: - Auth Actions
 
-  async function login(username: string, password: string) {
+  async function login(loginData: AuthRequestDto) {
     loading.value = true;
     try {
-      const { user: userData, token: authToken } = await authService.login(username, password);
+      const { user: userData, token: authToken } = await authService.login(loginData);
       setSession(userData, authToken);
       return { success: true };
     } catch (error) {
@@ -56,16 +63,16 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  async function register(userData: {
+  async function register(registerData: {
     userName: string;
     password: string;
-    firstName?: string;
+    firstName: string;
     lastName?: string;
     invitationToken: string;
   }): Promise<User | null> {
     loading.value = true;
     try {
-      const { user: registeredUser, token: authToken } = await authService.register(userData);
+      const { user: registeredUser, token: authToken } = await authService.register(registerData);
       setSession(registeredUser, authToken);
       return registeredUser;
     } catch (error) {
@@ -123,6 +130,8 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // MARK: - Session
+
   function setSession(userData: User, authToken: string) {
     const normalized = normalizeUser(userData);
     user.value = normalized;
@@ -139,7 +148,7 @@ export const useUserStore = defineStore('user', () => {
     httpClient.setToken(null);
   }
 
-  // ==================== Методы для работы с кешем ====================
+  // MARK: - Users Cache
 
   function getUserFromCache(userId: string): User | null {
     const id = String(userId);
@@ -190,7 +199,7 @@ export const useUserStore = defineStore('user', () => {
     if (uncachedIds.length > 0) {
       try {
         const data: UsersGettingByIdsRequest = {
-          usersIds: uncachedIds, // ← исправлено
+          usersIds: uncachedIds,
         };
         const fetchedUsers = await userService.getUsersById(data);
 
@@ -222,40 +231,26 @@ export const useUserStore = defineStore('user', () => {
     usersCache.value.set(id, normalized);
   }
 
-  async function updateUserName(newUserName: string): Promise<User | null> {
+  // MARK: - Update User
+
+  async function updateUser(dto: UpdateUserDto): Promise<User | null> {
     if (!user.value) return null;
     loading.value = true;
     try {
-      const updatedUser = await userService.updateUserName(user.value.id, newUserName);
+      const updatedUser = await userService.update(dto);
       updateUserInCache(updatedUser.id, updatedUser);
       return updatedUser;
     } catch (error) {
-      console.error('Ошибка обновления имени пользователя:', error);
+      console.error('Ошибка обновления пользователя:', error);
       throw error;
     } finally {
       loading.value = false;
     }
   }
 
-  async function updateProfile(profileData: Partial<User['profile']>): Promise<User | null> {
-    if (!user.value) return null;
-    loading.value = true;
-    try {
-      const data: UpdateUserProfileRequest = {
-        firstName: profileData.firstName,
-        lastName: profileData.lastName,
-      };
-      const updatedUser = await userService.updateProfile(user.value.id, data);
-      updateUserInCache(updatedUser.id, updatedUser);
-      return updatedUser;
-    } catch (error) {
-      console.error('Ошибка обновления профиля:', error);
-      throw error;
-    } finally {
-      loading.value = false;
-    }
-  }
+  // MARK: - Avatar
 
+  // TODO: Адаптировать после реализации S3 сервиса на клиенте
   async function uploadAvatar(file: File): Promise<string | null> {
     if (!user.value) return null;
     loading.value = true;
@@ -281,6 +276,8 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // MARK: - Refresh
+
   async function refreshUser(): Promise<User | null> {
     if (!token.value) return null;
     loading.value = true;
@@ -300,7 +297,8 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // ==================== Черный список (с приведением типов) ====================
+  // MARK: - Blacklist
+
   async function fetchBlacklistedUsers(): Promise<User[]> {
     loading.value = true;
     try {
@@ -371,7 +369,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // ==================== Статусы пользователей ====================
+  // MARK: - User Statuses
 
   function updateUserStatus(
     userId: string,
@@ -393,6 +391,8 @@ export const useUserStore = defineStore('user', () => {
     usersCache.value.clear();
     userStatuses.value = {};
   }
+
+  // MARK: - Exports
 
   return {
     // Состояние
@@ -431,8 +431,7 @@ export const useUserStore = defineStore('user', () => {
     removeFromBlackList,
 
     // Обновление профиля
-    updateUserName,
-    updateProfile,
+    updateUser,
     uploadAvatar,
     refreshUser,
     updateUserInCache,

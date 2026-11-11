@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-// --- Регулярные выражения (перенос из Java-аннотаций) ---
+// MARK: - Регулярные выражения
 const USERNAME_CHARS = /^[a-zA-Z0-9._-]+$/;
-const USERNAME_NOT_ONLY_DIGITS_OR_DOTS = /^(?!^[0-9]+$)(?!^\.+$).*$/;
+const USERNAME_NOT_ONLY_DIGITS_OR_DOTS = /^(?=.*[a-zA-Z])[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*$/;
 const FIRST_NAME = /^[a-zA-Zа-яА-ЯёЁ]+$/;
 const LAST_NAME = /^[a-zA-Zа-яА-ЯёЁ]*$/;
 
-// ===== Api =====
+// MARK: - Api
 export const CreateUserSchema = z.object({
   userName: z
     .string()
@@ -33,7 +33,7 @@ export const CreateUserSchema = z.object({
     .min(2, 'Фамилия должна быть не менее 2 символа')
     .max(25, 'Фамилия не может превышать 25 символов')
     .regex(LAST_NAME, 'Фамилия может содержать только буквы русского или английского языка')
-    .nullable(),
+    .optional(),
   password: z
     .string()
     .min(8, 'Пароль должен быть не менее 8 символов')
@@ -47,7 +47,7 @@ export const UpdateUserSchema = z.object({
   profile: z
     .object({
       firstName: z.string().optional(),
-      lastName: z.string().optional(),
+      lastName: z.string().nullish(),
     })
     .optional(),
 });
@@ -55,17 +55,20 @@ export const UpdateUserSchema = z.object({
 export const UserBaseResponseSchema = z.object({
   id: z.string(),
   userName: z.string(),
-  profile: z.object({
-    firstName: z.string(),
-    lastName: z.string().nullable(),
-    avatarUrl: z.string().nullable(),
-    avatarThumbUrl: z.string().nullable(),
-  }),
+  profile: z
+    .object({
+      firstName: z.string(),
+      lastName: z.string().nullable(),
+      avatarUrl: z.string().nullable().optional(),
+      avatarThumbUrl: z.string().nullable().optional(),
+    })
+    .nullable(),
   isDeleted: z.boolean(),
   isBanned: z.boolean(),
 });
 
 export const UserPrivateResponseSchema = UserBaseResponseSchema.extend({
+  role: z.string(),
   createdAt: z.coerce.date(),
   blackListIds: z.array(z.string()),
 });
@@ -84,7 +87,17 @@ export const UserBlockedResponseSchema = z.object({
   blockedUserId: z.string(),
 });
 
-// ===== Websocket =====
+export const AuthRequestSchema = z.object({
+  userName: z.string(),
+  password: z.string(),
+});
+
+export const AuthResponseSchema = z.object({
+  user: UserPrivateResponseSchema,
+  token: z.string(),
+});
+
+// MARK: - Websocket
 export const UserStatusResponseSchema = z.object({
   userId: z.string(),
   status: z.enum(['ONLINE', 'OFFLINE', 'AWAY']),
@@ -92,16 +105,19 @@ export const UserStatusResponseSchema = z.object({
 });
 
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+// MARK: - DTO
 export type CreateUserDto = z.infer<typeof CreateUserSchema>;
+export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
 export type UserToBlacklistDto = z.infer<typeof UserToBlacklistSchema>;
 export type UserBlockedResponse = z.infer<typeof UserBlockedResponseSchema>;
 export type UserBaseResponse = z.infer<typeof UserBaseResponseSchema>;
 export type UserPrivateResponse = z.infer<typeof UserPrivateResponseSchema>;
 export type UserAdminResponse = z.infer<typeof UserAdminResponseSchema>;
-
-// ===== Types for Web-client =====
 export type User = UserBaseResponse & Partial<Omit<UserPrivateResponse, keyof UserBaseResponse>>;
 export type UserStatus = z.infer<typeof UserStatusResponseSchema>;
+export type AuthRequestDto = z.infer<typeof AuthRequestSchema>;
+export type AuthResponse = z.infer<typeof AuthResponseSchema>;
 export type UsersGettingByIdsRequest = {
   usersIds: string[];
 };

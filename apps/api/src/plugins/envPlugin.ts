@@ -1,10 +1,9 @@
 import { fastifyEnv } from '@fastify/env';
 import type { FastifyPluginAsync } from 'fastify';
-import { config as loadDotenv } from 'dotenv';
 import fp from 'fastify-plugin';
 import path from 'node:path';
 
-type NodeEnv = 'development' | 'production';
+type NodeEnv = 'development' | 'production' | 'test';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -22,7 +21,7 @@ declare module 'fastify' {
 }
 
 const baseProperties = {
-  NODE_ENV: { type: 'string', enum: ['development', 'production'] },
+  NODE_ENV: { type: 'string', enum: ['development', 'production', 'test'] },
   GLOBAL_DOMAIN: { type: 'string' },
   API_PORT: { type: 'integer', default: 8080 },
   API_HOST: { type: 'string', default: '0.0.0.0' },
@@ -34,8 +33,8 @@ const baseProperties = {
 
 const envPluginCore: FastifyPluginAsync = async fastify => {
   const mode = process.env.NODE_ENV;
-  if (!mode || !['development', 'production'].includes(mode)) {
-    throw new Error('NODE_ENV is required: development | production');
+  if (!mode || !['development', 'production', 'test'].includes(mode)) {
+    throw new Error('NODE_ENV is required: development | production | test');
   }
 
   const isProd = mode === 'production';
