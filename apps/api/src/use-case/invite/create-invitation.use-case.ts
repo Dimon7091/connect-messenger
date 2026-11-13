@@ -6,13 +6,13 @@ export function createCreateInvitationUseCase(deps: {
   globalDomain: string;
 }) {
   return {
-    async createInvitation() {
+    async createInvitation(): Promise<InvitationResponse> {
       const invitation = await deps.inviteService.create();
 
       // Создание ссылки приглашения для клиента
       const normalizeDomainUrl = deps.globalDomain.trim().replace(/\/+$/, '');
       const query = `?open=register&invitationToken=${invitation.token}`;
-      return { invitationUrl: `${normalizeDomainUrl}/login${query}` } as InvitationResponse;
+      return { invitationUrl: `${normalizeDomainUrl}/login${query}` };
     },
   };
 }

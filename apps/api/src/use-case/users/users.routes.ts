@@ -1,16 +1,11 @@
 import type { FastifyPluginAsync } from 'fastify';
-import {
-  UpdateUserSchema,
-  UserPrivateResponseSchema,
-  type UpdateUserDto,
-  type UserPrivateResponse,
-} from '@messenger/shared-schema';
+import { UpdateUserSchema, UserPrivateResponseSchema } from '@messenger/shared-schema';
 import { createUpdateUserUseCase } from './update-user.use-case.js';
 import { createGetUserUseCase } from './get-user.use-case.js';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { createDeleteUserUseCase } from './delete-user.use-case.js';
 
-export const userRouter: FastifyPluginAsync = async app => {
+export const usersRoutes: FastifyPluginAsync = async app => {
   // Инициализируем нужные Use Cases, передавая зависимости из Fastify
   const updateUserUseCase = createUpdateUserUseCase({ userService: app.userService });
   const getUserUseCase = createGetUserUseCase({ userService: app.userService });
@@ -18,13 +13,13 @@ export const userRouter: FastifyPluginAsync = async app => {
 
   // Защищенные маршруты
   await app.register(async protectedRoute => {
-    protectedRoute.addHook('preHandler', app.authenticate);
+    protectedRoute.addHook('onRequest', app.authenticate);
 
     // Приводим app к типу, который понимает Zod-провайдер
     const typedRoute = protectedRoute.withTypeProvider<ZodTypeProvider>();
 
     // GET получение текущего пользователя
-    typedRoute.get<{ Reply: UserPrivateResponse }>(
+    typedRoute.get(
       '/me',
       {
         schema: {
@@ -39,7 +34,7 @@ export const userRouter: FastifyPluginAsync = async app => {
     );
 
     // PATCH обновление текущего пользователя
-    typedRoute.patch<{ Body: UpdateUserDto; Reply: UserPrivateResponse }>(
+    typedRoute.patch(
       '/me',
       {
         schema: {
@@ -49,8 +44,8 @@ export const userRouter: FastifyPluginAsync = async app => {
       },
       async (request, reply) => {
         const userId = request.user.sub;
-        const updatedUser = await updateUserUseCase.update(userId, request.body);
-        return reply.code(200).send(updatedUser);
+        const response = await updateUserUseCase.update(userId, request.body);
+        return reply.code(200).send(response);
       }
     );
 

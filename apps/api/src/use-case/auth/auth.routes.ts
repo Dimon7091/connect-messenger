@@ -1,15 +1,9 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { createAuthUseCase } from './auth.use-case.js';
-import {
-  AuthRequestSchema,
-  AuthResponseSchema,
-  CreateUserSchema,
-  type AuthRequestDto,
-  type AuthResponse,
-  type CreateUserDto,
-} from '@messenger/shared-schema';
+import { AuthRequestSchema, AuthResponseSchema, CreateUserSchema } from '@messenger/shared-schema';
+import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 
-export const authRouter: FastifyPluginAsync = async app => {
+export const authRoutes: FastifyPluginAsync = async app => {
   const authUseCase = createAuthUseCase({
     userService: app.userService,
     inviteService: app.inviteService,
@@ -19,8 +13,10 @@ export const authRouter: FastifyPluginAsync = async app => {
     hashService: app.hashService,
   });
 
+  const typedApp = app.withTypeProvider<ZodTypeProvider>();
+
   // POST регистрация нового пользователя
-  app.post<{ Body: CreateUserDto; Reply: AuthResponse }>(
+  typedApp.post(
     '/register',
     {
       schema: {
@@ -29,12 +25,12 @@ export const authRouter: FastifyPluginAsync = async app => {
       },
     },
     async (request, reply) => {
-      const newUser = await authUseCase.register(request.body);
-      return reply.code(201).send(newUser);
+      const response = await authUseCase.register(request.body);
+      return reply.code(201).send(response);
     }
   );
 
-  app.post<{ Body: AuthRequestDto; Reply: AuthResponse }>(
+  typedApp.post(
     '/login',
     {
       schema: {
@@ -43,8 +39,8 @@ export const authRouter: FastifyPluginAsync = async app => {
       },
     },
     async (request, reply) => {
-      const newUser = await authUseCase.login(request.body);
-      return reply.code(200).send(newUser);
+      const response = await authUseCase.login(request.body);
+      return reply.code(200).send(response);
     }
   );
 };

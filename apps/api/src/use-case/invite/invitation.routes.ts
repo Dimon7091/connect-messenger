@@ -1,14 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import {
-  InvitationResponseSchema,
-  InvitationsCountResponseSchema,
-  UpdateUserSchema,
-  UserPrivateResponseSchema,
-  type InvitationCountResponse,
-  type InvitationResponse,
-  type UpdateUserDto,
-  type UserPrivateResponse,
-} from '@messenger/shared-schema';
+import { InvitationResponseSchema, InvitationsCountResponseSchema } from '@messenger/shared-schema';
 import { createCreateInvitationUseCase } from './create-invitation.use-case.js';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { createGetActiveCountInvitationUseCase } from './get-active-invitations.use-case.js';
@@ -26,13 +17,13 @@ export const invitationRouters: FastifyPluginAsync = async app => {
 
   // Защищенные маршруты c ролью администратора
   await app.register(async protectedRoute => {
-    protectedRoute.addHook('preHandler', app.authenticate);
-    protectedRoute.addHook('preHandler', app.requireAdmin);
+    protectedRoute.addHook('onRequest', app.authenticate);
+    protectedRoute.addHook('onRequest', app.requireAdmin);
 
     const typedRoute = protectedRoute.withTypeProvider<ZodTypeProvider>();
 
     // POST создание приглашения
-    typedRoute.post<{ Reply: InvitationResponse }>(
+    typedRoute.post(
       '/',
       {
         schema: {
@@ -46,7 +37,7 @@ export const invitationRouters: FastifyPluginAsync = async app => {
     );
 
     // GET получение количества активных приглашений
-    typedRoute.get<{ Reply: InvitationCountResponse }>(
+    typedRoute.get(
       '/',
       {
         schema: {

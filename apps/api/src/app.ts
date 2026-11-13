@@ -10,10 +10,10 @@ import jwtPlugin from './plugins/jwt.js';
 import { errorHandlerPlugin } from './plugins/errorHandler.js';
 import { runMigrations, type DbInstance, type DbOptions } from '@messenger/database';
 import fastifyRateLimit from '@fastify/rate-limit';
-import { userRouter } from './use-case/users/user.routes.js';
-import { authRouter } from './use-case/auth/auth.routes.js';
+import { usersRoutes } from './use-case/users/users.routes.js';
+import { authRoutes } from './use-case/auth/auth.routes.js';
 import { hashPlugin } from './plugins/hash.plugin.js';
-import { userPlugin } from './modules/users/users.plugin.js';
+import { usersPlugin } from './modules/users/users.plugin.js';
 import { invitePlugin } from './modules/invite/invite.plugin.js';
 import { invitationRouters } from './use-case/invite/invitation.routes.js';
 import { seedAdminPlugin } from './modules/users/seedAdmin.plugin.js';
@@ -90,7 +90,7 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(hashPlugin);
 
   // Модули
-  await app.register(userPlugin);
+  await app.register(usersPlugin);
   await app.register(invitePlugin);
 
   if (app.config.NODE_ENV !== 'test') {
@@ -101,8 +101,8 @@ export async function buildApp(options: AppOptions = {}) {
     return { status: 'ok', timeStamp: new Date().toISOString() };
   });
 
-  await app.register(authRouter, { prefix: '/api/v1/auth' });
-  await app.register(userRouter, { prefix: '/api/v1/users' });
+  await app.register(authRoutes, { prefix: '/api/v1/auth' });
+  await app.register(usersRoutes, { prefix: '/api/v1/users' });
   await app.register(invitationRouters, { prefix: '/api/v1/invitations' });
 
   return app;

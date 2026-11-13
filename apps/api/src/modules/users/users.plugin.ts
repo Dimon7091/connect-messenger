@@ -9,7 +9,7 @@ declare module 'fastify' {
   }
 }
 
-export const userPlugin = fp(async app => {
+export const usersPlugin = fp(async app => {
   const userRepository = createUserRepository(app.db);
   const userService = createUserService(userRepository);
 

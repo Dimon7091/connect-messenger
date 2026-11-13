@@ -189,7 +189,7 @@ describe('RegisterUseCase (IT)', () => {
 
       // Используем тоже приглашение что и alice
       const bobDto: CreateUserDto = {
-        userName: 'alice',
+        userName: 'bob',
         firstName: 'Alice',
         password: '12345678',
         invitationToken: invitation.token,
