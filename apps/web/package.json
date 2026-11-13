@@ -1,5 +1,5 @@
 {
-  "name": "@messenger/web-client",
+  "name": "@messenger/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
