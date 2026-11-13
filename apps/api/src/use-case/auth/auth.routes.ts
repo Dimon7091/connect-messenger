@@ -12,6 +12,7 @@ import {
 export const authRouter: FastifyPluginAsync = async app => {
   const authUseCase = createAuthUseCase({
     userService: app.userService,
+    inviteService: app.inviteService,
     jwtTokenService: {
       generate: payload => app.jwt.sign(payload),
     },

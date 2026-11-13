@@ -9,6 +9,7 @@
     "build": "tsc && mkdir -p ./dist/drizzle && cp -r ../../packages/database/drizzle/. ./dist/drizzle",
     "start": "NODE_ENV=production node dist/server.js",
     "test": "NODE_ENV=test vitest run",
+    "test:ci": "vitest run --no-file-parallelism",
     "test:watch": "NODE_ENV=test vitest",
     "test:coverage": "NODE_ENV=test vitest run --coverage",
     "format": "prettier --write \"src/**/*.{ts,json}\""

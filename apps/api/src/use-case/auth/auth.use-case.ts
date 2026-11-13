@@ -3,6 +3,7 @@ import type { AuthRequestDto, AuthResponse, CreateUserDto } from '@messenger/sha
 import type { UserService } from '../../modules/users/index.js';
 import type { NewUser, User } from '@messenger/database';
 import { InvalidCredentialsError, UnauthorizedError } from '../../lib/errors.js';
+import type { InviteService } from '../../modules/invite/index.js';
 
 export interface JwtTokenService {
   generate(payload: { sub: string; preferred_username: string; role: 'admin' | 'user' }): string;
@@ -15,6 +16,7 @@ export interface HashService {
 
 export function createAuthUseCase(deps: {
   userService: UserService;
+  inviteService: InviteService;
   jwtTokenService: JwtTokenService;
   hashService: HashService;
 }) {
@@ -29,10 +31,8 @@ export function createAuthUseCase(deps: {
     async register(dto: CreateUserDto) {
       const passwordHash = deps.hashService.hash(dto.password);
 
-      // ==================================================================
-      // TODO: Здесь будет проверка приглашения через будущий InviteService
-      // ==================================================================
-      const isInvitationValid = dto.invitationToken;
+      // Валидация токена приглашения
+      await deps.inviteService.validateAndConsumeInvitation(dto.invitationToken);
 
       const dbUser: NewUser = {
         userName: dto.userName,

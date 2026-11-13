@@ -1,5 +1,4 @@
 import { buildApp, type AppOptions } from '../app.js';
-import { runMigrations } from '@messenger/database';
 import type { FastifyInstance } from 'fastify';
 
 /**

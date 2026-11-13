@@ -1,20 +1,26 @@
 import type { FastifyInstance } from 'fastify';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { closeTestApp, createTestApp } from '../../../test/setup.js';
 import { createUserInDb, signFakeJwt } from '../../../test/factories.js';
+import { resetDb } from '../../../test/helpers.js';
 
 const URL = '/api/v1/users/me';
 
 describe('GetUserUseCase', () => {
   let testApp: FastifyInstance;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     testApp = await createTestApp({ logger: false });
     await testApp.ready();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await closeTestApp(testApp);
+  });
+
+  beforeEach(async () => {
+    // Быстрая очистка таблиц перед каждым тестом (занимает ~3 мс)
+    await resetDb(testApp.db);
   });
 
   // MARK: - Позитивные сценарии

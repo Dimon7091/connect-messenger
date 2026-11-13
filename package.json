@@ -6,6 +6,7 @@
     "dev": "turbo run dev",
     "api:dev": "pnpm -F @messenger/api dev",
     "api:test": "pnpm -F @messenger/api test",
+    "api:test:ci": "pnpm -F @messenger/api test:ci",
     "api:test:watch": "pnpm -F @messenger/api test:watch",
     "api:test:coverage": "pnpm -F @messenger/api test:coverage",
     "db:generate": "pnpm -F @messenger/database db:generate",

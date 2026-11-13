@@ -1,12 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { closeTestApp, createTestApp } from '../../../test/setup.js';
 import type { FastifyInstance } from 'fastify';
-import {
-  CreateUserSchema,
-  type AuthRequestDto,
-  type CreateUserDto,
-} from '@messenger/shared-schema';
+import { type AuthRequestDto } from '@messenger/shared-schema';
 import { createUserInDb } from '../../../test/factories.js';
+import { resetDb } from '../../../test/helpers.js';
 
 const URL = '/api/v1/auth/login';
 
@@ -14,13 +11,18 @@ const URL = '/api/v1/auth/login';
 describe('LoginUseCase (IT)', () => {
   let testApp: FastifyInstance;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     testApp = await createTestApp({ logger: false });
     await testApp.ready();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await closeTestApp(testApp);
+  });
+
+  beforeEach(async () => {
+    // Быстрая очистка таблиц перед каждым тестом (занимает ~3 мс)
+    await resetDb(testApp.db);
   });
 
   // MARK: Позитивные сценарии

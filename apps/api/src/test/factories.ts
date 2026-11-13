@@ -7,6 +7,7 @@ import {
 } from '@messenger/database';
 import type { HashService } from '../plugins/hash.plugin.js';
 import { createHmac } from 'node:crypto';
+import type { InviteService } from '../modules/invite/index.js';
 
 export function signFakeJwt(payload: object, secret: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
@@ -17,6 +18,7 @@ export function signFakeJwt(payload: object, secret: string): string {
   return `${header}.${body}.${signature}`;
 }
 
+// MARK: - Create user in db
 export async function createUserInDb(
   db: DbInstance,
   hashService: HashService,
@@ -64,6 +66,7 @@ export async function createUserInDb(
   });
 }
 
+// MARK: - Get user with db
 export async function getUserWithDb(db: DbInstance, id: string) {
   const result = await db.query.usersTable.findFirst({
     where: (users, { eq }) => eq(users.id, id),

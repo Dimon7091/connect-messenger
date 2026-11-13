@@ -1,34 +1,41 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { CreateUserSchema, type CreateUserDto } from '@messenger/shared-schema';
 import { closeTestApp, createTestApp } from '../../../test/setup.js';
-import { createUserInDb } from '../../../test/factories.js';
+import { resetDb } from '../../../test/helpers.js';
 
 const URL = '/api/v1/auth/register';
 
 describe('RegisterUseCase (IT)', () => {
   let testApp: FastifyInstance;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     testApp = await createTestApp({ logger: false });
     await testApp.ready();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await closeTestApp(testApp);
   });
 
-  const validUserDto: CreateUserDto = {
-    userName: 'alice',
-    firstName: 'Alice',
-    lastName: 'Alice',
-    password: '12345678',
-    invitationToken: 'invite-token',
-  };
+  beforeEach(async () => {
+    // Быстрая очистка таблиц перед каждым тестом (занимает ~3 мс)
+    await resetDb(testApp.db);
+  });
 
   // MARK: - Позитивные сценарии
   describe('Positive group', () => {
     it('returns 201 and created user with valid body(all fields)', async () => {
+      const invitation = await testApp.inviteService.create();
+
+      const validUserDto: CreateUserDto = {
+        userName: 'alice',
+        firstName: 'Alice',
+        lastName: 'Alice',
+        password: '12345678',
+        invitationToken: invitation.token,
+      };
+
       const response = await testApp.inject({
         method: 'POST',
         url: URL,
@@ -58,6 +65,16 @@ describe('RegisterUseCase (IT)', () => {
     });
 
     it('returns 201 and created user with valid body(without lastName)', async () => {
+      const invitation = await testApp.inviteService.create();
+
+      const validUserDto: CreateUserDto = {
+        userName: 'alice',
+        firstName: 'Alice',
+        lastName: 'Alice',
+        password: '12345678',
+        invitationToken: invitation.token,
+      };
+
       const { lastName, ...dtoWithOutLastName } = validUserDto;
 
       const response = await testApp.inject({
@@ -91,6 +108,13 @@ describe('RegisterUseCase (IT)', () => {
 
   // MARK: - Негативные сценарии
   describe('Negative group', () => {
+    const validUserDto: CreateUserDto = {
+      userName: 'alice',
+      firstName: 'Alice',
+      lastName: 'Alice',
+      password: '12345678',
+      invitationToken: 'schema-only-token',
+    };
     // Хелпер для проверки конкретного поля на ожидаемую ошибку
     const assertFieldError = (data: unknown, field: string, expectedMessage: string) => {
       const result = CreateUserSchema.safeParse(data);
@@ -102,9 +126,8 @@ describe('RegisterUseCase (IT)', () => {
       }
     };
 
-    it('returns 409 when username already exist', async () => {
-      await createUserInDb(testApp.db, testApp.hashService, 'alice', 'Alice', '12345678');
-
+    // User без действующего приглашения
+    it('returns 403 when user without invitation', async () => {
       const newUserDto: CreateUserDto = {
         userName: 'alice',
         firstName: 'Alice',
@@ -118,7 +141,69 @@ describe('RegisterUseCase (IT)', () => {
         payload: newUserDto,
       });
 
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode).toBe(403);
+
+      const body = response.json();
+      expect(body.code).toBe('INVALID_INVITATION');
+    });
+
+    // Регистрация без приглашения
+    it('returns 403 when user without invitation', async () => {
+      const newUserDto: CreateUserDto = {
+        userName: 'alice',
+        firstName: 'Alice',
+        password: '12345678',
+        invitationToken: 'invite-token',
+      };
+
+      const response = await testApp.inject({
+        method: 'POST',
+        url: URL,
+        payload: newUserDto,
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const body = response.json();
+      expect(body.code).toBe('INVALID_INVITATION');
+    });
+
+    // Проверка обнуления приглашения после использования
+    it('returns 403 when invitation is already used', async () => {
+      const invitation = await testApp.inviteService.create();
+
+      const aliceDto: CreateUserDto = {
+        userName: 'alice',
+        firstName: 'Alice',
+        password: '12345678',
+        invitationToken: invitation.token,
+      };
+
+      const aliceResponse = await testApp.inject({
+        method: 'POST',
+        url: URL,
+        payload: aliceDto,
+      });
+
+      expect(aliceResponse.statusCode).toBe(201);
+
+      // Используем тоже приглашение что и alice
+      const bobDto: CreateUserDto = {
+        userName: 'alice',
+        firstName: 'Alice',
+        password: '12345678',
+        invitationToken: invitation.token,
+      };
+
+      const bobResponse = await testApp.inject({
+        method: 'POST',
+        url: URL,
+        payload: bobDto,
+      });
+
+      expect(bobResponse.statusCode).toBe(403);
+      const body = bobResponse.json();
+      expect(body.code).toBe('INVALID_INVITATION');
     });
 
     // MARK: Проверка валидации
