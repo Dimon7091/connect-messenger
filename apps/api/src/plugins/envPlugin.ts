@@ -16,6 +16,11 @@ declare module 'fastify' {
       DB_MAX_POOLS: number;
       JWT_SECRET: string;
       FASTIFY_CLOSE_GRACE_DELAY: number;
+
+      // Для инициализации администратора
+      INIT_ADMIN_USERNAME: string;
+      INIT_ADMIN_FIRSTNAME: string;
+      INIT_ADMIN_PASSWORD: string;
     };
   }
 }
@@ -29,6 +34,9 @@ const baseProperties = {
   DB_MAX_POOLS: { type: ['integer', 'string'], default: 5 },
   JWT_SECRET: { type: 'string' },
   FASTIFY_CLOSE_GRACE_DELAY: { type: 'string' },
+  INIT_ADMIN_USERNAME: { type: 'string' },
+  INIT_ADMIN_FIRSTNAME: { type: 'string' },
+  INIT_ADMIN_PASSWORD: { type: 'string' },
 } as const;
 
 const envPluginCore: FastifyPluginAsync = async fastify => {
@@ -43,7 +51,23 @@ const envPluginCore: FastifyPluginAsync = async fastify => {
   const schema = {
     type: 'object',
     properties: baseProperties,
-    required: isProd ? ['NODE_ENV', 'GLOBAL_DOMAIN', 'DB_URL', 'JWT_SECRET'] : ['NODE_ENV'],
+    required: isProd
+      ? [
+          'NODE_ENV',
+          'GLOBAL_DOMAIN',
+          'DB_URL',
+          'JWT_SECRET',
+          'INIT_ADMIN_USERNAME',
+          'INIT_ADMIN_FIRSTNAME',
+          'INIT_ADMIN_PASSWORD',
+        ]
+      : [
+          'NODE_ENV',
+          'GLOBAL_DOMAIN',
+          'INIT_ADMIN_USERNAME',
+          'INIT_ADMIN_FIRSTNAME',
+          'INIT_ADMIN_PASSWORD',
+        ],
   };
 
   await fastify.register(fastifyEnv, {

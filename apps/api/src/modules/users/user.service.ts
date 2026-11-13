@@ -15,6 +15,7 @@ export interface UserService {
   softDelete(id: string): Promise<void>;
   isUserExistById(id: string): Promise<boolean>;
   isUserExistByUserName(userName: string): Promise<boolean>;
+  hasAdmin(): Promise<boolean>;
 }
 
 export function createUserService(repo: UserRepository): UserService {
@@ -111,6 +112,10 @@ export function createUserService(repo: UserRepository): UserService {
 
     async isUserExistByUserName(userName) {
       return await repo.existsByUserName(userName);
+    },
+
+    async hasAdmin(): Promise<boolean> {
+      return await repo.hasAdmin();
     },
   };
 }

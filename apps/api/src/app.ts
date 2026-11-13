@@ -14,6 +14,9 @@ import { userRouter } from './use-case/users/user.routes.js';
 import { authRouter } from './use-case/auth/auth.routes.js';
 import { hashPlugin } from './plugins/hash.plugin.js';
 import { userPlugin } from './modules/users/users.plugin.js';
+import { invitePlugin } from './modules/invite/invite.plugin.js';
+import { invitationRouters } from './use-case/invite/invitation.routes.js';
+import { seedAdminPlugin } from './modules/users/seedAdmin.plugin.js';
 
 export interface AppOptions {
   logger?: boolean | object;
@@ -73,7 +76,7 @@ export async function buildApp(options: AppOptions = {}) {
 
   await app.register(dbPlugin, dbOptions);
 
-  // Миграции для dev
+  // Миграции для dev и test
   if (!isProd) {
     await app.after();
     await runMigrations(app.db);
@@ -88,6 +91,11 @@ export async function buildApp(options: AppOptions = {}) {
 
   // Модули
   await app.register(userPlugin);
+  await app.register(invitePlugin);
+
+  if (app.config.NODE_ENV !== 'test') {
+    await app.register(seedAdminPlugin);
+  }
 
   app.get('/health', async () => {
     return { status: 'ok', timeStamp: new Date().toISOString() };
@@ -95,6 +103,7 @@ export async function buildApp(options: AppOptions = {}) {
 
   await app.register(authRouter, { prefix: '/api/v1/auth' });
   await app.register(userRouter, { prefix: '/api/v1/users' });
+  await app.register(invitationRouters, { prefix: '/api/v1/invitations' });
 
   return app;
 }

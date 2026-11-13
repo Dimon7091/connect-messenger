@@ -8,6 +8,13 @@
       "when": 1794390940606,
       "tag": "0000_sleepy_dracula",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794481195046,
+      "tag": "0001_plain_rawhide_kid",
+      "breakpoints": true
     }
   ]
 }

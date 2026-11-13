@@ -1,4 +1,4 @@
-import { eq, count, and } from '@messenger/database';
+import { eq, and } from '@messenger/database';
 import type { DbInstance } from '@messenger/database';
 import { usersTable, usersProfilesTable, type User, type NewUser } from '@messenger/database';
 import type { UpdateUserDto } from '@messenger/shared-schema';
@@ -16,6 +16,7 @@ export interface UserRepository {
   existsByUserId(id: string): Promise<boolean>;
   existsByUserName(username: string): Promise<boolean>;
   isAdmin(id: string): Promise<boolean>;
+  hasAdmin(): Promise<boolean>;
   isUserDeleted(id: string): Promise<boolean>;
   softDeleteAndAnonymize(id: string, anonymizedData: NewUser): Promise<void>;
 }
@@ -157,6 +158,16 @@ export function createUserRepository(db: DbInstance): UserRepository {
         .limit(1);
 
       return user?.role === 'admin';
+    },
+
+    async hasAdmin(): Promise<boolean> {
+      const [admin] = await db
+        .select({ id: usersTable.id })
+        .from(usersTable)
+        .where(eq(usersTable.role, 'admin'))
+        .limit(1);
+
+      return Boolean(admin);
     },
 
     async isUserDeleted(id) {
