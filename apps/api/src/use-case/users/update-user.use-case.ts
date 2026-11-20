@@ -1,10 +1,8 @@
 import type {
   UpdateUserDto,
-  UserAdminResponse,
   UserPrivateResponse,
 } from '@messenger/shared-schema';
 import type { UserService } from '../../modules/users/index.js';
-import type { PublicUser } from '@messenger/database';
 
 export function createUpdateUserUseCase(deps: { userService: UserService }) {
   // ==============================================

@@ -98,6 +98,10 @@ export const UsersStatisticResponseSchema = z.object({
   deletedUsers: z.number(),
 });
 
+export const UserNameQuerySchema = z.object({
+  username: z.string().max(15, 'Имя пользователя не может превышать 15 символов'),
+});
+
 // MARK: Пагинация
 export const USER_SORT_FIELDS = ['createdAt', 'userName', 'firstName'] as const;
 export const UsersOffsetPaginationQuerySchema = createOffsetPaginationQuerySchema(

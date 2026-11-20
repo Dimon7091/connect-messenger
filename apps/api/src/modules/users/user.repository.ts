@@ -19,6 +19,7 @@ export interface UserRepository {
   findById(id: string): Promise<RowUser | null>;
   findRowByUserName(userName: string): Promise<RowUser | null>;
   findAll(): Promise<PublicUser[]>;
+  findByUserNameStartingWith(searchQuery: string): Promise<PublicUser[]>;
   deleteById(id: string): Promise<void>;
 
   // Доп функции
@@ -81,6 +82,14 @@ export function createUserRepository(db: DbInstance): UserRepository {
 
     async deleteById(id) {
       await db.delete(usersTable).where(eq(usersTable.id, id)).returning();
+    },
+
+    async findByUserNameStartingWith(searchQuery) {
+      return await db
+        .select()
+        .from(usersTable)
+        .where(and(ilike(usersTable.userName, `${searchQuery}%`), eq(usersTable.isDeleted, false)))
+        .limit(5);
     },
 
     // MARK: - Доп функции

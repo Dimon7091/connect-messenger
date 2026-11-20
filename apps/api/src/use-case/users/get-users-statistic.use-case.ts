@@ -1,6 +1,5 @@
-import type { PublicUser } from '@messenger/database';
 import type { UserService } from '../../modules/users/index.js';
-import type { UserPrivateResponse, UsersStatisticResponse } from '@messenger/shared-schema';
+import type { UsersStatisticResponse } from '@messenger/shared-schema';
 
 export interface GetUserUseCase {
   userService: UserService;
