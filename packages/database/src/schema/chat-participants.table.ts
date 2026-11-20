@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { chatsTable } from './chats.table.js';
+import { usersTable } from './users.tables.js';
 
 export const chatParticipantsTable = pgTable(
   'chat_participants',
@@ -22,7 +23,7 @@ export const chatParticipantsTable = pgTable(
     // UUID пользователя (нативный тип uuid в PostgreSQL)
     userId: uuid('user_id')
       .notNull()
-      .references(() => chatsTable.id, { onDelete: 'cascade' }),
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
 
     isDeleted: boolean('is_deleted').default(false).notNull(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -48,9 +49,9 @@ export const chatParticipantsRelations = relations(chatParticipantsTable, ({ one
     fields: [chatParticipantsTable.chatId],
     references: [chatsTable.id],
   }),
-  user: one(chatsTable, {
+  user: one(usersTable, {
     fields: [chatParticipantsTable.userId],
-    references: [chatsTable.id],
+    references: [usersTable.id],
   }),
 }));
 

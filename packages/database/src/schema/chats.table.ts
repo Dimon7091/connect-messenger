@@ -11,10 +11,11 @@ export const chatsTable = pgTable('chats', {
   type: varchar('type', { length: 20 }).notNull(),
   lastMessage: text('last_message'),
   createdAt: timestamp('created_at', { withTimezone: false, mode: 'date' }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: false, mode: 'date' }).$onUpdate(
-    () => new Date()
-  ),
-  createdBy: uuid('created_by'),
+  updatedAt: timestamp('updated_at', { withTimezone: false, mode: 'date' })
+    .$onUpdate(() => new Date())
+    .notNull()
+    .defaultNow(),
+  createdBy: uuid('created_by').notNull(),
 });
 
 // Связь OneToMany с таблицей участников

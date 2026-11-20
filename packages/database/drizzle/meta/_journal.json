@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1794817881238,
-      "tag": "0000_lying_madame_web",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1794820249665,
-      "tag": "0001_military_overlord",
+      "when": 1795169650471,
+      "tag": "0000_friendly_psynapse",
       "breakpoints": true
     }
   ]

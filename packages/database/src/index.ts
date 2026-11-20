@@ -14,3 +14,4 @@ export type {
   NewChatParticipant,
   ChatWithParticipants,
 } from './schema/index.js';
+export type { Message, NewMessage, MessageStatus, MessageAttachment } from './schema/index.js';

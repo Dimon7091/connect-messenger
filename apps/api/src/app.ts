@@ -19,6 +19,7 @@ import { invitationRouters } from './use-case/invite/invitation.routes.js';
 import { seedAdminPlugin } from './modules/users/seedAdmin.plugin.js';
 import { seedTestUsersPlugin } from './modules/users/seedTestUsers.plugin.js';
 import { chatPlugin } from './modules/chats/chat.plugin.js';
+import { chatsRoutes } from './use-case/chats/chats.routes.js';
 
 export interface AppOptions {
   logger?: boolean | object;
@@ -106,9 +107,11 @@ export async function buildApp(options: AppOptions = {}) {
     return { status: 'ok', timeStamp: new Date().toISOString() };
   });
 
+  // Роуты
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(usersRoutes, { prefix: '/api/v1/users' });
   await app.register(invitationRouters, { prefix: '/api/v1/invitations' });
+  await app.register(chatsRoutes, { prefix: '/api/v1/chats' });
 
   return app;
 }
