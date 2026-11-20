@@ -17,6 +17,7 @@ import { usersPlugin } from './modules/users/users.plugin.js';
 import { invitePlugin } from './modules/invite/invite.plugin.js';
 import { invitationRouters } from './use-case/invite/invitation.routes.js';
 import { seedAdminPlugin } from './modules/users/seedAdmin.plugin.js';
+import { seedTestUsersPlugin } from './modules/users/seedTestUsers.plugin.js';
 
 export interface AppOptions {
   logger?: boolean | object;
@@ -93,8 +94,10 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(usersPlugin);
   await app.register(invitePlugin);
 
-  if (app.config.NODE_ENV !== 'test') {
+  // Сиды — только в режиме разработки
+  if (app.config.NODE_ENV === 'development') {
     await app.register(seedAdminPlugin);
+    await app.register(seedTestUsersPlugin);
   }
 
   app.get('/health', async () => {

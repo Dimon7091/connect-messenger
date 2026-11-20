@@ -23,7 +23,7 @@
     "@fastify/rate-limit": "^11.2.1",
     "@fastify/type-provider-zod": "^1.0.3",
     "@messenger/database": "workspace:*",
-    "@messenger/shared-schema": "workspace:*", 
+    "@messenger/shared-schema": "workspace:*",
     "argon2": "^0.45.1",
     "close-with-grace": "^2.5.0",
     "dotenv": "^18.0.7",

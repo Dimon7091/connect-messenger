@@ -42,10 +42,8 @@ describe('GetUserUseCase', () => {
 
       const updatedUserDto: UpdateUserDto = {
         userName: 'update-username',
-        profile: {
-          firstName: 'Updated-fistName',
-          lastName: 'Updated-lastName',
-        },
+        firstName: 'Updated-fistName',
+        lastName: 'Updated-lastName',
       };
 
       const response = await testApp.inject({
@@ -64,11 +62,9 @@ describe('GetUserUseCase', () => {
       expect(body).toMatchObject({
         id: user.id,
         userName: updatedUserDto.userName,
-        profile: {
-          firstName: updatedUserDto.profile?.firstName,
-          lastName: updatedUserDto.profile?.lastName,
-          avatarUrl: null,
-        },
+        firstName: updatedUserDto.firstName,
+        lastName: updatedUserDto.lastName,
+        avatarUrl: null,
         role: 'user',
         createdAt: expect.any(String),
         blackListIds: [],
@@ -110,11 +106,9 @@ describe('GetUserUseCase', () => {
       expect(body).toMatchObject({
         id: user.id,
         userName: 'alice',
-        profile: {
-          firstName: 'Alice',
-          lastName: null,
-          avatarUrl: null,
-        },
+        firstName: 'Alice',
+        lastName: null,
+        avatarUrl: null,
         role: 'user',
         createdAt: expect.any(String),
         blackListIds: [],
@@ -157,11 +151,9 @@ describe('GetUserUseCase', () => {
       expect(body).toMatchObject({
         id: user.id,
         userName: updatedUserDto.userName,
-        profile: {
-          firstName: user.profile?.firstName,
-          lastName: user.profile?.lastName,
-          avatarUrl: null,
-        },
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatarUrl: null,
         role: 'user',
         createdAt: expect.any(String),
         blackListIds: [],

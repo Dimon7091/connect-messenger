@@ -17,9 +17,7 @@ async function seedAdmin(app: FastifyInstance) {
 
   await app.userService.create({
     userName: adminUserName,
-    profile: {
-      firstName: adminFirstName,
-    },
+    firstName: adminFirstName,
     passwordHash: passwordHash,
     role: 'admin',
   });

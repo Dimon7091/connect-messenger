@@ -1,15 +1,24 @@
-import { eq, and } from '@messenger/database';
-import type { DbInstance } from '@messenger/database';
-import { usersTable, usersProfilesTable, type User, type NewUser } from '@messenger/database';
-import type { UpdateUserDto } from '@messenger/shared-schema';
+import { eq, and, ilike } from '@messenger/database';
+import type { DbInstance, PublicUser } from '@messenger/database';
+import { usersTable, type RowUser, type NewUser } from '@messenger/database';
+import type {
+  PaginatedResponse,
+  UpdateUserDto,
+  UsersOffsetPaginationQuery,
+} from '@messenger/shared-schema';
+import {
+  buildOrderBy,
+  createPaginatedResponse,
+  getPaginationParams,
+} from '../../utils/pagination.js';
 
 export interface UserRepository {
   //Базовый CRUD
-  create(data: NewUser): Promise<User>;
-  update(id: string, data: UpdateUserDto): Promise<User | null>;
-  findById(id: string): Promise<User | null>;
-  findByUserName(userName: string): Promise<User | null>;
-  findAll(): Promise<User[]>;
+  create(data: NewUser): Promise<PublicUser>;
+  update(id: string, data: UpdateUserDto): Promise<PublicUser | null>;
+  findById(id: string): Promise<RowUser | null>;
+  findRowByUserName(userName: string): Promise<RowUser | null>;
+  findAll(): Promise<PublicUser[]>;
   deleteById(id: string): Promise<void>;
 
   // Доп функции
@@ -18,83 +27,47 @@ export interface UserRepository {
   isAdmin(id: string): Promise<boolean>;
   hasAdmin(): Promise<boolean>;
   isUserDeleted(id: string): Promise<boolean>;
-  softDeleteAndAnonymize(id: string, anonymizedData: NewUser): Promise<void>;
+  softDeleteAndAnonymize(id: string, anonymizedData: NewUser): Promise<PublicUser | null>;
+  countAll(): Promise<number>;
+  countDeleted(): Promise<number>;
+
+  // Пагинация
+  findPaginated(query: UsersOffsetPaginationQuery): Promise<PaginatedResponse<PublicUser>>;
 }
+
+// Словарь разрешенных колонок для сортировки пользователей
+const USER_SORT_COLUMNS = {
+  createdAt: usersTable.createdAt,
+  userName: usersTable.userName,
+  firstName: usersTable.firstName,
+} as const;
 
 export function createUserRepository(db: DbInstance): UserRepository {
   return {
     // MARK: - Базовый CRUD
     async create(data) {
-      return await db.transaction(async tx => {
-        const { profile, ...userData } = data;
-
-        // Вставка пользователя
-        const [savedUser] = await tx.insert(usersTable).values(userData).returning();
-        if (!savedUser) throw new Error('INSERT did not return a user row');
-
-        // Вставка профиля (если он передан)
-        let profileWithoutId = null;
-        if (profile) {
-          const [savedProfile] = await tx
-            .insert(usersProfilesTable)
-            .values({ ...profile, userId: savedUser.id })
-            .returning();
-
-          if (!savedProfile) throw new Error('INSERT did not return a profile row');
-
-          const { userId, ...restProfile } = savedProfile;
-          profileWithoutId = restProfile;
-        }
-
-        // Возврат объединенного объекта
-        return {
-          ...savedUser,
-          profile: profileWithoutId,
-        };
-      });
+      const [savedUser] = await db.insert(usersTable).values(data).returning();
+      if (!savedUser) throw new Error('INSERT did not return a user row');
+      return savedUser;
     },
 
-    async findById(id): Promise<User | null> {
+    async findById(id): Promise<RowUser | null> {
       const result = await db.query.usersTable.findFirst({
         where: (users, { eq }) => eq(users.id, id),
-        with: {
-          profile: {
-            columns: {
-              userId: false,
-            },
-          },
-        },
       });
-
-      return result as User | null;
+      return (result as RowUser) ?? null;
     },
 
-    async findByUserName(userName) {
+    async findRowByUserName(userName) {
       const result = await db.query.usersTable.findFirst({
         where: (users, { eq }) => eq(users.userName, userName),
-        with: {
-          profile: {
-            columns: {
-              userId: false,
-            },
-          },
-        },
       });
-      return result as User | null;
+      return (result as RowUser) ?? null;
     },
 
     async findAll() {
-      const result = await db.query.usersTable.findMany({
-        with: {
-          profile: {
-            columns: {
-              userId: false,
-            },
-          },
-        },
-      });
-
-      return result as User[];
+      const result = await db.query.usersTable.findMany();
+      return result as PublicUser[];
     },
 
     async update(id, data) {
@@ -102,26 +75,7 @@ export function createUserRepository(db: DbInstance): UserRepository {
         return await this.findById(id);
       }
 
-      const { profile, ...userData } = data;
-      const hasUserData = Object.keys(userData).length > 0;
-      // Проверяем, что в профиле есть реальные данные для обновления
-      const hasProfileData = profile && Object.keys(profile).length > 0;
-
-      // Если обновлять нечего (например, прислали { profile: {} })
-      if (!hasUserData && !hasProfileData) {
-        return await this.findById(id);
-      }
-
-      await db.transaction(async tx => {
-        if (hasUserData) {
-          await tx.update(usersTable).set(userData).where(eq(usersTable.id, id));
-        }
-
-        if (hasProfileData) {
-          await tx.update(usersProfilesTable).set(profile).where(eq(usersProfilesTable.userId, id));
-        }
-      });
-
+      await db.update(usersTable).set(data).where(eq(usersTable.id, id));
       return (await this.findById(id)) ?? null;
     },
 
@@ -180,11 +134,45 @@ export function createUserRepository(db: DbInstance): UserRepository {
     },
 
     async softDeleteAndAnonymize(id, anonymizedData) {
-      const { profile, ...userData } = anonymizedData;
-      await db.update(usersTable).set(userData).where(eq(usersTable.id, id));
-      if (profile) {
-        await db.update(usersProfilesTable).set(profile).where(eq(usersProfilesTable.userId, id));
-      }
+      const [deletedUser] = await db
+        .update(usersTable)
+        .set(anonymizedData)
+        .where(eq(usersTable.id, id))
+        .returning();
+      return deletedUser ?? null;
+    },
+
+    async countAll() {
+      return await db.$count(usersTable);
+    },
+
+    async countDeleted() {
+      return await db.$count(usersTable, and(eq(usersTable.isDeleted, true)));
+    },
+
+    // MARK: Пагинация
+    async findPaginated(query) {
+      const { limit, offset } = getPaginationParams(query);
+      const orderBy = buildOrderBy(USER_SORT_COLUMNS, query.sortBy, query.sortOrder, usersTable.id);
+
+      // Формируем условие поиска, если передан параметр search
+      const whereClause = query.search
+        ? ilike(usersTable.userName, `%${query.search}%`)
+        : undefined;
+
+      // Передаем whereClause в ОБА запроса
+      const [items, total] = await Promise.all([
+        db
+          .select()
+          .from(usersTable)
+          .where(whereClause)
+          .orderBy(...orderBy)
+          .limit(limit)
+          .offset(offset),
+        db.$count(usersTable, whereClause),
+      ]);
+
+      return createPaginatedResponse(items as PublicUser[], total, query);
     },
   };
 }

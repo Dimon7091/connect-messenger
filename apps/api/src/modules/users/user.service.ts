@@ -1,21 +1,27 @@
-import type { CreateUserDto, UpdateUserDto } from '@messenger/shared-schema';
-import type { User, UserRole } from '@messenger/database';
+import type {
+  PaginatedResponse,
+  UpdateUserDto,
+  UsersOffsetPaginationQuery,
+} from '@messenger/shared-schema';
+import type { PublicUser, RowUser, UserRole } from '@messenger/database';
 import type { UserRepository } from './user.repository.js';
 import { ConflictError, NotFoundError } from '../../lib/errors.js';
 import type { NewUser } from '@messenger/database';
-import type { UUID } from 'node:crypto';
 
 export interface UserService {
-  create(user: NewUser, role?: UserRole): Promise<User>;
-  update(id: string, dto: UpdateUserDto): Promise<User>;
-  getById(id: string): Promise<User>;
-  getByUserName(userName: string): Promise<User>;
-  getAll(): Promise<User[]>;
+  create(user: NewUser, role?: UserRole): Promise<PublicUser>;
+  update(id: string, dto: UpdateUserDto): Promise<PublicUser>;
+  getById(id: string): Promise<PublicUser>;
+  findAuthUserByUserName(userName: string): Promise<RowUser>;
+  getAll(): Promise<PublicUser[]>;
   delete(id: string): Promise<void>;
-  softDelete(id: string): Promise<void>;
+  softDelete(id: string): Promise<PublicUser>;
   isUserExistById(id: string): Promise<boolean>;
   isUserExistByUserName(userName: string): Promise<boolean>;
   hasAdmin(): Promise<boolean>;
+  countAllUsers(): Promise<number>;
+  countDeletedUsers(): Promise<number>;
+  findPaginated(query: UsersOffsetPaginationQuery): Promise<PaginatedResponse<PublicUser>>;
 }
 
 export function createUserService(repo: UserRepository): UserService {
@@ -37,8 +43,8 @@ export function createUserService(repo: UserRepository): UserService {
       return user;
     },
 
-    async getByUserName(userName) {
-      const user = await repo.findByUserName(userName);
+    async findAuthUserByUserName(userName) {
+      const user = await repo.findRowByUserName(userName);
       if (!user) {
         throw new NotFoundError('User', userName);
       }
@@ -96,14 +102,17 @@ export function createUserService(repo: UserRepository): UserService {
         userName: `deleted_user_${id}`,
         passwordHash: 'REDACTED',
         isDeleted: true,
-        profile: {
-          firstName: 'deleted',
-          lastName: 'deleted',
-          avatarKey: null,
-        },
+        firstName: 'deleted',
+        lastName: null,
+        avatarKey: null,
       };
 
-      await repo.softDeleteAndAnonymize(id, anonymizedData);
+      const deleteUser = await repo.softDeleteAndAnonymize(id, anonymizedData);
+      if (!deleteUser) {
+        throw new Error();
+      }
+
+      return deleteUser;
     },
 
     async isUserExistById(id) {
@@ -114,8 +123,20 @@ export function createUserService(repo: UserRepository): UserService {
       return await repo.existsByUserName(userName);
     },
 
-    async hasAdmin(): Promise<boolean> {
+    async hasAdmin() {
       return await repo.hasAdmin();
+    },
+
+    async countAllUsers() {
+      return repo.countAll();
+    },
+
+    async countDeletedUsers() {
+      return repo.countDeleted();
+    },
+
+    findPaginated(query) {
+      return repo.findPaginated(query);
     },
   };
 }

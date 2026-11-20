@@ -1,57 +1,59 @@
+// src/db/schema/users.ts
 import { pgTable, varchar, boolean, timestamp, uuid, index, pgEnum } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
 
-// Таблица Пользователей
 export const userRole = pgEnum('user_role', ['admin', 'user']);
 
-export const usersTable = pgTable('users', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userName: varchar('user_name', { length: 255 }).notNull().unique(),
-
-  // Используем объявленный enum
-  role: userRole('role').notNull().default('user'),
-
-  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: false, mode: 'date' }).defaultNow().notNull(),
-  isFailedLoginLocked: boolean('is_failed_login_locked').default(false).notNull(),
-  isBanned: boolean('is_banned').default(false).notNull(),
-  isDeleted: boolean('is_deleted').default(false).notNull(),
-});
-
-// Таблица Профилей
-export const usersProfilesTable = pgTable(
-  'usersProfiles',
+export const usersTable = pgTable(
+  'users',
   {
-    userId: uuid('user_id')
-      .primaryKey()
-      .references(() => usersTable.id, { onDelete: 'cascade' }),
+    id: uuid('id').primaryKey().defaultRandom(),
+
+    // --- Auth ---
+    userName: varchar('user_name', { length: 255 }).notNull().unique(),
+    passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+    role: userRole('role').notNull().default('user'),
+
+    // --- Profile ---
     firstName: varchar('first_name', { length: 255 }).notNull(),
     lastName: varchar('last_name', { length: 255 }),
     avatarUrl: varchar('avatar_url', { length: 512 }),
+
+    // --- Флаги ---
+    isFailedLoginLocked: boolean('is_failed_login_locked').notNull().default(false),
+    isBanned: boolean('is_banned').notNull().default(false),
+    isDeleted: boolean('is_deleted').notNull().default(false),
+
+    // --- Timestamps ---
+    createdAt: timestamp('created_at', { withTimezone: false, mode: 'date' })
+      .notNull()
+      .defaultNow(),
   },
-  table => [index('users_profiles_user_id_idx').on(table.userId)]
+  t => [
+    // Индексы под пагинацию: (sortCol, id). Направление в индексе — ASC;
+    index('users_created_at_id_idx').on(t.createdAt, t.id),
+    index('users_user_name_id_idx').on(t.userName, t.id),
+    index('users_first_name_id_idx').on(t.firstName, t.id),
+    index('users_last_name_id_idx').on(t.lastName, t.id),
+
+    // Составной под частый фильтр + сортировку
+    index('users_role_created_at_id_idx').on(t.role, t.createdAt, t.id),
+  ]
 );
 
-export const usersRelations = relations(usersTable, ({ one }) => ({
-  profile: one(usersProfilesTable),
-}));
-
-export const profilesRelations = relations(usersProfilesTable, ({ one }) => ({
-  user: one(usersTable, {
-    fields: [usersProfilesTable.userId],
-    references: [usersTable.id],
-  }),
-}));
+// ---------------------------------------------------------------------------
+// MARK: - Типы
+// ---------------------------------------------------------------------------
 
 export type UserRole = typeof usersTable.$inferSelect.role;
 
-export type usersProfiles = typeof usersProfilesTable.$inferSelect;
-export type BaseUser = typeof usersTable.$inferSelect;
+/**
+ * Плоский пользователь
+ */
+export type RowUser = typeof usersTable.$inferSelect;
 
-export type User = BaseUser & {
-  profile: Omit<usersProfiles, 'userId'> | null;
-};
+export type NewUser = typeof usersTable.$inferInsert;
 
-export type NewUser = typeof usersTable.$inferInsert & {
-  profile?: Omit<typeof usersProfilesTable.$inferInsert, 'userId'> | null;
-};
+/**
+ * Публичный shape — без passwordHash.
+ */
+export type PublicUser = Omit<RowUser, 'passwordHash'>;

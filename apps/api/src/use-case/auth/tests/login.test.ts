@@ -54,11 +54,9 @@ describe('LoginUseCase (IT)', () => {
         user: {
           id: expect.any(String),
           userName: createdUser?.userName,
-          profile: {
-            firstName: createdUser.profile?.firstName,
-            lastName: null,
-            avatarUrl: null,
-          },
+          firstName: createdUser.firstName,
+          lastName: null,
+          avatarUrl: null,
           role: 'user',
           createdAt: expect.any(String),
           blackListIds: [],

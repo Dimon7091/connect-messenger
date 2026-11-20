@@ -12,6 +12,7 @@ export interface InviteRepository {
   findByToken(token: string): Promise<Invitation | null>;
   activeCount(): Promise<number>;
   deleteByToken(token: string): Promise<void>;
+  deleteAll(): Promise<void>;
 }
 
 const invitationsTable = schema.invitationsTable;
@@ -37,6 +38,10 @@ export function createInviteRepository(db: DbInstance): InviteRepository {
 
     async deleteByToken(token) {
       await db.delete(invitationsTable).where(eq(invitationsTable.token, token));
+    },
+
+    async deleteAll() {
+      await db.delete(invitationsTable);
     },
   };
 }

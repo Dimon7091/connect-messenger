@@ -1,7 +1,7 @@
 // use-cases/register-user/register-user.use-case.ts
 import type { AuthRequestDto, AuthResponse, CreateUserDto } from '@messenger/shared-schema';
 import type { UserService } from '../../modules/users/index.js';
-import type { NewUser, User } from '@messenger/database';
+import type { NewUser, PublicUser } from '@messenger/database';
 import { ConflictError, InvalidCredentialsError, UnauthorizedError } from '../../lib/errors.js';
 import type { InviteService } from '../../modules/invite/index.js';
 
@@ -23,7 +23,7 @@ export function createAuthUseCase(deps: {
   // ==============================================
   // TODO: временная заглушка для поля blackListIds
   // ==============================================
-  function addMissingFields(user: User) {
+  function addMissingFields(user: PublicUser) {
     return { blackListIds: [], ...user };
   }
 
@@ -41,10 +41,8 @@ export function createAuthUseCase(deps: {
       const dbUser: NewUser = {
         userName: dto.userName,
         passwordHash: passwordHash,
-        profile: {
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-        },
+        firstName: dto.firstName,
+        lastName: dto.lastName,
       };
 
       const newUser = await deps.userService.create(dbUser);
@@ -64,21 +62,22 @@ export function createAuthUseCase(deps: {
         throw new InvalidCredentialsError('Invalid username or password');
       }
 
-      const user = await deps.userService.getByUserName(dto.userName);
-      const isPasswordValid = deps.hashService.compare(dto.password, user.passwordHash);
+      const rowUser = await deps.userService.findAuthUserByUserName(dto.userName);
+      const isPasswordValid = deps.hashService.compare(dto.password, rowUser.passwordHash);
 
       if (!isPasswordValid) {
         throw new InvalidCredentialsError('Invalid username or password');
       }
 
-      const jwtPayload = {
-        sub: user.id,
-        preferred_username: user.userName,
-        role: user.role,
-      };
-      const jwtToken = deps.jwtTokenService.generate(jwtPayload);
+      const jwtToken = deps.jwtTokenService.generate({
+        sub: rowUser.id,
+        preferred_username: rowUser.userName,
+        role: rowUser.role,
+      });
 
-      return { user: addMissingFields(user), token: jwtToken };
+      const { passwordHash, ...publicUser } = rowUser;
+
+      return { user: addMissingFields(publicUser), token: jwtToken };
     },
   };
 }

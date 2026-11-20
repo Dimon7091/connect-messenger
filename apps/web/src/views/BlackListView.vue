@@ -71,8 +71,8 @@
               ]"
             >
               <img
-                v-if="user.profile?.avatarThumbUrl"
-                :src="user.profile.avatarThumbUrl"
+                v-if="user.avatarThumbUrl"
+                :src="user.avatarThumbUrl"
                 class="w-full h-full rounded-full object-cover"
                 alt="avatar"
               />
@@ -198,8 +198,8 @@ const unblocking = ref<Record<string, boolean>>({});
 
 // ========== Функции отображения ==========
 function getDisplayName(user: User): string {
-  const firstName = user.profile?.firstName || '';
-  const lastName = user.profile?.lastName || '';
+  const firstName = user.firstName || '';
+  const lastName = user.lastName || '';
   if (firstName || lastName) {
     return `${firstName} ${lastName}`.trim();
   }
@@ -212,7 +212,7 @@ function getInitials(user: User): string {
 }
 
 function getAvatarClass(user: User): string {
-  if (user.profile?.avatarThumbUrl) return '';
+  if (user.avatarThumbUrl) return '';
   if (user.isDeleted) return 'bg-gradient-to-br from-gray-500 to-gray-700';
   return getAvatarGradient(user.id);
 }

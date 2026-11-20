@@ -4,9 +4,9 @@ import { closeTestApp, createTestApp } from '../../../test/setup.js';
 import { createUserInDb, signFakeJwt } from '../../../test/factories.js';
 import { resetDb } from '../../../test/helpers.js';
 
-const URL = '/api/v1/users/me';
+const URL = '/api/v1/users';
 
-describe('GetUserUseCase', () => {
+describe('GetUsersUseCase', () => {
   let testApp: FastifyInstance;
 
   beforeAll(async () => {
@@ -41,7 +41,7 @@ describe('GetUserUseCase', () => {
 
       const response = await testApp.inject({
         method: 'GET',
-        url: URL,
+        url: `${URL}/me`,
         headers: {
           Authorization: `Bearer ${jwtToken}`,
           'Content-Type': 'application/json',
@@ -54,11 +54,9 @@ describe('GetUserUseCase', () => {
       expect(body).toMatchObject({
         id: user.id,
         userName: user?.userName,
-        profile: {
-          firstName: user.profile?.firstName,
-          lastName: null,
-          avatarUrl: null,
-        },
+        firstName: user.firstName,
+        lastName: null,
+        avatarUrl: null,
         role: 'user',
         createdAt: expect.any(String),
         blackListIds: [],
@@ -92,7 +90,7 @@ describe('GetUserUseCase', () => {
 
       const aliceResponse = await testApp.inject({
         method: 'GET',
-        url: URL,
+        url: `${URL}/me`,
         headers: {
           Authorization: `Bearer ${aliceJwt}`,
           'Content-Type': 'application/json',
@@ -101,7 +99,7 @@ describe('GetUserUseCase', () => {
 
       const bobResponse = await testApp.inject({
         method: 'GET',
-        url: URL,
+        url: `${URL}/me`,
         headers: {
           Authorization: `Bearer ${bobJwt}`,
           'Content-Type': 'application/json',
@@ -113,11 +111,9 @@ describe('GetUserUseCase', () => {
       expect(aliceBody).toMatchObject({
         id: alice.id,
         userName: alice?.userName,
-        profile: {
-          firstName: alice.profile?.firstName,
-          lastName: null,
-          avatarUrl: null,
-        },
+        firstName: alice.firstName,
+        lastName: null,
+        avatarUrl: null,
         role: 'user',
         createdAt: expect.any(String),
         blackListIds: [],
@@ -130,11 +126,9 @@ describe('GetUserUseCase', () => {
       expect(bobBody).toMatchObject({
         id: bob.id,
         userName: bob?.userName,
-        profile: {
-          firstName: bob.profile?.firstName,
-          lastName: null,
-          avatarUrl: null,
-        },
+        firstName: bob.firstName,
+        lastName: null,
+        avatarUrl: null,
         role: 'user',
         createdAt: expect.any(String),
         blackListIds: [],
@@ -162,7 +156,7 @@ describe('GetUserUseCase', () => {
   it('returns 401 with invalid jwt token string', async () => {
     const response = await testApp.inject({
       method: 'GET',
-      url: URL,
+      url: `${URL}/me`,
       headers: {
         Authorization: 'Bearer completely_broken_jwt_token_string',
         'Content-Type': 'application/json',
@@ -185,7 +179,7 @@ describe('GetUserUseCase', () => {
 
     const response = await testApp.inject({
       method: 'GET',
-      url: URL,
+      url: `${URL}/me`,
       headers: {
         Authorization: `Bearer ${jwtToken}`,
         'Content-Type': 'application/json',
@@ -239,6 +233,76 @@ describe('GetUserUseCase', () => {
       expect(response.statusCode).toBe(401);
       const body = response.json();
       expect(body.code).toBe('UNAUTHORIZED');
+    });
+  });
+
+  // MARK: Админ эндпоинт
+  describe('Users with pagination', () => {
+    it('return 200 and user list when user role admin', async () => {
+      createUserInDb(testApp.db, testApp.hashService, 'bob', 'Alice', '12345678', 'user');
+      createUserInDb(testApp.db, testApp.hashService, 'alice', 'Alice', '12345678', 'user');
+
+      const admin = await createUserInDb(
+        testApp.db,
+        testApp.hashService,
+        'admin',
+        'Alice',
+        '12345678',
+        'admin'
+      );
+
+      const jwtToken = testApp.jwt.sign({
+        sub: admin.id,
+        preferred_username: admin.userName,
+        role: admin.role,
+      });
+
+      const response = await testApp.inject({
+        method: 'GET',
+        url: `${URL}?page=1&limit=10`,
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(Array.isArray(body.items)).toBe(true);
+      expect(body.items).toHaveLength(3);
+    });
+
+    it('return 403 when user role is not admin', async () => {
+      createUserInDb(testApp.db, testApp.hashService, 'bob', 'Alice', '12345678', 'user');
+      createUserInDb(testApp.db, testApp.hashService, 'alice', 'Alice', '12345678', 'user');
+
+      const user = await createUserInDb(
+        testApp.db,
+        testApp.hashService,
+        'user',
+        'Alice',
+        '12345678',
+        'user'
+      );
+
+      const jwtToken = testApp.jwt.sign({
+        sub: user.id,
+        preferred_username: user.userName,
+        role: user.role,
+      });
+
+      const response = await testApp.inject({
+        method: 'GET',
+        url: `${URL}?page=1&limit=10`,
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+      const body = response.json();
+      expect(body.code).toBe('FORBIDDEN');
     });
   });
 });

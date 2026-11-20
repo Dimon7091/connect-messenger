@@ -49,11 +49,9 @@ describe('RegisterUseCase (IT)', () => {
         user: {
           id: expect.any(String),
           userName: validUserDto.userName,
-          profile: {
-            firstName: validUserDto.firstName,
-            lastName: validUserDto.lastName,
-            avatarUrl: null,
-          },
+          firstName: validUserDto.firstName,
+          lastName: validUserDto.lastName,
+          avatarUrl: null,
           role: 'user',
           createdAt: expect.any(String),
           blackListIds: [],
@@ -90,11 +88,9 @@ describe('RegisterUseCase (IT)', () => {
         user: {
           id: expect.any(String),
           userName: dtoWithOutLastName.userName,
-          profile: {
-            firstName: dtoWithOutLastName.firstName,
-            lastName: null,
-            avatarUrl: null,
-          },
+          firstName: dtoWithOutLastName.firstName,
+          lastName: null,
+          avatarUrl: null,
           role: 'user',
           createdAt: expect.any(String),
           blackListIds: [],

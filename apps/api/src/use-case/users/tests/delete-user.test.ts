@@ -55,10 +55,7 @@ describe('SoftDeleteUseCase', () => {
         userName: `deleted_user_${user.id}`,
         passwordHash: 'REDACTED',
         isDeleted: true,
-        profile: {
-          firstName: 'deleted',
-          lastName: 'deleted',
-        },
+        firstName: 'deleted',
       });
     });
   });

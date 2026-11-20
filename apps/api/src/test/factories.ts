@@ -1,13 +1,8 @@
-import {
-  usersProfilesTable,
-  usersTable,
-  type DbInstance,
-  type NewUser,
-  type User,
-} from '@messenger/database';
+import { usersTable, type DbInstance, type NewUser, type RowUser } from '@messenger/database';
 import type { HashService } from '../plugins/hash.plugin.js';
-import { createHmac } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import type { InviteService } from '../modules/invite/index.js';
+import { invitationsTable } from '@messenger/database';
 
 export function signFakeJwt(payload: object, secret: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
@@ -28,55 +23,40 @@ export async function createUserInDb(
   role?: 'admin' | 'user'
 ) {
   const passwordHash = hashService.hash(password);
-  const newUser: NewUser = {
+  const testUser: NewUser = {
     userName: userName,
-    profile: {
-      firstName: firstName,
-    },
+    firstName: firstName,
     role: role ?? 'user',
     passwordHash: passwordHash,
   };
 
-  return await db.transaction(async tx => {
-    const { profile, ...userData } = newUser;
-
-    // Вставка пользователя
-    const [savedUser] = await tx.insert(usersTable).values(userData).returning();
-    if (!savedUser) throw new Error('INSERT did not return a user row');
-
-    // Вставка профиля (если он передан)
-    let profileWithoutId = null;
-    if (profile) {
-      const [savedProfile] = await tx
-        .insert(usersProfilesTable)
-        .values({ ...profile, userId: savedUser.id })
-        .returning();
-
-      if (!savedProfile) throw new Error('INSERT did not return a profile row');
-
-      const { userId, ...restProfile } = savedProfile;
-      profileWithoutId = restProfile;
-    }
-
-    // Возврат объединенного объекта
-    return {
-      ...savedUser,
-      profile: profileWithoutId,
-    };
-  });
+  const [savedUser] = await db.insert(usersTable).values(testUser).returning();
+  if (!savedUser) throw new Error('INSERT did not return a user row');
+  return savedUser;
 }
 
 // MARK: - Get user with db
 export async function getUserWithDb(db: DbInstance, id: string) {
   const result = await db.query.usersTable.findFirst({
     where: (users, { eq }) => eq(users.id, id),
-    with: {
-      profile: {
-        columns: {
-          userId: false,
-        },
-      },
-    },
   });
-  return result as User | null;
+  return (result as RowUser) ?? null;
+}
+
+export async function createInvitationInDb(db: DbInstance) {
+  const data = {
+    token: randomBytes(24).toString('base64url'),
+  };
+
+  const [invitation] = await db.insert(invitationsTable).values(data).returning();
+  return invitation!;
+}
+
+export async function countInvitationsInDb(db: DbInstance) {
+  const data = {
+    token: randomBytes(24).toString('base64url'),
+  };
+
+  const invitations = await db.$count(invitationsTable);
+  return invitations;
 }

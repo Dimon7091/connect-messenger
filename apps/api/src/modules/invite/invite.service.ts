@@ -7,6 +7,7 @@ export interface InviteService {
   create(): Promise<Invitation>;
   validateAndConsumeInvitation(token: string): Promise<void>;
   getActiveCount(): Promise<number>;
+  deleteAll(): Promise<void>;
 }
 
 export function createInviteService(repo: InviteRepository): InviteService {
@@ -31,6 +32,10 @@ export function createInviteService(repo: InviteRepository): InviteService {
 
     async getActiveCount() {
       return await repo.activeCount();
+    },
+
+    async deleteAll() {
+      await repo.deleteAll();
     },
   };
 }

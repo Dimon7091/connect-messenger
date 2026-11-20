@@ -12,9 +12,9 @@
     <ChatHeader
       :displayName="displayName || ''"
       @back="goBack"
-      :firstName="companionUser?.profile.firstName"
-      :lastName="companionUser?.profile.lastName || ''"
-      :avatarThumbUrl="companionUser?.profile.avatarThumbUrl"
+      :firstName="companionUser?.firstName"
+      :lastName="companionUser?.lastName || ''"
+      :avatarThumbUrl="companionUser?.avatarThumbUrl"
       :user-id="companionUser?.id"
       :isDeleted="isCompanionDeleted"
       @click-avatar="openUserProfile"
@@ -295,8 +295,8 @@ const isCompanionTyping = computed(() => {
 const displayName = computed(() => {
   const u = companionUser.value;
   if (!u) return 'Пользователь';
-  const firstName = u.profile?.firstName;
-  const lastName = u.profile?.lastName;
+  const firstName = u.firstName;
+  const lastName = u.lastName;
   if (firstName && lastName) return `${firstName} ${lastName}`;
   if (firstName) return firstName;
   return u.userName || 'Пользователь';
@@ -456,18 +456,18 @@ const sendMessage = async (text: string, replyToId?: string, attachments?: Attac
       let senderName = 'Пользователь';
       if (replyingMsg.senderId === currentUserId.value) {
         const currentUser = userStore.user;
-        if (currentUser?.profile.firstName && currentUser?.profile.lastName) {
-          senderName = `${currentUser.profile.firstName} ${currentUser.profile.lastName}`;
+        if (currentUser?.firstName && currentUser?.lastName) {
+          senderName = `${currentUser.firstName} ${currentUser.lastName}`;
         } else {
-          senderName = currentUser?.profile.firstName || currentUser?.userName || 'Вы';
+          senderName = currentUser?.firstName || currentUser?.userName || 'Вы';
         }
       } else {
         const user = userStore.getUserFromCache(replyingMsg.senderId);
         if (user) {
-          if (user.profile.firstName && user.profile.lastName) {
-            senderName = `${user.profile.firstName} ${user.profile.lastName}`;
+          if (user.firstName && user.lastName) {
+            senderName = `${user.firstName} ${user.lastName}`;
           } else {
-            senderName = user.profile.firstName || user.userName || 'Пользователь';
+            senderName = user.firstName || user.userName || 'Пользователь';
           }
         }
       }

@@ -372,7 +372,7 @@ const isOnline = computed(() => {
   return userStore.getUserStatus(userId) === 'ONLINE';
 });
 
-const avatarUrl = computed(() => userStore.user?.profile?.avatarUrl || null);
+const avatarUrl = computed(() => userStore.user?.avatarUrl || null);
 
 const avatarGradientClass = computed(() => {
   if (avatarUrl.value) return '';
@@ -434,8 +434,8 @@ const closeImageModal = () => {
 
 const startEditName = () => {
   if (editingUsername.value) cancelEditUsername();
-  editFirstName.value = userStore.user?.profile?.firstName || '';
-  editLastName.value = userStore.user?.profile?.lastName || '';
+  editFirstName.value = userStore.user?.firstName || '';
+  editLastName.value = userStore.user?.lastName || '';
   editingName.value = true;
 };
 
@@ -455,10 +455,8 @@ const saveName = async () => {
   try {
     const lastName = editLastName.value.trim();
     await userStore.updateUser({
-      profile: {
-        firstName,
-        lastName: lastName === '' ? null : lastName,
-      },
+      firstName,
+      lastName: lastName === '' ? null : lastName,
     });
     editingName.value = false;
   } catch (error) {

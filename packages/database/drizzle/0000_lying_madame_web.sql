@@ -18,5 +18,10 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_user_name_unique" UNIQUE("user_name")
 );
 --> statement-breakpoint
+CREATE TABLE "invitations" (
+	"token" varchar(32) PRIMARY KEY NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "usersProfiles" ADD CONSTRAINT "usersProfiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "users_profiles_user_id_idx" ON "usersProfiles" USING btree ("user_id");

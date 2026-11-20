@@ -3,6 +3,7 @@ import { InvitationResponseSchema, InvitationsCountResponseSchema } from '@messe
 import { createCreateInvitationUseCase } from './create-invitation.use-case.js';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { createGetActiveCountInvitationUseCase } from './get-active-invitations.use-case.js';
+import { createDeleteInvitationsUseCase } from './delete-invitations.use-case.js';
 
 export const invitationRouters: FastifyPluginAsync = async app => {
   // Инициализируем нужные Use Cases, передавая зависимости из Fastify
@@ -12,6 +13,10 @@ export const invitationRouters: FastifyPluginAsync = async app => {
   });
 
   const getActiveCountInvitationsUseCase = createGetActiveCountInvitationUseCase({
+    inviteService: app.inviteService,
+  });
+
+  const deleteInvitationsUseCase = createDeleteInvitationsUseCase({
     inviteService: app.inviteService,
   });
 
@@ -49,5 +54,11 @@ export const invitationRouters: FastifyPluginAsync = async app => {
         return reply.code(200).send(response);
       }
     );
+
+    // DELETE удаление всех приглашений
+    typedRoute.delete('/', async (request, reply) => {
+      await deleteInvitationsUseCase.deleteAll();
+      return reply.code(204).send();
+    });
   });
 };

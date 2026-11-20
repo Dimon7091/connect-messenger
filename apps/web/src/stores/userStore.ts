@@ -36,11 +36,10 @@ export const useUserStore = defineStore('user', () => {
   const userStatuses = ref<Record<string, UserStatus>>({});
 
   // MARK: - Getters
-
   const fullName = computed(() => {
     if (!user.value) return '';
-    if (user.value.profile?.firstName || user.value.profile?.lastName) {
-      return `${user.value.profile.firstName || ''} ${user.value.profile.lastName || ''}`.trim();
+    if (user.value.firstName || user.value.lastName) {
+      return `${user.value.firstName || ''} ${user.value.lastName || ''}`.trim();
     }
     return user.value.userName;
   });
@@ -258,10 +257,6 @@ export const useUserStore = defineStore('user', () => {
       const avatarUrl = await userService.uploadAvatar(user.value.id, file);
       const updatedUser = {
         ...user.value,
-        profile: {
-          ...user.value.profile,
-          avatarUrl,
-        },
       };
       const normalized = normalizeUser(updatedUser);
       user.value = normalized;
