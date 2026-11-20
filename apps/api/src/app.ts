@@ -18,6 +18,7 @@ import { invitePlugin } from './modules/invite/invite.plugin.js';
 import { invitationRouters } from './use-case/invite/invitation.routes.js';
 import { seedAdminPlugin } from './modules/users/seedAdmin.plugin.js';
 import { seedTestUsersPlugin } from './modules/users/seedTestUsers.plugin.js';
+import { chatPlugin } from './modules/chats/chat.plugin.js';
 
 export interface AppOptions {
   logger?: boolean | object;
@@ -93,6 +94,7 @@ export async function buildApp(options: AppOptions = {}) {
   // Модули
   await app.register(usersPlugin);
   await app.register(invitePlugin);
+  await app.register(chatPlugin);
 
   // Сиды — только в режиме разработки
   if (app.config.NODE_ENV === 'development') {

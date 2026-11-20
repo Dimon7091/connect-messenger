@@ -1,4 +1,3 @@
-// repositories/chat.repository.ts
 import {
   eq,
   and,
@@ -12,21 +11,18 @@ import {
   type ChatParticipant,
   type NewChatParticipant,
   inArray,
-  desc,
 } from '@messenger/database';
 
 const chatsTable = schema.chatsTable;
 const chatParticipantsTable = schema.chatParticipantsTable;
 
-// Тип поддерживает как основной инстанс БД, так и объект транзакции (tx)
 type DbOrTx = Pick<DbInstance, 'select' | 'insert' | 'update' | 'delete' | 'query'>;
 
 export interface ChatRepository {
-  // ---- Чаты ----
-  findById(id: bigint): Promise<Chat | undefined>;
-  findByIdWithParticipants(id: bigint): Promise<ChatWithParticipants | undefined>;
-  findByDirectKey(directKey: string): Promise<Chat | undefined>;
-  findUserChatsWithParticipants(userId: string): Promise<ChatWithParticipants[]>;
+  // ---- Чаты (всегда возвращают с участниками) ----
+  findById(id: bigint): Promise<ChatWithParticipants | undefined>;
+  findByDirectKey(directKey: string): Promise<ChatWithParticipants | undefined>;
+  findUserChats(userId: string): Promise<ChatWithParticipants[]>;
   create(data: NewChat): Promise<Chat>;
   createDirectIfNotExists(data: NewChat): Promise<Chat | undefined>;
   updateLastMessage(id: bigint, lastMessage: string): Promise<Chat | undefined>;
@@ -36,9 +32,8 @@ export interface ChatRepository {
   findByChatAndUser(chatId: bigint, userId: string): Promise<ChatParticipant | undefined>;
   findAllByChatId(chatId: bigint): Promise<ChatParticipant[]>;
   findActiveByUserId(userId: string): Promise<ChatParticipant[]>;
-  addParticipants(data: NewChatParticipant[]): Promise<NewChatParticipant[]>;
+  addParticipants(data: NewChatParticipant[]): Promise<ChatParticipant[]>;
   exists(chatId: bigint, userId: string): Promise<boolean>;
-  createMany(data: NewChatParticipant[]): Promise<ChatParticipant[]>;
   incrementUnreadForOthers(chatId: bigint, senderId: string): Promise<void>;
   markAsRead(
     chatId: bigint,
@@ -53,18 +48,12 @@ export interface ChatRepository {
   softDelete(chatId: bigint, userId: string): Promise<ChatParticipant | undefined>;
 }
 
-export const createChatRepository = (db: DbOrTx): ChatRepository => ({
+export const createChatRepository = (getDb: () => DbOrTx): ChatRepository => ({
   // ========== ЧАТЫ ==========
 
   // MARK: findById
-  async findById(id: bigint): Promise<Chat | undefined> {
-    const [chat] = await db.select().from(chatsTable).where(eq(chatsTable.id, id)).limit(1);
-    return chat;
-  },
-
-  // MARK: findByIdWithParticipants
-  async findByIdWithParticipants(id: bigint) {
-    return db.query.chatsTable.findFirst({
+  async findById(id: bigint): Promise<ChatWithParticipants | undefined> {
+    return getDb().query.chatsTable.findFirst({
       where: eq(chatsTable.id, id),
       with: {
         participants: true,
@@ -73,18 +62,19 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
   },
 
   // MARK: findByDirectKey
-  async findByDirectKey(directKey: string) {
-    const [chat] = await db
-      .select()
-      .from(chatsTable)
-      .where(eq(chatsTable.directKey, directKey))
-      .limit(1);
-    return chat;
+  async findByDirectKey(directKey: string): Promise<ChatWithParticipants | undefined> {
+    return getDb().query.chatsTable.findFirst({
+      where: eq(chatsTable.directKey, directKey),
+      with: {
+        participants: true,
+      },
+    });
   },
 
   // MARK: findUserChats
-  async findUserChatsWithParticipants(userId: string): Promise<ChatWithParticipants[]> {
-    // Подзапрос: ID всех активных чатов пользователя (не делает отдельный запрос в БД, встраивается в основной SQL)
+  async findUserChats(userId: string): Promise<ChatWithParticipants[]> {
+    const db = getDb();
+
     const userChatIdsSubquery = db
       .select({ chatId: chatParticipantsTable.chatId })
       .from(chatParticipantsTable)
@@ -92,27 +82,24 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
         and(eq(chatParticipantsTable.userId, userId), eq(chatParticipantsTable.isDeleted, false))
       );
 
-    // Основной запрос от таблицы chatsTable — вернет массив чатов с вложенным массивом participants
-    const userChats = await db.query.chatsTable.findMany({
+    return db.query.chatsTable.findMany({
       where: inArray(chatsTable.id, userChatIdsSubquery),
       with: {
-        participants: true, // Вложит массив ChatParticipant[] внутрь каждого чата
+        participants: true,
       },
     });
-
-    return userChats;
   },
 
   // MARK: create
   async create(data: NewChat): Promise<Chat> {
-    const [created] = await db.insert(chatsTable).values(data).returning();
+    const [created] = await getDb().insert(chatsTable).values(data).returning();
     if (!created) throw new Error('INSERT did not return a chat row');
     return created;
   },
 
   // MARK: createDirectIfNotExists
   async createDirectIfNotExists(data: NewChat) {
-    const [created] = await db
+    const [created] = await getDb()
       .insert(chatsTable)
       .values(data)
       .onConflictDoNothing({ target: chatsTable.directKey })
@@ -122,7 +109,7 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
 
   // MARK: updateLastMessage
   async updateLastMessage(id: bigint, lastMessage: string) {
-    const [updated] = await db
+    const [updated] = await getDb()
       .update(chatsTable)
       .set({ lastMessage })
       .where(eq(chatsTable.id, id))
@@ -132,23 +119,18 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
 
   // MARK: deleteById
   async deleteById(id: bigint): Promise<boolean> {
-    const [deleted] = await db
+    const [deleted] = await getDb()
       .delete(chatsTable)
       .where(eq(chatsTable.id, id))
       .returning({ id: chatsTable.id });
     return Boolean(deleted);
   },
 
-  /*
-   MARK: - УЧАСТНИКИ
-  *
-  *
-  */
   // ========== УЧАСТНИКИ ==========
 
   // MARK: findByChatAndUser
   async findByChatAndUser(chatId: bigint, userId: string) {
-    const [participant] = await db
+    const [participant] = await getDb()
       .select()
       .from(chatParticipantsTable)
       .where(
@@ -160,12 +142,15 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
 
   // MARK: findAllByChatId
   async findAllByChatId(chatId: bigint) {
-    return db.select().from(chatParticipantsTable).where(eq(chatParticipantsTable.chatId, chatId));
+    return getDb()
+      .select()
+      .from(chatParticipantsTable)
+      .where(eq(chatParticipantsTable.chatId, chatId));
   },
 
   // MARK: findActiveByUserId
   async findActiveByUserId(userId: string) {
-    return db
+    return getDb()
       .select()
       .from(chatParticipantsTable)
       .where(
@@ -173,14 +158,15 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
       );
   },
 
+  // MARK: addParticipants
   async addParticipants(data: NewChatParticipant[]) {
     if (data.length === 0) return [];
-    return db.insert(chatParticipantsTable).values(data).onConflictDoNothing().returning();
+    return getDb().insert(chatParticipantsTable).values(data).onConflictDoNothing().returning();
   },
 
   // MARK: exists
   async exists(chatId: bigint, userId: string) {
-    const [row] = await db
+    const [row] = await getDb()
       .select({ chatId: chatParticipantsTable.chatId })
       .from(chatParticipantsTable)
       .where(
@@ -190,15 +176,9 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
     return Boolean(row);
   },
 
-  // MARK: createMany
-  async createMany(data: NewChatParticipant[]) {
-    if (data.length === 0) return [];
-    return db.insert(chatParticipantsTable).values(data).onConflictDoNothing().returning();
-  },
-
   // MARK: incrementUnreadForOthers
   async incrementUnreadForOthers(chatId: bigint, senderId: string) {
-    await db
+    await getDb()
       .update(chatParticipantsTable)
       .set({
         unreadCount: sql`${chatParticipantsTable.unreadCount} + 1`,
@@ -213,7 +193,7 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
 
   // MARK: markAsRead
   async markAsRead(chatId: bigint, userId: string, lastReadMessageId: bigint) {
-    const [updated] = await db
+    const [updated] = await getDb()
       .update(chatParticipantsTable)
       .set({
         unreadCount: 0,
@@ -233,7 +213,7 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
     userId: string,
     settings: { isMuted?: boolean; pinnedAt?: Date | null }
   ) {
-    const [updated] = await db
+    const [updated] = await getDb()
       .update(chatParticipantsTable)
       .set(settings)
       .where(
@@ -245,7 +225,7 @@ export const createChatRepository = (db: DbOrTx): ChatRepository => ({
 
   // MARK: softDelete
   async softDelete(chatId: bigint, userId: string) {
-    const [updated] = await db
+    const [updated] = await getDb()
       .update(chatParticipantsTable)
       .set({
         isDeleted: true,

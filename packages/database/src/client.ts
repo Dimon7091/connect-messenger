@@ -7,6 +7,7 @@ import { PgDatabase } from 'drizzle-orm/pg-core';
 import type { PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 
+
 export type DbInstance = PgDatabase<
   PgQueryResultHKT,
   typeof schema,
