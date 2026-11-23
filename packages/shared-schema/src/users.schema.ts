@@ -12,10 +12,17 @@ const LAST_NAME = /^[a-zA-Zа-яА-ЯёЁ]*$/;
 
 // MARK: - Api
 // Базовая схема UUID
-export const UuidSchema = z.string().uuid('Некорректный формат UUID');
+export const UuidSchema = z.uuid('Некорректный формат UUID');
 
 export const UserIdParamsSchema = z.object({
   id: UuidSchema,
+});
+
+export const UsersIdsSchema = z.object({
+  ids: z
+    .array(UuidSchema)
+    .min(1, 'Список ID не может быть пустым')
+    .max(100, 'Максимум 100 ID за один запрос'),
 });
 
 export const CreateUserSchema = z.object({

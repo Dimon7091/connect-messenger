@@ -15,6 +15,7 @@ export interface UserService {
   findAuthUserByUserName(userName: string): Promise<RowUser>;
   getAll(): Promise<PublicUser[]>;
   findByUserNameStartingWith(userName: string): Promise<PublicUser[]>;
+  getByIds(ids: string[]): Promise<PublicUser[]>;
   delete(id: string): Promise<void>;
   softDelete(id: string): Promise<PublicUser>;
   isUserExistById(id: string): Promise<boolean>;
@@ -58,6 +59,10 @@ export function createUserService(repo: UserRepository): UserService {
 
     async findByUserNameStartingWith(userName) {
       return repo.findByUserNameStartingWith(userName);
+    },
+
+    async getByIds(ids) {
+      return repo.findByIds(ids);
     },
 
     async update(id, dto) {

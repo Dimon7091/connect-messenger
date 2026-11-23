@@ -6,6 +6,7 @@ import {
   UserIdParamsSchema,
   UserNameQuerySchema,
   UserPrivateResponseSchema,
+  UsersIdsSchema,
   UsersOffsetPaginationAdminResponse,
   UsersOffsetPaginationQuerySchema,
   UsersStatisticResponseSchema,
@@ -18,11 +19,13 @@ import { createGetUsersStatisticUseCase } from './get-users-statistic.use-case.j
 import { createDeleteUserByAdminUseCase } from './delete-user-by-admin.use-case.js';
 import z from 'zod';
 import { createSearchUsersUseCase } from './search-users.use-case.js';
+import { createGetUsersByIdsUseCase } from './get-users-by-ids.use-case.js';
 
 export const usersRoutes: FastifyPluginAsync = async app => {
   // Инициализируем нужные Use Cases, передавая зависимости из Fastify
   const updateUserUseCase = createUpdateUserUseCase({ userService: app.userService });
   const getUsersUseCase = createGetUsersUseCase({ userService: app.userService });
+  const getUsersByIdsUseCase = createGetUsersByIdsUseCase({ userService: app.userService });
   const getUsersStatisticUseCase = createGetUsersStatisticUseCase({ userService: app.userService });
   const deleteUserUserCase = createDeleteUserUseCase({ userService: app.userService });
   const deleteUserByAdminUseCase = createDeleteUserByAdminUseCase({ userService: app.userService });
@@ -48,6 +51,21 @@ export const usersRoutes: FastifyPluginAsync = async app => {
       async (request, reply) => {
         const { id: userId } = request.params;
         const response = await deleteUserByAdminUseCase.softDelete(userId);
+        return reply.code(200).send(response);
+      }
+    );
+
+    // Получить пользователей по списку id
+    typedRoute.post(
+      '/batch',
+      {
+        schema: {
+          body: UsersIdsSchema,
+          response: { 200: z.array(UserBaseResponseSchema) },
+        },
+      },
+      async (request, reply) => {
+        const response = await getUsersByIdsUseCase.getUsers(request.body.ids);
         return reply.code(200).send(response);
       }
     );

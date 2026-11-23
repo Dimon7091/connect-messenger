@@ -1,4 +1,4 @@
-import { eq, and, ilike } from '@messenger/database';
+import { eq, and, ilike, inArray } from '@messenger/database';
 import type { DbInstance, PublicUser } from '@messenger/database';
 import { usersTable, type RowUser, type NewUser } from '@messenger/database';
 import type {
@@ -20,6 +20,7 @@ export interface UserRepository {
   findRowByUserName(userName: string): Promise<RowUser | null>;
   findAll(): Promise<PublicUser[]>;
   findByUserNameStartingWith(searchQuery: string): Promise<PublicUser[]>;
+  findByIds(ids: string[]): Promise<PublicUser[]>;
   deleteById(id: string): Promise<void>;
 
   // Доп функции
@@ -42,6 +43,8 @@ const USER_SORT_COLUMNS = {
   userName: usersTable.userName,
   firstName: usersTable.firstName,
 } as const;
+
+const MAX_IDS = 100;
 
 export function createUserRepository(db: DbInstance): UserRepository {
   return {
@@ -80,16 +83,30 @@ export function createUserRepository(db: DbInstance): UserRepository {
       return (await this.findById(id)) ?? null;
     },
 
-    async deleteById(id) {
-      await db.delete(usersTable).where(eq(usersTable.id, id)).returning();
-    },
-
     async findByUserNameStartingWith(searchQuery) {
       return await db
         .select()
         .from(usersTable)
         .where(and(ilike(usersTable.userName, `${searchQuery}%`), eq(usersTable.isDeleted, false)))
         .limit(5);
+    },
+
+    async findByIds(ids) {
+      if (ids.length === 0) return [];
+      if (ids.length > 1000) {
+        throw new Error(`findByIds: too many ids (${ids.length} > ${MAX_IDS})`);
+      }
+
+      const result = await db
+        .select()
+        .from(usersTable)
+        .where(and(inArray(usersTable.id, ids), eq(usersTable.isDeleted, false)));
+
+      return result;
+    },
+
+    async deleteById(id) {
+      await db.delete(usersTable).where(eq(usersTable.id, id)).returning();
     },
 
     // MARK: - Доп функции
