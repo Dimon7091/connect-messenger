@@ -118,7 +118,7 @@
 <script setup lang="ts">
 import { watch, computed } from 'vue';
 import type { Chat } from '@/types/index';
-import type { User } from '@messenger/shared';
+import type { User } from '@messenger/shared-schema';
 import { useUserStore } from '@/stores/userStore';
 import { useWebSocketStore } from '@/stores/webSocketStore';
 import { getAvatarGradient, getInitialsFromName } from '@/utils/avatarGradient';
@@ -135,33 +135,12 @@ const props = defineProps<{
 }>();
 
 // --- Аватар и градиент ---
-const avatarThumbUrl = computed(() => props.companion?.profile?.avatarThumbUrl || null);
+const avatarThumbUrl = computed(() => props.companion?.avatarThumbUrl || null);
 const userId = computed(() => props.companion?.id);
 
 const avatarGradientClass = computed(() => {
   if (avatarThumbUrl.value) return '';
-  if (props.chat.type === 'GROUP') {
-    // Для групповых чатов используем простой градиент на основе id чата
-    const gradients = [
-      'bg-gradient-to-br from-red-500 to-red-700',
-      'bg-gradient-to-br from-blue-500 to-blue-700',
-      'bg-gradient-to-br from-green-500 to-green-700',
-      'bg-gradient-to-br from-yellow-500 to-yellow-700',
-      'bg-gradient-to-br from-purple-500 to-purple-700',
-      'bg-gradient-to-br from-pink-500 to-pink-700',
-      'bg-gradient-to-br from-indigo-500 to-indigo-700',
-      'bg-gradient-to-br from-teal-500 to-teal-700',
-      'bg-gradient-to-br from-orange-500 to-orange-700',
-      'bg-gradient-to-br from-cyan-500 to-cyan-700',
-      'bg-gradient-to-br from-rose-500 to-rose-700',
-      'bg-gradient-to-br from-violet-500 to-violet-700',
-      'bg-gradient-to-br from-fuchsia-500 to-fuchsia-700',
-      'bg-gradient-to-br from-emerald-500 to-emerald-700',
-      'bg-gradient-to-br from-sky-500 to-sky-700',
-    ];
-    const id = typeof props.chat.id === 'string' ? parseInt(props.chat.id) || 0 : props.chat.id;
-    return gradients[id % gradients.length];
-  }
+
   // Для личных чатов – стабильный градиент на основе userId
   if (userId.value) {
     return getAvatarGradient(userId.value);
@@ -175,8 +154,8 @@ const displayName = computed(() => {
     return props.chat.name || 'Групповой чат';
   }
   if (props.companion) {
-    const firstName = props.companion.profile?.firstName;
-    const lastName = props.companion.profile?.lastName;
+    const firstName = props.companion.firstName;
+    const lastName = props.companion.lastName;
     if (firstName && lastName) return `${firstName} ${lastName}`;
     if (firstName) return firstName;
     return props.companion.userName;
@@ -269,7 +248,7 @@ watch(
   newVal => {
     console.log(
       'ChatPreview companion:',
-      newVal?.profile?.firstName || newVal?.userName,
+      newVal?.firstName || newVal?.userName,
       'chat:',
       props.chat.id
     );

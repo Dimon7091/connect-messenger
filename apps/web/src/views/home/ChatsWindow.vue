@@ -160,8 +160,9 @@ const loadCompanions = async () => {
 
   if (companionIds.size === 0) return;
 
-  // Загружаем данные компаньонов в кэш (если их там ещё нет)
-  await Promise.all(Array.from(companionIds).map(id => userStore.getUserById(id)));
+  // Один батч-запрос getUsersByIds сам сходит в кэш
+  // и запросит только тех, кого в нём нет
+  await userStore.getUsersByIds(Array.from(companionIds));
 
   if (wsStore.isConnected) {
     subscribeToUserStatuses(Array.from(companionIds));
@@ -187,21 +188,20 @@ const updateSubscriptions = () => {
   }
 
   // Управление подписками на статусы
-  const toUnsubscribe = Array.from(subscribedUsers.value).filter(
-    userId => !currentCompanionIds.has(userId)
-  );
-  if (toUnsubscribe.length) {
-    unsubscribeFromUserStatuses(toUnsubscribe);
-  }
-
   const toSubscribe = Array.from(currentCompanionIds).filter(
-    userId => !subscribedUsers.value.has(userId)
+  userId => !subscribedUsers.value.has(userId)
   );
   if (toSubscribe.length) {
-    Promise.all(toSubscribe.map(id => userStore.getUserById(id))).then(() => {
+  // Батч вместо Promise.all(getUserById)
+  userStore
+    .getUsersByIds(toSubscribe)
+    .then(() => {
       if (wsStore.isConnected) {
         subscribeToUserStatuses(toSubscribe);
       }
+    })
+    .catch(error => {
+      console.error('Ошибка догрузки компаньонов для подписки:', error);
     });
   }
 

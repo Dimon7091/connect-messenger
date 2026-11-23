@@ -3,6 +3,7 @@ import type { UpdateUserNameRequest, UpdateUserProfileRequest } from '@/types';
 import type {
   UpdateUserDto,
   User,
+  UserBaseResponse,
   UserBlockedResponse,
   UsersGettingByIdsRequest,
 } from '@messenger/shared-schema';
@@ -39,8 +40,8 @@ class UserService {
     return response.data!;
   }
 
-  async getUsersById(data: UsersGettingByIdsRequest): Promise<User[]> {
-    const response = await httpClient.post<User[]>(`/v1/users/batch-get`, data);
+  async getUsersByIds(data: UsersGettingByIdsRequest): Promise<UserBaseResponse[]> {
+    const response = await httpClient.post<User[]>(`/v1/users/batch`, data);
     return response.data!;
   }
 

@@ -198,9 +198,9 @@ export const useUserStore = defineStore('user', () => {
     if (uncachedIds.length > 0) {
       try {
         const data: UsersGettingByIdsRequest = {
-          usersIds: uncachedIds,
+          ids: uncachedIds,
         };
-        const fetchedUsers = await userService.getUsersById(data);
+        const fetchedUsers = await userService.getUsersByIds(data);
 
         // Обрабатываем полученный массив пользователей
         if (fetchedUsers && Array.isArray(fetchedUsers)) {

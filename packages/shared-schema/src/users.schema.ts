@@ -162,5 +162,5 @@ export type UserStatus = z.infer<typeof UserStatusResponseSchema>;
 export type AuthRequestDto = z.infer<typeof AuthRequestSchema>;
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
 export type UsersGettingByIdsRequest = {
-  usersIds: string[];
+  ids: string[];
 };

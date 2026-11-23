@@ -5,6 +5,7 @@ export enum ErrorCode {
   FORBIDDEN = 'FORBIDDEN',
   CONFLICT = 'CONFLICT',
   INVALID_INVITATION = 'INVALID_INVITATION',
+  BAD_REQUEST = 'BAD_REQUEST',
 }
 
 export class AppError extends Error {
@@ -52,5 +53,11 @@ export class ForbiddenError extends AppError {
 export class InvitationError extends AppError {
   constructor(message = 'Forbidden') {
     super(message, 403, ErrorCode.INVALID_INVITATION);
+  }
+}
+
+export class BadRequestError extends AppError {
+  constructor(message: string) {
+    super(message, 400, ErrorCode.BAD_REQUEST);
   }
 }
