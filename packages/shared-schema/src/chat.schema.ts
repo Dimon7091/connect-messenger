@@ -1,10 +1,21 @@
 import z from 'zod';
+import { UuidSchema } from './uuid.schema.js';
+import { TsidInputSchema } from './tsid.schema.js';
+
+export const ChatIdParamSchema = z.object({
+  chatId: TsidInputSchema,
+});
 
 export const CreateOrGetChatSchema = z.object({
   companionId: z.uuid(),
 });
 
-const BigIntToString = z.union([z.bigint(), z.string()]).transform(val => val.toString());
+export const ChatHistoryQuerySchema = z.object({
+  chatId: TsidInputSchema,
+  userId: UuidSchema,
+  limit: z.number().optional(),
+  beforeTimestamp: z.date(),
+});
 
 export const ChatResponseSchema = z.object({
   id: z.string(),
@@ -18,4 +29,5 @@ export const ChatResponseSchema = z.object({
 });
 
 export type CreateOrGetDto = z.infer<typeof CreateOrGetChatSchema>;
+export type ChatHistoryQueryRequest = z.infer<typeof ChatHistoryQuerySchema>;
 export type ChatResponse = z.infer<typeof ChatResponseSchema>;

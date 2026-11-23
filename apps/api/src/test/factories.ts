@@ -1,8 +1,15 @@
-import { usersTable, type DbInstance, type NewUser, type RowUser } from '@messenger/database';
+import {
+  usersTable,
+  type DbInstance,
+  type NewChat,
+  type NewUser,
+  type RowUser,
+} from '@messenger/database';
 import type { HashService } from '../plugins/hash.plugin.js';
 import { createHmac, randomBytes } from 'node:crypto';
 import type { InviteService } from '../modules/invite/index.js';
 import { invitationsTable } from '@messenger/database';
+import { chatsTable } from '../../../../packages/database/src/schema/chats.table.js';
 
 export function signFakeJwt(payload: object, secret: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');

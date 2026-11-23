@@ -4,6 +4,7 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
+import websocket from '@fastify/websocket';
 import { dbPlugin } from './plugins/dbPlugin.js';
 import { envPlugin } from './plugins/envPlugin.js';
 import jwtPlugin from './plugins/jwt.js';
@@ -20,6 +21,7 @@ import { seedAdminPlugin } from './modules/users/seedAdmin.plugin.js';
 import { seedTestUsersPlugin } from './modules/users/seedTestUsers.plugin.js';
 import { chatPlugin } from './modules/chats/chat.plugin.js';
 import { chatsRoutes } from './use-case/chats/chats.routes.js';
+import { messagePlugin } from './modules/messages/messages.plugin.js';
 
 export interface AppOptions {
   logger?: boolean | object;
@@ -96,6 +98,7 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(usersPlugin);
   await app.register(invitePlugin);
   await app.register(chatPlugin);
+  await app.register(messagePlugin);
 
   // Сиды — только в режиме разработки
   if (app.config.NODE_ENV === 'development') {

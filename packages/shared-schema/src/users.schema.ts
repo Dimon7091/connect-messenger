@@ -3,6 +3,7 @@ import {
   createOffsetPaginationQuerySchema,
   createPaginatedResponseSchema,
 } from './pagination.schema.js';
+import { UuidSchema } from './uuid.schema.js';
 
 // MARK: - Регулярные выражения
 const USERNAME_CHARS = /^[a-zA-Z0-9._-]+$/;
@@ -11,8 +12,6 @@ const FIRST_NAME = /^[a-zA-Zа-яА-ЯёЁ]+$/;
 const LAST_NAME = /^[a-zA-Zа-яА-ЯёЁ]*$/;
 
 // MARK: - Api
-// Базовая схема UUID
-export const UuidSchema = z.uuid('Некорректный формат UUID');
 
 export const UserIdParamsSchema = z.object({
   id: UuidSchema,

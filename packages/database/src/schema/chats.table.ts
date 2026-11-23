@@ -1,6 +1,6 @@
 import { pgTable, bigint, varchar, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { chatParticipantsTable, type ChatParticipant } from './chat-participants.table.js';
+import { chatParticipantsTable, type ChatParticipant } from './index.js';
 import { getTsid } from 'tsid-ts';
 
 export const chatsTable = pgTable('chats', {
