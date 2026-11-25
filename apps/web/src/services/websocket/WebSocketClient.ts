@@ -322,5 +322,6 @@ export class StompWebSocketClient {
   }
 }
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws';
+// SockJS endpoint: в dev-mode Vite проксирует /ws → http://127.0.0.1:8081
+const WS_URL = import.meta.env.VITE_WS_URL || '/ws';
 export const wsClient = new StompWebSocketClient(WS_URL);

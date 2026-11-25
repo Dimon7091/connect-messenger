@@ -1,4 +1,5 @@
 // types/websocket.ts
+import type { Message } from '@stomp/stompjs';
 import type { Attachment } from './attachment.types';
 import type { Chat } from './chat.types';
 
@@ -52,7 +53,7 @@ export interface SentMessagePayloand {
   status: 'SENT' | 'FAILED';
   timestamp: string;
   attachments?: Attachment[];
-  replyToId?: string | null;
+  replyToId?: string | null | undefined;
 }
 
 export interface MessageDeliveredPayload {
