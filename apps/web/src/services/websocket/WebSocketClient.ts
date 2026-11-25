@@ -322,5 +322,5 @@ export class StompWebSocketClient {
   }
 }
 
-const WS_URL = import.meta.env.VITE_WS_URL || '/chat-ws';
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws';
 export const wsClient = new StompWebSocketClient(WS_URL);

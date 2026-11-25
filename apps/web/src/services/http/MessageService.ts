@@ -13,12 +13,12 @@ class MessageService {
       ...(beforeTimestamp && { beforeTimestamp }), // добавит, только если есть значение
     }).toString();
 
-    const response = await httpClient.get<Message[]>(`/v1/messages/chats/${chatId}?${query}`);
+    const response = await httpClient.get<Message[]>(`/v1//chats/${chatId}/messages?${query}`);
     return response.data!;
   }
 
   async deleteMessages(data: { messagesIds: string[]; chatId: string }): Promise<void> {
-    await httpClient.post(`/v1/messages/batch`, data);
+    await httpClient.post(`/v1/chats/messages/batch`, data);
   }
 }
 

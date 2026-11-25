@@ -4,7 +4,6 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
-import websocket from '@fastify/websocket';
 import { dbPlugin } from './plugins/dbPlugin.js';
 import { envPlugin } from './plugins/envPlugin.js';
 import jwtPlugin from './plugins/jwt.js';
@@ -22,6 +21,7 @@ import { seedTestUsersPlugin } from './modules/users/seedTestUsers.plugin.js';
 import { chatPlugin } from './modules/chats/chat.plugin.js';
 import { chatsRoutes } from './use-case/chats/chats.routes.js';
 import { messagePlugin } from './modules/messages/messages.plugin.js';
+import stompPlugin from './plugins/stompPlugin.js';
 
 export interface AppOptions {
   logger?: boolean | object;
@@ -106,7 +106,9 @@ export async function buildApp(options: AppOptions = {}) {
     await app.register(seedTestUsersPlugin);
   }
 
-  app.get('/health', async () => {
+  await app.register(stompPlugin);
+
+  await app.get('/health', async () => {
     return { status: 'ok', timeStamp: new Date().toISOString() };
   });
 

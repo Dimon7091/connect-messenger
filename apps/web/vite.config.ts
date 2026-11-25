@@ -66,8 +66,8 @@ export default defineConfig({
         target: `http://${TARGET_HOST}:8080`,
         changeOrigin: true,
       },
-      '/chat-ws': {
-        target: `ws://${TARGET_HOST}:8080`,
+      '/ws': {
+        target: `http://${TARGET_HOST}:8081`,
         ws: true,
         changeOrigin: true,
         rewrite: path => path,
