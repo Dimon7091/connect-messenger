@@ -11,7 +11,7 @@ export interface MessageAttachment {
   fileKey: string;
   mimeType: string;
   fileName: string;
-  size: string;
+  size: number;
 }
 
 export const messagesTable = pgTable(

@@ -22,6 +22,7 @@ import { chatPlugin } from './modules/chats/chat.plugin.js';
 import { chatsRoutes } from './use-case/chats/chats.routes.js';
 import { messagePlugin } from './modules/messages/messages.plugin.js';
 import stompPlugin from './plugins/stompPlugin.js';
+import { stompChatRouter } from './use-case/chats/stomp-chats.router.js';
 
 export interface AppOptions {
   logger?: boolean | object;
@@ -107,6 +108,9 @@ export async function buildApp(options: AppOptions = {}) {
   }
 
   await app.register(stompPlugin);
+
+  // Регистрируем STOMP роутер для обработки входящих событий
+  await app.register(stompChatRouter);
 
   await app.get('/health', async () => {
     return { status: 'ok', timeStamp: new Date().toISOString() };

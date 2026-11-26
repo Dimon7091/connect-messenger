@@ -1,19 +1,14 @@
-// types/fastify.d.ts
-import 'fastify';
-import type StompServer from 'stomp-broker-js';
-
-export interface StompHandlers {
-  async handle(
-    event: { type: string; payload: unknown },
-    headers: Record<string, unknown>,
-    stomp: StompServer,
-  ): Promise<void>;
-}
+import type { StompBroker } from '../plugins/stompPlugin.js'; // поправьте путь, если нужно
 
 declare module 'fastify' {
   interface FastifyInstance {
-    stomp: StompServer;
-    stompSessions: Map<string, string>;
-    stompHandlers: StompHandlers;
+    stomp: StompBroker;
+    stompHandlers: {
+      handle: (
+        event: { type: string; payload: unknown },
+        headers: Record<string, unknown>,
+        stomp: StompBroker
+      ) => Promise<void>;
+    };
   }
 }

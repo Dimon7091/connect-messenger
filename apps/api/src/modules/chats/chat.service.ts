@@ -7,12 +7,17 @@ export interface ChatService {
   getChatById(chatId: bigint, userId: string): Promise<ChatWithParticipants>;
   getUserChats(userId: string): Promise<ChatWithParticipants[]>;
   ensureParticipant(chatId: bigint, userId: string): Promise<void>;
+  findChatParticipants(chatId: bigint): Promise<ChatParticipant[]>;
   onNewMessage(chatId: bigint, senderId: string, text: string): Promise<ChatWithParticipants>;
   markChatAsRead(
     chatId: bigint,
     userId: string,
     lastReadMessageId: bigint
   ): Promise<ChatParticipant>;
+  incrementUnreadForParticipant(chatId: bigint, userId: string): Promise<void>;
+  decrementUnreadForParticipant(chatId: bigint, userId: string): Promise<void>;
+  resetUnreadForParticipant(chatId: bigint, userId: string): Promise<void>;
+  
   updateChatSettings(
     chatId: bigint,
     userId: string,
@@ -101,14 +106,19 @@ export const createChatService = (chatRepo: ChatRepository): ChatService => {
       }
     },
 
+    // MARK: findChatParticipants
+    async findChatParticipants(chatId) {
+      return chatRepo.findAllByChatId(chatId);
+    },
+
     // MARK: onNewMessage
     async onNewMessage(
       chatId: bigint,
-      senderId: string,
+      receiverId: string,
       text: string
     ): Promise<ChatWithParticipants> {
       await chatRepo.updateLastMessage(chatId, text);
-      await chatRepo.incrementUnreadForOthers(chatId, senderId);
+      await chatRepo.incrementUnreadForParticipant(chatId, receiverId);
 
       const updatedChat = await chatRepo.findById(chatId);
       if (!updatedChat) {
@@ -130,6 +140,19 @@ export const createChatService = (chatRepo: ChatRepository): ChatService => {
       }
 
       return updated;
+    },
+
+    // MARK: unreadCount
+    async incrementUnreadForParticipant(chatId, userId) {
+      return chatRepo.incrementUnreadForParticipant(chatId, userId);
+    },
+
+    async decrementUnreadForParticipant(chatId, userId) {
+      return chatRepo.decrementUnreadForParticipant(chatId, userId);
+    },
+
+    async resetUnreadForParticipant(chatId, userId) {
+      return chatRepo.resetUnreadForParticipant(chatId, userId)
     },
 
     // MARK: updateChatSettings

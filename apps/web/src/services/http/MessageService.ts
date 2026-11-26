@@ -13,7 +13,7 @@ class MessageService {
       ...(beforeTimestamp && { beforeTimestamp }), // добавит, только если есть значение
     }).toString();
 
-    const response = await httpClient.get<Message[]>(`/v1//chats/${chatId}/messages?${query}`);
+    const response = await httpClient.get<Message[]>(`/v1/chats/${chatId}/messages?${query}`);
     return response.data!;
   }
 

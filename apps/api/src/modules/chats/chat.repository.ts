@@ -34,7 +34,9 @@ export interface ChatRepository {
   findActiveByUserId(userId: string): Promise<ChatParticipant[]>;
   addParticipants(data: NewChatParticipant[]): Promise<ChatParticipant[]>;
   exists(chatId: bigint, userId: string): Promise<boolean>;
-  incrementUnreadForOthers(chatId: bigint, senderId: string): Promise<void>;
+  incrementUnreadForParticipant(chatId: bigint, userId: string): Promise<void>;
+  decrementUnreadForParticipant(chatId: bigint, userId: string): Promise<void>;
+  resetUnreadForParticipant(chatId: bigint, userId: string): Promise<void>;
   markAsRead(
     chatId: bigint,
     userId: string,
@@ -177,7 +179,7 @@ export const createChatRepository = (getDb: () => DbOrTx): ChatRepository => ({
   },
 
   // MARK: incrementUnreadForOthers
-  async incrementUnreadForOthers(chatId: bigint, senderId: string) {
+  async incrementUnreadForParticipant(chatId: bigint, userId: string) {
     await getDb()
       .update(chatParticipantsTable)
       .set({
@@ -187,7 +189,35 @@ export const createChatRepository = (getDb: () => DbOrTx): ChatRepository => ({
         isChatEmpty: false,
       })
       .where(
-        and(eq(chatParticipantsTable.chatId, chatId), ne(chatParticipantsTable.userId, senderId))
+        and(eq(chatParticipantsTable.chatId, chatId), eq(chatParticipantsTable.userId, userId))
+      );
+  },
+
+  async decrementUnreadForParticipant(chatId, userId) {
+    await getDb()
+      .update(chatParticipantsTable)
+      .set({
+        unreadCount: sql`GREATEST(${chatParticipantsTable.unreadCount} - 1, 0)`,
+        isDeleted: false,
+        deletedAt: null,
+        isChatEmpty: false,
+      })
+      .where(
+        and(eq(chatParticipantsTable.chatId, chatId), eq(chatParticipantsTable.userId, userId))
+      );
+  },
+
+  async resetUnreadForParticipant(chatId, userId) {
+    await getDb()
+      .update(chatParticipantsTable)
+      .set({
+        unreadCount: 0,
+        isDeleted: false,
+        deletedAt: null,
+        isChatEmpty: false,
+      })
+      .where(
+        and(eq(chatParticipantsTable.chatId, chatId), eq(chatParticipantsTable.userId, userId))
       );
   },
 

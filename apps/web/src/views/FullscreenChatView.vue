@@ -510,7 +510,7 @@ const sendMessage = async (text: string, replyToId?: string, attachments?: Attac
 };
 
 const onTyping = (isTyping: boolean) => {
-  if (currentChat.value) wsStore.sendTyping(currentChat.value.id, isTyping);
+  if (currentChat.value && companionId.value) wsStore.sendTyping(currentChat.value.id, companionId.value, isTyping);
 };
 
 // ==================== Разблокировка ====================

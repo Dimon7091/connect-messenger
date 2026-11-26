@@ -11,18 +11,19 @@ import {
   type Message,
   type NewMessage,
   type MessageStatus,
+  or,
+  ne,
 } from '@messenger/database';
 
 const messagesTable = schema.messagesTable;
 
-// Тип поддерживает как основной инстанс БД, так и объект транзакции (tx)
 type DbOrTx = Pick<DbInstance, 'select' | 'insert' | 'update' | 'delete' | 'query'>;
 
 export interface FindMessagesParams {
   chatId: bigint;
-  userId: string; // Нужен, чтобы исключить сообщения, удаленные этим пользователем (deletedBy)
+  userId: string;
   limit?: number | undefined;
-  beforeTimestamp: Date;
+  beforeTimestamp?: Date | undefined;
 }
 
 export interface MessageRepository {
@@ -31,8 +32,16 @@ export interface MessageRepository {
   findLastVisibleMessage(chatId: bigint, userId: string): Promise<Message | undefined>;
   create(data: NewMessage): Promise<Message>;
   updateText(id: bigint, text: string): Promise<Message | undefined>;
-  updateStatus(id: bigint, status: MessageStatus): Promise<Message | undefined>;
-  markManyAsRead(chatId: bigint, userId: string, upToMessageId: bigint): Promise<void>;
+
+  // --- Явные переходы статуса (SENT → DELIVERED → READ) ---
+  markAsSent(id: bigint, senderId: string): Promise<Message | undefined>;
+  markAsDelivered(id: bigint, receiverId: string): Promise<Message | undefined>;
+  markAsRead(id: bigint, receiverId: string): Promise<Message | undefined>;
+
+  // --- Generic (оставлен для обратной совместимости) ---
+  updateStatus(id: bigint, userId: string, status: MessageStatus): Promise<Message | undefined>;
+
+  markAllChatMessagesAsRead(chatId: bigint, userId: string): Promise<boolean>;
   softDeleteForUser(id: bigint, userId: string): Promise<boolean>;
   deleteById(id: bigint): Promise<boolean>;
 }
@@ -50,22 +59,16 @@ export const createMessageRepository = (getDb: () => DbOrTx): MessageRepository 
   },
 
   // MARK: findChatHistory
-  /**
-   * Курсорная пагинация истории чата по TSID (от новых к старым).
-   * Исключает сообщения, которые пользователь удалил «только для себя» (deletedBy @> '["userId"]').
-   */
   async findChatHistory({
     chatId,
     userId,
     limit = 50,
     beforeTimestamp,
   }: FindMessagesParams): Promise<Message[]> {
-    // Защита от некорректных лимитов
     const safeLimit = Math.min(Math.max(limit, 1), 100);
 
     const conditions = [
       eq(messagesTable.chatId, chatId),
-      // COALESCE гарантирует корректную работу, даже если в базе лежит NULL
       sql`NOT (COALESCE(${messagesTable.deletedBy}, '[]'::jsonb) @> ${JSON.stringify([userId])}::jsonb)`,
     ];
 
@@ -77,19 +80,13 @@ export const createMessageRepository = (getDb: () => DbOrTx): MessageRepository 
       .select()
       .from(messagesTable)
       .where(and(...conditions))
-      // Сортируем по тому же полю, по которому идет курсор (createdAt) + id для детерминированности
       .orderBy(desc(messagesTable.createdAt), desc(messagesTable.id))
       .limit(safeLimit);
 
-    // Опционально: разворачиваем, чтобы в чате сообщения шли хронологически сверху вниз
     return rows.reverse();
   },
 
   // MARK: findLastVisibleMessage
-  /**
-   * Поиск последнего сообщения в чате, не удаленного пользователем
-   * (полезно при удалении последнего сообщения для обновления превью чата)
-   */
   async findLastVisibleMessage(chatId: bigint, userId: string): Promise<Message | undefined> {
     const [message] = await getDb()
       .select()
@@ -126,26 +123,119 @@ export const createMessageRepository = (getDb: () => DbOrTx): MessageRepository 
     return updated;
   },
 
-  // MARK: updateStatus
-  async updateStatus(id: bigint, status: MessageStatus): Promise<Message | undefined> {
+  // MARK: markAsSent
+  /**
+   * Переводит сообщение в статус SENT.
+   * Вызывать на сервере после успешной обработки `message_sent` от отправителя.
+   * - Проверяет, что сообщение принадлежит этому отправителю.
+   * - Не понижает статус: если уже DELIVERED/READ, ничего не делает.
+   * - Допустимый переход: PENDING/FAILED → SENT (при retry).
+   */
+  async markAsSent(id: bigint, senderId: string): Promise<Message | undefined> {
     const [updated] = await getDb()
       .update(messagesTable)
-      .set({ status })
-      .where(eq(messagesTable.id, id))
+      .set({ status: 'SENT' })
+      .where(
+        and(
+          eq(messagesTable.id, id),
+          eq(messagesTable.senderId, senderId),
+          ne(messagesTable.status, 'SENT'),
+          ne(messagesTable.status, 'DELIVERED'),
+          ne(messagesTable.status, 'READ')
+        )
+      )
       .returning();
 
     return updated;
   },
 
-  // MARK: markManyAsRead
+  // MARK: markAsDelivered
   /**
-   * Массовая отметка сообщений как прочитанных (до upToMessageId включительно):
-   * добавляет userId в JSONB-массив read_by, если его там еще нет, и обновляет статус на READ.
+   * Переводит сообщение в статус DELIVERED.
+   * Вызывать на сервере после `message_delivered` от получателя.
+   * - Проверяет, что действие выполняет именно получатель.
+   * - Не понижает статус: если уже READ, ничего не делает.
+   * - Допустимый переход: SENT/FAILED → DELIVERED.
    */
-  async markManyAsRead(chatId: bigint, userId: string, upToMessageId: bigint): Promise<void> {
+  async markAsDelivered(id: bigint, receiverId: string): Promise<Message | undefined> {
+    const [updated] = await getDb()
+      .update(messagesTable)
+      .set({ status: 'DELIVERED' })
+      .where(
+        and(
+          eq(messagesTable.id, id),
+          eq(messagesTable.receiverId, receiverId),
+          ne(messagesTable.status, 'DELIVERED'),
+          ne(messagesTable.status, 'READ')
+        )
+      )
+      .returning();
+
+    return updated;
+  },
+
+  // MARK: markAsRead
+  /**
+   * Переводит сообщение в статус READ и добавляет получателя в `read_by`.
+   * Вызывать на сервере после `message_read` от получателя.
+   * - Проверяет, что действие выполняет именно получатель.
+   * - Идемпотентно: если userId уже в `read_by`, UPDATE не выполняется.
+   */
+  async markAsRead(id: bigint, receiverId: string): Promise<Message | undefined> {
+    const userJsonArray = JSON.stringify([receiverId]);
+
+    const [updated] = await getDb()
+      .update(messagesTable)
+      .set({
+        status: 'READ',
+        readBy: sql`COALESCE(${messagesTable.readBy}, '[]'::jsonb) || ${userJsonArray}::jsonb`,
+      })
+      .where(
+        and(
+          eq(messagesTable.id, id),
+          eq(messagesTable.receiverId, receiverId),
+          sql`NOT (COALESCE(${messagesTable.readBy}, '[]'::jsonb) @> ${userJsonArray}::jsonb)`
+        )
+      )
+      .returning();
+
+    return updated;
+  },
+
+  // MARK: updateStatus
+  /**
+   * @deprecated Предпочитайте markAsSent / markAsDelivered / markAsRead.
+   * Оставлен как нижнеуровневый generic для edge-кейсов (например, FAILED).
+   */
+  async updateStatus(
+    id: bigint,
+    userId: string,
+    status: MessageStatus
+  ): Promise<Message | undefined> {
+    const conditions = [
+      eq(messagesTable.id, id),
+      or(eq(messagesTable.receiverId, userId), eq(messagesTable.senderId, userId)),
+      ne(messagesTable.status, status),
+    ];
+
+    if (status === 'DELIVERED') {
+      conditions.push(ne(messagesTable.status, 'READ'));
+    }
+
+    const [updated] = await getDb()
+      .update(messagesTable)
+      .set({ status })
+      .where(and(...conditions))
+      .returning();
+
+    return updated;
+  },
+
+  // MARK: markAllChatMessagesAsRead
+  async markAllChatMessagesAsRead(chatId: bigint, userId: string): Promise<boolean> {
     const userJsonArray = JSON.stringify([userId]);
 
-    await getDb()
+    const updated = await getDb()
       .update(messagesTable)
       .set({
         status: 'READ',
@@ -154,20 +244,17 @@ export const createMessageRepository = (getDb: () => DbOrTx): MessageRepository 
       .where(
         and(
           eq(messagesTable.chatId, chatId),
-          // Обновляем только сообщения <= upToMessageId
-          sql`${messagesTable.id} <= ${upToMessageId}`,
-          // Не трогаем свои же сообщения
+          or(eq(messagesTable.receiverId, userId), eq(messagesTable.senderId, userId)),
           sql`${messagesTable.senderId} != ${userId}`,
-          // Обновляем только те, где userId еще не записан в read_by
           sql`NOT (COALESCE(${messagesTable.readBy}, '[]'::jsonb) @> ${userJsonArray}::jsonb)`
         )
-      );
+      )
+      .returning({ id: messagesTable.id });
+
+    return updated.length > 0;
   },
 
   // MARK: softDeleteForUser
-  /**
-   * Мягкое удаление сообщения «только для себя»: добавляет UUID юзера в JSONB-массив deleted_by
-   */
   async softDeleteForUser(id: bigint, userId: string): Promise<boolean> {
     const userJsonArray = JSON.stringify([userId]);
 
@@ -186,9 +273,6 @@ export const createMessageRepository = (getDb: () => DbOrTx): MessageRepository 
   },
 
   // MARK: deleteById
-  /**
-   * Физическое удаление сообщения («Удалить у всех»)
-   */
   async deleteById(id: bigint): Promise<boolean> {
     const [deleted] = await getDb()
       .delete(messagesTable)

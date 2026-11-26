@@ -1,16 +1,20 @@
-import type { Message, MessageAttachment, MessageStatus } from '@messenger/database';
+import type { Message, MessageStatus } from '@messenger/database';
 import type { MessageRepository, FindMessagesParams } from './message.repository.js';
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
-import type { SendMessageRequest } from '@messenger/shared-schema';
+import type { SendMessageDto, SendMessageRequest } from '@messenger/shared-schema';
 
 export interface MessageService {
-  createMessage(input: SendMessageRequest): Promise<Message>;
+  createMessage(input: SendMessageDto): Promise<Message>;
   getMessageById(messageId: bigint): Promise<Message>;
   getChatHistory(params: FindMessagesParams): Promise<Message[]>;
   getLastVisibleMessage(chatId: bigint, userId: string): Promise<Message | undefined>;
   // editMessage(messageId: bigint, userId: string, newText: string): Promise<Message>;
-  updateMessageStatus(messageId: bigint, status: MessageStatus): Promise<Message>;
-  markMessagesAsRead(chatId: bigint, userId: string, upToMessageId: bigint): Promise<void>;
+  updateMessageStatus(
+    messageId: bigint,
+    userId: string,
+    status: MessageStatus
+  ): Promise<Message | undefined>;
+  markAllChatMessagesAsRead(chatId: bigint, userId: string): Promise<boolean>;
   deleteMessageForSelf(messageId: bigint, userId: string): Promise<void>;
   deleteMessageForAll(messageId: bigint, userId: string): Promise<Message>;
 }
@@ -45,7 +49,7 @@ export const createMessageService = (messageRepo: MessageRepository): MessageSer
         createdAt: now,
         status: 'SENT',
         replyToId: input.replyToId ?? null,
-        attachments: input.attachments ?? [],
+        attachments: input.attachments ?? undefined,
         deletedBy: [],
         readBy: [input.senderId], // Отправитель по умолчанию уже прочитал свое сообщение
       });
@@ -101,17 +105,24 @@ export const createMessageService = (messageRepo: MessageRepository): MessageSer
     // },
 
     // MARK: updateMessageStatus
-    async updateMessageStatus(messageId: bigint, status: MessageStatus): Promise<Message> {
-      const updated = await messageRepo.updateStatus(messageId, status);
-      if (!updated) {
-        throw new NotFoundError('Message', messageId.toString());
+    async updateMessageStatus(
+      messageId: bigint,
+      userId: string,
+      status: MessageStatus
+    ): Promise<Message | undefined> {
+      if (status === 'DELIVERED') {
+        return messageRepo.markAsDelivered(messageId, userId);
       }
-      return updated;
+
+      if (status === 'READ') {
+        return messageRepo.markAsRead(messageId, userId);
+      }
+      return;
     },
 
     // MARK: markMessagesAsRead
-    async markMessagesAsRead(chatId: bigint, userId: string, upToMessageId: bigint): Promise<void> {
-      await messageRepo.markManyAsRead(chatId, userId, upToMessageId);
+    async markAllChatMessagesAsRead(chatId: bigint, userId: string): Promise<boolean> {
+      return messageRepo.markAllChatMessagesAsRead(chatId, userId);
     },
 
     // MARK: deleteMessageForSelf

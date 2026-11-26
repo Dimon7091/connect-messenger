@@ -22,24 +22,34 @@ export type WSEventType =
   | 'pong';
 
 export interface MessageNewPayload {
-  id: string;
-  chatId: string;
-  chat?: Chat;
-  senderId: string;
-  receiverId: string;
-  text: string;
-  timestamp: string; // По умолчанию NOW()
-  createdAt: string;
-  status: 'SENT' | 'DELIVERED' | 'READ' | 'FAILED';
-  deletedAt?: Date | null;
-  attachments?: Attachment[];
-  replyToId?: string | null;
-  readBy?: string | null;
-
-  replyContext?: {
-    senderName: string;
-    textSnippet: string;
-    originalMessageId: string;
+  chat: {
+    id: string;
+    type: string;
+    participants: string[];
+    unreadCount: number | null;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: string;
+    lastMessage: string | null;
+  };
+  message: {
+    id: string;
+    chatId: string;
+    createdAt: string;
+    senderId: string;
+    receiverId: string;
+    text: string | null;
+    timestamp: string;
+    status: 'SENT' | 'DELIVERED' | 'READ' | 'FAILED';
+    replyToId?: string | null;
+    attachments?: Attachment[];
+    deletedBy: string[];
+    readBy?: string[] | null;
+    replyContext?: {
+      originalMessageId: string;
+      senderName: string;
+      textSnippet: string;
+    } | null;
   };
 }
 
@@ -54,6 +64,20 @@ export interface SentMessagePayloand {
   timestamp: string;
   attachments?: Attachment[];
   replyToId?: string | null | undefined;
+}
+
+// Ответ от сервера на message_sent (MessageSentResponseSchema)
+export interface MessageSentResponse {
+  messageId: string; // временный ID от клиента
+  serverMessageId: string; // UUID из БД
+  status: 'SENT' | 'FAILED' | 'DELIVERED' | 'READ';
+  timestamp: string;
+  chatId?: string;
+  senderId?: string;
+  receiverId?: string;
+  text?: string;
+  attachments?: Attachment[];
+  replyToId?: string | null;
 }
 
 export interface MessageDeliveredPayload {

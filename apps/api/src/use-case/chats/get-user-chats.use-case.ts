@@ -17,8 +17,8 @@ export function createGetUserChatsUseCase(deps: { chatService: ChatService }) {
           type: chat.type,
           participants: participantsIds,
           unreadCount: 0,
-          createdAt: chat.createdAt,
-          updatedAt: chat.updatedAt,
+          createdAt: chat.createdAt.toISOString(),
+          updatedAt: chat.updatedAt.toISOString(),
           createdBy: chat.createdBy,
           lastMessage: chat.lastMessage,
         });

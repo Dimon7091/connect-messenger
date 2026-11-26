@@ -7,19 +7,26 @@ import { useUserStore } from '@/stores/userStore';
 import type { Message, Chat } from '@/types/index';
 import { useChatStore } from '@/stores/chatStore';
 import type {
-  WSEventType,
   SentMessagePayloand,
-  MessageDeliveredPayload,
-  MessageNewPayload,
-  MessageReadPayload,
   TypingPayload,
   ErrorPayload,
   ConnectionPayload,
   ChatHistoryClearedResponse,
   UserStatusPayload,
-  UserStatusRequest,
-  AllMessagesReadPayload,
+  MessageSentResponse,
 } from '@/types/websocket.types';
+import type {
+  AllMessagesReadRequest,
+  AllMessagesReadResponse,
+  MessageDeliveredRequest,
+  MessageDeliveredResponse,
+  MessageNewResponse,
+  MessageReadRequest,
+  MessageReadResponse,
+  SendMessageRequest,
+  TypingRequest,
+  TypingResponse,
+} from '@messenger/shared-schema';
 
 export const useWebSocketStore = defineStore('websocket', () => {
   // === State ===
@@ -243,50 +250,52 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
     // Подписка на новые сообщения
     wsClient.on('message_new', (payload: unknown) => {
-      const data = payload as MessageNewPayload;
+      const data = payload as MessageNewResponse;
       console.log('📨 New message received:', data);
 
-      if (data.chat) {
+      // Сервер присылает { chat: {...}, message: {...} } согласно MessageNewResponseSchema
+      const { chat: chatData, message: messageData } = data;
+
+      if (chatData) {
         const newChat: Chat = {
-          id: data.chat.id,
-          type: data.chat.type,
-          participants: data.chat.participants,
-          unreadCount: data.chat.unreadCount ?? '1',
-          lastMessage: data.chat.lastMessage,
-          createdAt: data.chat.createdAt,
-          updatedAt: data.chat.updatedAt,
+          id: chatData.id,
+          type: chatData.type,
+          participants: chatData.participants,
+          unreadCount: chatData.unreadCount,
+          lastMessage: chatData.lastMessage ?? '',
+          createdAt: chatData.createdAt,
+          updatedAt: chatData.updatedAt,
         };
-        if (chatStore.hasChat(data.chat.id)) {
-          console.log('✅ Чат существует, обновляем существующий:', data.chat);
-          chatStore.updateChatLocally(data.chat.id, {
-            unreadCount: data.chat.unreadCount,
-            lastMessage: data.chat.lastMessage || '',
-            updatedAt: data.chat.updatedAt,
+        if (chatStore.hasChat(chatData.id)) {
+          console.log('✅ Чат существует, обновляем существующий:', chatData);
+          chatStore.updateChatLocally(chatData.id, {
+            unreadCount: chatData.unreadCount,
+            lastMessage: chatData.lastMessage || '',
+            updatedAt: chatData.updatedAt,
           });
         } else {
-          console.log('✅ Чат не существует, добавляем чат:', data.chat);
+          console.log('✅ Чат не существует, добавляем чат:', chatData);
           chatStore.addChat(newChat);
         }
       }
 
       const processedMessage: Message = {
-        id: data.id,
-        chatId: data.chatId,
-        senderId: data.senderId,
-        receiverId: data.receiverId,
-        text: data.text,
-        timestamp: data.timestamp,
-        createdAt: data.createdAt,
-        status: data.status.toLowerCase() as 'SENT' | 'DELIVERED' | 'READ' | 'FAILED',
-        deletedAt: data.deletedAt ? new Date(data.deletedAt) : undefined,
-        attachments: data.attachments,
-        replyToId: data.replyToId,
-        replyContext: data.replyContext,
-        readBy: data.readBy,
+        id: messageData.id,
+        chatId: messageData.chatId,
+        senderId: messageData.senderId,
+        receiverId: messageData.receiverId,
+        text: messageData.text ?? '',
+        timestamp: messageData.timestamp,
+        createdAt: messageData.createdAt,
+        status: messageData.status.toLowerCase() as 'SENT' | 'DELIVERED' | 'READ' | 'FAILED',
+        attachments: messageData.attachments ?? undefined,
+        replyToId: messageData.replyToId ?? null,
+        replyContext: messageData.replyContext ?? undefined,
+        readBy: messageData.readBy?.join(',') ?? null,
       };
 
       messageStore.addMessage(processedMessage.chatId, processedMessage);
-      console.log('✅ Отправляем подтверждение доставки сообщения:', data.chat);
+      console.log('✅ Отправляем подтверждение доставки сообщения:', processedMessage.chatId);
       markAsDelivered(processedMessage.chatId, processedMessage.id);
 
       messageNewCallbacks.value.forEach(cb => {
@@ -299,7 +308,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
     });
 
     wsClient.on('message_delivered', (payload: unknown) => {
-      const data = payload as MessageDeliveredPayload;
+      const data = payload as MessageDeliveredResponse;
       console.log('✅ Message delivered:', data);
       messageStore.markAsDelivered(data.chatId, data.messageId);
       if (pendingMessages.value.has(data.messageId)) {
@@ -308,14 +317,14 @@ export const useWebSocketStore = defineStore('websocket', () => {
     });
 
     wsClient.on('message_read', (payload: unknown) => {
-      const data = payload as MessageReadPayload;
+      const data = payload as MessageReadResponse;
       console.log('👁️ Message read:', data);
       messageStore.markAsRead(data.chatId, data.messageId);
       chatStore.decrementChatUnreadCountLocally(data.chatId);
     });
 
     wsClient.on('all_messages_read', (payload: unknown) => {
-      const data = payload as AllMessagesReadPayload;
+      const data = payload as AllMessagesReadResponse;
       console.log('👁️ AllMessages read:', data);
       messageStore.markAllAsRead(data.chatId, userStore.user?.id!);
       chatStore.clearChatUnreadCountLocally(data.chatId);
@@ -367,19 +376,19 @@ export const useWebSocketStore = defineStore('websocket', () => {
     });
 
     wsClient.on('typing_start', (payload: unknown) => {
-      const data = payload as TypingPayload;
+      const data = payload as TypingResponse;
       console.log('✏️ User typing:', data);
-      updateTypingStatus(data.chatId, data.userId, true);
+      updateTypingStatus(data.chatId, data.targetUserId, true);
     });
 
     wsClient.on('typing_stop', (payload: unknown) => {
-      const data = payload as TypingPayload;
+      const data = payload as TypingResponse;
       console.log('✏️ User stopped typing:', data);
-      updateTypingStatus(data.chatId, data.userId, false);
+      updateTypingStatus(data.chatId, data.targetUserId, false);
     });
 
     wsClient.on('message_sent', (payload: unknown) => {
-      const data = payload as SentMessagePayloand;
+      const data = payload as MessageSentResponse;
       console.log('📤 Message sent confirmation:', data);
       if (pendingMessages.value.has(data.messageId)) {
         const pending = pendingMessages.value.get(data.messageId)!;
@@ -388,7 +397,8 @@ export const useWebSocketStore = defineStore('websocket', () => {
       }
       messageSentCallbacks.value.forEach(cb => {
         try {
-          cb(data);
+          // Преобразуем ответ сервера в формат, который ожидают колбэки
+          cb(data as unknown as SentMessagePayloand);
         } catch (error) {
           console.error('Error in message_sent callback:', error);
         }
@@ -467,17 +477,15 @@ export const useWebSocketStore = defineStore('websocket', () => {
       receiverId,
     });
 
-    const payload: SentMessagePayloand = {
+    const payload: SendMessageRequest = {
       chatId: chatId,
       messageId: message.id,
       senderId: userStore.user?.id ?? '',
       receiverId: receiverId,
-      serverMessageId: '',
       text: message.text,
-      status: 'SENT',
       timestamp:
         typeof message.timestamp === 'string' ? message.timestamp : new Date().toISOString(),
-      attachments: message.attachments,
+      attachments: message.attachments ?? undefined,
       replyToId: replyToId || null,
     };
 
@@ -487,7 +495,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
   const markAsRead = (chatId: string, messageId: string): void => {
     if (!isConnected.value) return;
-    const payload: MessageReadPayload = {
+    const payload: MessageReadRequest = {
       chatId,
       messageId,
       userId: userStore.user?.id || '',
@@ -497,7 +505,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
   const markAllAsRead = (chatId: string): void => {
     if (!isConnected.value) return;
-    const payload: AllMessagesReadPayload = {
+    const payload: AllMessagesReadRequest = {
       chatId,
     };
     wsClient.send('all_messages_read', payload);
@@ -505,7 +513,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
   const markAsDelivered = (chatId: string, messageId: string): void => {
     if (!isConnected.value) return;
-    const payload: MessageDeliveredPayload = {
+    const payload: MessageDeliveredRequest = {
       chatId,
       messageId,
       userId: userStore.user?.id || '',
@@ -513,7 +521,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
     wsClient.send('message_delivered', payload);
   };
 
-  const sendTyping = (chatId: string, isTyping: boolean): void => {
+  const sendTyping = (chatId: string, receiverId: string, isTyping: boolean): void => {
     if (!isConnected.value) return;
 
     if (isTyping) {
@@ -527,9 +535,9 @@ export const useWebSocketStore = defineStore('websocket', () => {
       (window as any).__lastTypingTime[chatId] = Date.now();
     }
 
-    const payload: TypingPayload = {
-      chatId: chatId.toString(),
-      userId: userStore.user?.id || '',
+    const payload: TypingRequest = {
+      chatId: chatId,
+      receiverId: receiverId,
     };
     wsClient.send(isTyping ? 'typing_start' : 'typing_stop', payload);
   };

@@ -9,11 +9,11 @@ export const MessageAttachmentSchema = z.object({
   fileKey: z.string().min(1),
   mimeType: z.string().min(1),
   fileName: z.string().min(1),
-  size: z.string().min(1),
+  size: z.number(),
 });
 
 export const ReplyContextSchema = z.object({
-  originalMessageId: TsidOutputSchema,
+  originalMessageId: z.string(),
   senderName: z.string(),
   textSnippet: z.string(),
 });
@@ -36,8 +36,8 @@ export const MessagesDeletedRequestSchema = z.object({
 });
 
 export const MessageDeletedResponseSchema = z.object({
-  chatId: z.string(),
-  deletedMessagesIds: z.array(z.string()),
+  chatId: TsidOutputSchema,
+  deletedMessagesIds: z.array(TsidOutputSchema),
   chatUpdatedAt: z.coerce.date(),
   unreadCount: z.number().int().nullable(),
   lastMessage: z.string().nullable(),
@@ -46,16 +46,16 @@ export const MessageDeletedResponseSchema = z.object({
 export const MessageResponseSchema = z.object({
   id: z.string(),
   chatId: z.string(),
-  createdAt: z.coerce.date(),
-  senderId: z.string(),
-  receiverId: z.string(),
+  createdAt: z.string(),
+  senderId: UuidSchema,
+  receiverId: UuidSchema,
   text: z.string().nullish(),
-  timestamp: z.coerce.date(),
+  timestamp: z.string(),
   status: MessageStatusSchema,
   replyToId: z.string().nullish(),
   attachments: z.array(MessageAttachmentSchema).nullish(),
-  deletedBy: z.array(z.string()),
-  readBy: z.array(z.string()).nullish(),
+  deletedBy: z.array(UuidSchema),
+  readBy: z.array(UuidSchema).nullish(),
   replyContext: ReplyContextSchema.nullish(),
 });
 
@@ -68,7 +68,7 @@ export const MessageSentResponseSchema = z.object({
   messageId: z.string(),
   serverMessageId: TsidOutputSchema,
   status: MessageStatusSchema,
-  timestamp: z.coerce.date(),
+  timestamp: z.string(),
 });
 
 export const MessageDeliveredRequestSchema = z.object({
@@ -78,9 +78,8 @@ export const MessageDeliveredRequestSchema = z.object({
 });
 
 export const MessageDeliveredResponseSchema = z.object({
-  messageId: TsidOutputSchema,
-  chatId: TsidOutputSchema,
-  userId: UuidSchema,
+  messageId: z.string(),
+  chatId: z.string(),
 });
 
 export const MessageReadRequestSchema = z.object({
@@ -90,9 +89,8 @@ export const MessageReadRequestSchema = z.object({
 });
 
 export const MessageReadResponseSchema = z.object({
-  messageId: TsidOutputSchema,
-  chatId: TsidOutputSchema,
-  userId: UuidSchema,
+  messageId: z.string(),
+  chatId: z.string(),
 });
 
 export const MarkMessageAsDeliveredRequestSchema = z.object({
@@ -110,23 +108,36 @@ export const AllMessagesReadRequestSchema = z.object({
 });
 
 export const AllMessagesReadResponseSchema = z.object({
-  chatId: TsidOutputSchema,
+  chatId: z.string(),
+});
+
+export const TypingRequestSchema = z.object({
+  chatId: TsidInputSchema,
+  receiverId: UuidSchema,
+});
+
+export const TypingResponseSchema = z.object({
+  chatId: z.string(),
+  targetUserId: z.string(),
 });
 
 export type ReplyContext = z.infer<typeof ReplyContextSchema>;
+export type TypingRequest = z.input<typeof TypingRequestSchema>;
+export type TypingResponse = z.infer<typeof TypingResponseSchema>;
 export type MessageNewResponse = z.infer<typeof MessageNewResponseSchema>;
 export type MessageStatus = z.infer<typeof MessageStatusSchema>;
 export type MessageSentResponse = z.infer<typeof MessageSentResponseSchema>;
 export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 export type MessageResponse = z.infer<typeof MessageResponseSchema>;
-export type MessageDeliveredRequest = z.infer<typeof MessageDeliveredRequestSchema>;
+export type MessageDeliveredRequest = z.input<typeof MessageDeliveredRequestSchema>;
 export type MessageDeliveredResponse = z.infer<typeof MessageDeliveredResponseSchema>;
-export type SendMessageRequest = z.infer<typeof SendMessageRequestSchema>;
-export type MessageReadRequest = z.infer<typeof MessageReadRequestSchema>;
+export type SendMessageRequest = z.input<typeof SendMessageRequestSchema>;
+export type SendMessageDto = z.infer<typeof SendMessageRequestSchema>;
+export type MessageReadRequest = z.input<typeof MessageReadRequestSchema>;
 export type MessageReadResponse = z.infer<typeof MessageReadResponseSchema>;
 export type MessagesDeletedRequest = z.infer<typeof MessagesDeletedRequestSchema>;
 export type MessageDeletedResponse = z.infer<typeof MessageDeletedResponseSchema>;
-export type AllMessagesReadRequest = z.infer<typeof AllMessagesReadRequestSchema>;
+export type AllMessagesReadRequest = z.input<typeof AllMessagesReadRequestSchema>;
 export type AllMessagesReadResponse = z.infer<typeof AllMessagesReadResponseSchema>;
 export type MarkMessageAsDeliveredRequest = z.infer<typeof MarkMessageAsDeliveredRequestSchema>;
 export type MarkMessageAsReadRequest = z.infer<typeof MarkMessageAsReadRequestSchema>;

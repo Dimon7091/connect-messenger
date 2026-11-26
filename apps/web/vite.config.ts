@@ -23,7 +23,7 @@ export default defineConfig({
       filename: 'firebase-messaging-sw.ts',
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: 'module',
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
@@ -67,7 +67,7 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/ws': {
-        target: `http://${TARGET_HOST}:8081`,
+        target: `http://${TARGET_HOST}:8080`,
         ws: true,
         changeOrigin: true,
         rewrite: path => path,

@@ -74,12 +74,12 @@ export const chatsRoutes: FastifyPluginAsync = async app => {
         const { limit } = request.query;
         const { beforeTimestamp } = request.query;
 
-        const response = await getChatHistoryUseCase.getChatHistory({
+        const response = await getChatHistoryUseCase.getChatHistory(
           chatId,
           userId,
-          beforeTimestamp,
           limit,
-        });
+          beforeTimestamp
+        );
         return reply.code(200).send(response);
       }
     );

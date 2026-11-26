@@ -332,16 +332,22 @@ export const useMessageStore = defineStore('message', () => {
   const markAllAsRead = (chatId: string, currentUserId: string): void => {
     const chatMessages = messagesMap.value[chatId];
     if (!chatMessages) return;
+
     let hasChanges = false;
-    const updatedMessages = chatMessages.map(m => {
-      if (m.senderId !== currentUserId && m.status !== 'READ' && !m.deletedAt) {
+
+    const updatedMessages = chatMessages.map(msg => {
+      const shouldMarkAsRead = msg.status !== 'READ' && !msg.deletedAt;
+
+      if (shouldMarkAsRead) {
         hasChanges = true;
-        return { ...m, status: 'READ' as const };
+        return { ...msg, status: 'READ' as const };
       }
-      return m;
+
+      return msg;
     });
+
     if (hasChanges) {
-      messagesMap.value = { ...messagesMap.value, [chatId]: updatedMessages };
+      messagesMap.value[chatId] = updatedMessages;
       console.log(`👁️ All messages in chat ${chatId} marked as read`);
     }
   };

@@ -11,21 +11,21 @@ export const CreateOrGetChatSchema = z.object({
 });
 
 export const ChatHistoryQuerySchema = z.object({
-  chatId: TsidInputSchema,
-  userId: UuidSchema,
-  limit: z.number().optional(),
-  beforeTimestamp: z.date(),
+  limit: z.coerce.number().int(),
+  beforeTimestamp: z.date().optional(),
 });
+
+export const ChatType = z.enum(['DIRECT', 'GROUP']);
 
 export const ChatResponseSchema = z.object({
   id: z.string(),
-  type: z.string(),
+  type: ChatType,
   participants: z.array(z.string()),
   unreadCount: z.number().int(),
   lastMessage: z.string().nullish(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-  createdBy: z.uuid(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  createdBy: UuidSchema,
 });
 
 export type CreateOrGetDto = z.infer<typeof CreateOrGetChatSchema>;
