@@ -12,7 +12,10 @@ export const CreateOrGetChatSchema = z.object({
 
 export const ChatHistoryQuerySchema = z.object({
   limit: z.coerce.number().int(),
-  beforeTimestamp: z.date().optional(),
+  beforeTimestamp: z.iso
+    .datetime()
+    .transform(val => new Date(val))
+    .optional(),
 });
 
 export const ChatType = z.enum(['DIRECT', 'GROUP']);

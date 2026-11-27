@@ -115,7 +115,7 @@ export const useMessageStore = defineStore('message', () => {
     }
   };
 
-  const loadMoreMessages = async (chatId: string, limit: number = 30): Promise<void> => {
+  const loadMoreMessages = async (chatId: string, limit: number = 50): Promise<void> => {
     const paginationInfo = paginationMap.value[chatId];
     if (!paginationInfo?.hasMore) return;
     if (isLoading(chatId)) return;

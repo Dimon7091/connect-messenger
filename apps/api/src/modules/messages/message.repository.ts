@@ -69,21 +69,22 @@ export const createMessageRepository = (getDb: () => DbOrTx): MessageRepository 
 
     const conditions = [
       eq(messagesTable.chatId, chatId),
+      or(eq(messagesTable.senderId, userId), eq(messagesTable.receiverId, userId)),
       sql`NOT (COALESCE(${messagesTable.deletedBy}, '[]'::jsonb) @> ${JSON.stringify([userId])}::jsonb)`,
     ];
 
     if (beforeTimestamp !== undefined) {
-      conditions.push(lt(messagesTable.createdAt, beforeTimestamp));
+      const dateValue =
+        beforeTimestamp instanceof Date ? beforeTimestamp : new Date(beforeTimestamp);
+      conditions.push(lt(messagesTable.createdAt, dateValue));
     }
 
-    const rows = await getDb()
+    return await getDb()
       .select()
       .from(messagesTable)
       .where(and(...conditions))
-      .orderBy(desc(messagesTable.createdAt), desc(messagesTable.id))
+      .orderBy(desc(messagesTable.createdAt))
       .limit(safeLimit);
-
-    return rows.reverse();
   },
 
   // MARK: findLastVisibleMessage
